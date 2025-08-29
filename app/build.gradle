@@ -21,7 +21,7 @@ android {
     externalNativeBuild {
         cmake {
             version '3.22.1'
-            path file('src/main/cpp/CMakeLists.txt')  // 根据你本地安装的 CMake 版本设置
+            path file('src/main/cpp/CMakeLists.txt')
         }
     }
     ndkVersion '27.0.12077973'

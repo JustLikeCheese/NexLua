@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.nexlua"
-    android:versionCode="50020"
-    android:versionName="5.0.20">
+    android:versionCode="1"
+    android:versionName="1">
 
     <uses-permission android:name="android.permission.SEND_SMS"
         tools:ignore="PermissionImpliesUnsupportedChromeOsHardware" />
@@ -56,13 +56,12 @@
         android:icon="@drawable/icon"
         android:label="NexLua"
         android:largeHeap="true"
-        android:persistent="true"
         android:resizeableActivity="true"
         android:supportsPictureInPicture="true"
         tools:targetApi="24">
         <activity
             android:name="com.nexlua.Welcome"
-            android:theme="@style/AppTheme"
+            android:theme="@android:style/Theme.Material.Light"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
