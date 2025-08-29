@@ -5,8 +5,9 @@ project(nexlua)
 
 # 要编译成 PIE（Android 5.0+ 默认），并使用 Position Independent Code
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -flto")
 
 # 确保通过 Gradle externalNativeBuild 调用：
 if(NOT DEFINED ANDROID_ABI)
