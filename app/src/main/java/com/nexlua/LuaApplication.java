@@ -9,15 +9,12 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 import com.luajava.Lua;
-import com.luajava.luajit.LuaJit;
 import com.luajava.value.LuaTableValue;
 import com.luajava.value.LuaValue;
 
 import java.io.File;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,7 +52,7 @@ public class LuaApplication extends Application implements LuaContext {
             if (clazz != null) {
                 initializeLua();
                 LuaModule module = (LuaModule) clazz.newInstance();
-                module.run(this);
+                doModule(module, luaFile.getPath());
             } else if (luaFile.exists()) {
                 initializeLua();
                 L.load(LuaUtil.readFileBuffer(luaFile), luaFile.getPath());

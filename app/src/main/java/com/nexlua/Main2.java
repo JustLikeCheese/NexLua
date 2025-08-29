@@ -1,16 +1,14 @@
 package com.nexlua;
 
-import com.luajava.value.LuaValue;
+import java.nio.Buffer;
 
 public class Main2 implements LuaModule {
-    public LuaValue[] run(LuaContext luaContext, LuaValue... args) {
-        LuaActivity activity = (LuaActivity) luaContext;
-        activity.doString("print('Hello from Java')" +
-                "function main(code)\n" +
+    public Buffer load(LuaContext luaContext) {
+        String code = "function main(code)\n" +
                 "    if code ~= nil then\n" +
                 "        load(code)()\n" +
                 "    end\n" +
-                "end", getClass().getSimpleName());
-        return new LuaValue[0];
+                "end";
+        return LuaModule.toBuffer(code);
     }
 }

@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class LuaConfig {
-    public static final int APP_THEME = R.style.AppTheme;
-    public static final int WELCOME_THEME = R.style.AppTheme;
+    public static final int APP_THEME = android.R.style.Theme_Material_Light;
+    public static final int WELCOME_THEME = android.R.style.Theme_Material_Light;
     // 在 Welcome 启动时申请的权限
     public static final String[] REQUIRED_PERMISSIONS_IN_WELCOME = new String[]{
             Manifest.permission.INTERNET,

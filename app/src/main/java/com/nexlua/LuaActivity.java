@@ -8,8 +8,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.AssetFileDescriptor;
-import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.os.Build;
@@ -17,7 +15,6 @@ import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.os.StrictMode;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -31,7 +28,6 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toolbar;
 
 import com.luajava.Lua;
 import com.luajava.LuaException;
@@ -39,10 +35,6 @@ import com.luajava.luajit.LuaJit;
 import com.luajava.value.LuaValue;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
 public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnReceiveListener, LuaContext {
@@ -148,11 +140,9 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         if (luaPath.startsWith(filesPath)) {
             String temp = luaPath.substring(filesPath.length());
             Class<?> clazz = LuaConfig.LUA_DEX_MAP.get(temp);
-            Log.i("FUCK", String.valueOf(clazz));
             if (clazz != null) {
                 LuaModule module = (LuaModule) clazz.newInstance();
-                module.run(this);
-                Log.i("FUCK", "fuck");
+                doModule(module, luaPath);
             } else {
                 doFile(getLuaFile());
             }
@@ -194,6 +184,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
             array.recycle();
             // 初始化控件
             consoleLayout = new LinearLayout(this);
+            consoleLayout.setFitsSystemWindows(true);
             ListView listView = new ListView(this);
             listView.setFastScrollEnabled(true);
             listView.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
@@ -310,7 +301,8 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState, PersistableBundle persistentState) {
         super.onRestoreInstanceState(savedInstanceState, persistentState);
-        if (mOnRestoreInstanceState != null) mOnRestoreInstanceState.call(savedInstanceState, persistentState);
+        if (mOnRestoreInstanceState != null)
+            mOnRestoreInstanceState.call(savedInstanceState, persistentState);
     }
 
     @Override
@@ -424,56 +416,6 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
             setTaskDescription(new ActivityManager.TaskDescription(title.toString()));
     }
 
-    // 运行lua脚本
-    public void doString(String code, String name, Object... args) {
-        doString(code.getBytes(), name, args);
-    }
-
-    public void doString(byte[] bytes, String name, Object... arg) {
-        ByteBuffer directBuffer = ByteBuffer.allocateDirect(bytes.length);
-        directBuffer.put(bytes);
-        directBuffer.flip();
-        doString(directBuffer, name, arg);
-    }
-
-    public void doString(ByteBuffer directBuffer, String name, Object... args) {
-        synchronized (L) {
-            final int oldTop = L.getTop();
-            try {
-                L.load(directBuffer, name);
-                if (args != null) {
-                    for (Object arg : args) L.push(arg, Lua.Conversion.SEMI);
-                    L.pCall(args.length, 0);
-                } else {
-                    L.pCall(0, 0);
-                }
-            } catch (Exception e) {
-                sendError(e);
-            } finally {
-                L.setTop(oldTop);
-            }
-        }
-    }
-
-    public void doFile(File filePath) {
-        doFile(filePath, new Object[0]);
-    }
-
-    public void doFile(File file, Object... args) {
-        try {
-            doString(LuaUtil.readFileBuffer(file), file.getPath(), args);
-        } catch (IOException e) {
-            sendError(e);
-        }
-    }
-
-    public void doAsset(String name, Object[] args) {
-        try {
-            doString(LuaUtil.readAssetBuffer(name), name, args);
-        } catch (IOException e) {
-            sendError(e);
-        }
-    }
 
     //运行lua函数
     public Object runFunc(String funcName, Object... args) {
@@ -572,9 +514,8 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
                     adapter.notifyDataSetChanged();
                 }
             });
-        } else {
-            showToast(message);
         }
+        showToast(message);
     }
 
     @Override
@@ -594,9 +535,8 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
                     }
                 });
             }
-        } else {
-            showToast(message);
         }
+        showToast(message);
     }
 
     // @formatter:off

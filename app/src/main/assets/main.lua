@@ -29,6 +29,7 @@ end)
 editor.setText("print('hello world')")
 
 layout.setOrientation(LinearLayout.VERTICAL)
+layout.setFitsSystemWindows(true)
 layout.addView(button)
 layout.addView(editor)
 

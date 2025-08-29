@@ -1,7 +1,16 @@
 package com.nexlua;
 
-import com.luajava.value.LuaValue;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public interface LuaModule {
-    LuaValue[] run(LuaContext luaContext, LuaValue...args);
+    Buffer load(LuaContext luaContext);
+    static Buffer toBuffer(String str) {
+        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+        ByteBuffer buffer = ByteBuffer.allocateDirect(bytes.length);
+        buffer.put(bytes);
+        buffer.flip();
+        return buffer;
+    }
 }

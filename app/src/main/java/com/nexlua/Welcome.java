@@ -76,6 +76,7 @@ public class Welcome extends Activity {
                 public void onError(IOException e) {
                 }
             });
+            return;
         }
         startActivity(intent);
         finish();
