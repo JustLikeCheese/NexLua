@@ -232,30 +232,42 @@ static int javaCoding(lua_State *L) {
 }
 
 const luaL_Reg javalib[] = {
-        {"method",  javaMethod},
-        {"new",     javaNew},
-        {"luaify",  javaLuaify},
-        {"import",  javaImport},
-        {"unwrap",  javaUnwrap},
-        {"proxy",   javaProxy},
-        {"array",   javaArray},
-        {"caught",  javaCaught},
-        {"catched", javaCaught},
-        {"detach",  javaDetach},
-        {"loadlib", javaLoadlib},
-        // Luajava API Compatibility
-        {"bindClass",   javaImport},
-        // {"new",         javaNew},
-        {"newInstance", javaNewInstance},
-        {"loadLib",     javaLoadlib},
-        {"createProxy", javaProxy},
-        {"newArray",    javaArray},
+        // NewAPI
+        {"bindClass", javaImport},
+        {"bindMethod", javaMethod},
+        {"luaify", javaLuaify},
+        {"newInstance", javaNew},
+        {"new", javaNew},
         {"createArray", javaCreateArray},
-        {"astable",     javaAsTable},
-        {"tostring",    javaToString},
-        {"coding",      javaCoding},
+        {"createProxy", javaProxy},
+        {"unwrap",  javaUnwrap},
+        {"caught",  javaCaught},
+        {"detach",  javaDetach},
+//
+//        {"method",  javaMethod},
+//        {"new",     javaNew},
+//        {"luaify",  javaLuaify},
+//        {"import",  javaImport},
+//
+//        {"proxy",   javaProxy},
+//        {"array",   javaArray},
+//
+//        {"catched", javaCaught},
+//
+//        {"loadlib", javaLoadlib},
+        // Luajava API Compatibility
+//        {"bindClass",   javaImport},
+//        // {"new",         javaNew},
+//        {"newInstance", javaNewInstance},
+//        {"loadLib",     javaLoadlib},
+//
+//        {"newArray",    javaArray},
+//        {"createArray", javaCreateArray},
+//        {"astable",     javaAsTable},
+//        {"tostring",    javaToString},
+//        {"coding",      javaCoding},
         // {"clear",       gc},
-        {"instanceof",  javaIsInstanceOf},
+//        {"instanceof",  javaIsInstanceOf},
         // {"override",    javaOverride},
         {NULL, NULL}
 };
