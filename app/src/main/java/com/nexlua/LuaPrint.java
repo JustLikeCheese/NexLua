@@ -1,10 +1,10 @@
 package com.nexlua;
 
+import com.luajava.CFunction;
 import com.luajava.Lua;
-import com.luajava.JFunction;
 import com.luajava.LuaException;
 
-public class LuaPrint implements JFunction {
+public class LuaPrint implements CFunction {
     private final LuaContext mLuaContext;
     private final StringBuilder output = new StringBuilder();
 

@@ -31,7 +31,6 @@ import android.widget.TextView;
 
 import com.luajava.Lua;
 import com.luajava.LuaException;
-import com.luajava.luajit.LuaJit;
 import com.luajava.value.LuaValue;
 
 import java.io.File;
@@ -48,7 +47,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     private LuaBroadcastReceiver mReceiver;
     private File luaDir, luaFile;
     private String luaPath, luaLpath, luaCpath;
-    private final Lua L = new LuaJit();
+    private final Lua L = new Lua();
     private LuaApplication app;
     private Menu optionsMenu;
 

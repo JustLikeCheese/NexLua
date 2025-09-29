@@ -115,6 +115,25 @@ public class LuaException extends RuntimeException {
         /**
          * a Java-side error
          */
-        JAVA,
+        JAVA;
+
+        public static LuaError from(int code) {
+            switch (code) {
+                case LuaConsts.LUA_OK:
+                    return LuaException.LuaError.OK;
+                case LuaConsts.LUA_YIELD:
+                    return LuaException.LuaError.YIELD;
+                case LuaConsts.LUA_ERRRUN:
+                    return LuaException.LuaError.RUNTIME;
+                case LuaConsts.LUA_ERRSYNTAX:
+                    return LuaException.LuaError.SYNTAX;
+                case LuaConsts.LUA_ERRMEM:
+                    return LuaException.LuaError.MEMORY;
+                case LuaConsts.LUA_ERRERR:
+                    return LuaException.LuaError.HANDLER;
+                default:
+                    throw new LuaException(LuaException.LuaError.RUNTIME, "Unrecognized error code: " + code);
+            }
+        }
     }
 }

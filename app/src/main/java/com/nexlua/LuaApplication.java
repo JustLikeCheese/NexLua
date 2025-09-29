@@ -11,8 +11,8 @@ import android.os.Build;
 import android.preference.PreferenceManager;
 
 import com.luajava.Lua;
-import com.luajava.value.LuaTableValue;
 import com.luajava.value.LuaValue;
+import com.luajava.value.type.LuaTable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ public class LuaApplication extends Application implements LuaContext {
                 doModule(module, luaFile.getPath());
             } else if (luaFile.exists()) {
                 initializeLua();
-                L.load(LuaUtil.readFileBuffer(luaFile), luaFile.getPath());
+                L.loadBuffer(LuaUtil.readFileBuffer(luaFile), luaFile.getPath());
             } else {
                 return;
             }
@@ -158,10 +158,10 @@ public class LuaApplication extends Application implements LuaContext {
             edit.putFloat(key, (Float) value);
         else if (value instanceof Set)
             edit.putStringSet(key, (Set<String>) value);
-        else if (value instanceof LuaTableValue) {
-            LuaTableValue table = (LuaTableValue) value;
+        else if (value instanceof LuaTable) {
+            LuaTable table = (LuaTable) value;
             HashSet<String> stringSet = new HashSet<>();
-            for (Map.Entry<LuaValue, LuaValue> entry : table.entrySet()) {
+            for (Map.Entry<LuaValue, LuaValue> entry : table.toMap().entrySet()) {
                 LuaValue val = entry.getValue();
                 if (val != null) {
                     stringSet.add((String) val.toJavaObject());

@@ -1,82 +1,40 @@
+// Lua Compatible Header
+
 #ifndef LUACOMP_H
 #define LUACOMP_H
 
-#include "lua.hpp"
+#include "luakit.h"
+#include "jnihelper.h"
 
-#include <cstring>
 
-/**
- * Opens individual libraries when one does not want them all
- */
-static inline void luaJ_openlib_call(lua_State *L, const char *libName, lua_CFunction loader) {
-    lua_pushcfunction(L, loader);
-    lua_pushstring(L, libName);
-    lua_call(L, 1, 0);
-}
+// dump buffer
+typedef struct DumpBuffer {
+    unsigned char *buffer;
+    size_t size;
+    size_t capacity;
+} DumpBuffer;
 
-luaL_Reg allAvailableLibs[] = {
-        {"",              luaopen_base},
-        {"package",       luaopen_package},
-        {"string",        luaopen_string},
-        {"table",         luaopen_table},
-        {"math",          luaopen_math},
-        {"io",            luaopen_io},
-        {"os",            luaopen_os},
-        {"debug",         luaopen_debug},
-        {"ffi",           luaopen_ffi},
-        {"jit",           luaopen_jit},
-        {"bit",           luaopen_bit},
-        {"string.buffer", luaopen_string_buffer},
-        {NULL, NULL},
-};
+// useful function
+LUALIB_API int luaJ_dumptobuffer(lua_State *L, DumpBuffer *buffer);
 
-static void luaJ_openlib(lua_State *L, const char *libName) {
-    const luaL_Reg *lib = allAvailableLibs;
-    for (; lib->func != NULL; lib++) {
-        if (std::strcmp(lib->name, libName) == 0) {
-            luaJ_openlib_call(L, lib->name, lib->func);
-            return;
-        }
-    }
-}
+LUALIB_API int luaJ_dobuffer(lua_State *L, unsigned char *buffer, int size, const char *name);
 
-static int luaJ_compare(lua_State *L, int index1, int index2, int op) {
-    if (op < 0) {
-        return lua_lessthan(L, index1, index2);
-    } else if (op == 0) {
-        return lua_equal(L, index1, index2);
-    } else {
-        return lua_lessthan(L, index1, index2) || lua_equal(L, index1, index2);
-    }
-}
+// wrapper function
+LUALIB_API int luaJ_compare(lua_State *L, int index1, int index2, int op);
 
-static int luaJ_len(lua_State *L, int index) {
-    return lua_objlen(L, index);
-}
+LUALIB_API void luaJ_gc(lua_State *L);
 
-static int luaJ_loadbuffer(lua_State *L, unsigned char *buffer, int size, const char *name) {
-    return luaL_loadbuffer(L, (const char *) buffer, size, name);
-}
+// compatible function
+LUALIB_API const char *luaJ_tolstring(lua_State *L, int idx, size_t *len); // from Lua 5.3
 
-static int luaJ_dobuffer(lua_State *L, unsigned char *buffer, int size, const char *name) {
-    return (luaL_loadbuffer(L, (const char *) buffer, size, name) ||
-            lua_pcall(L, 0, LUA_MULTRET, 0));
-}
+LUALIB_API int luaJ_pushtraceback(lua_State *L);
 
-static int luaJ_resume(lua_State *L, int narg) {
-    return lua_resume(L, narg);
-}
+extern const luaL_Reg allAvailableLibs[];
 
-static int luaJ_initloader(lua_State *L) {
-    return luaJ_insertloader(L, "loaders");
-}
+LUALIB_API void luaJ_openlib_call(lua_State *L, const char *libName, lua_CFunction loader);
 
-static int luaJ_dump(lua_State *L, lua_Writer writer, void *data) {
-    return lua_dump(L, writer, data);
-}
+LUALIB_API void luaJ_openlib(lua_State *L, const char *libName);
 
-static int luaJ_isinteger(lua_State *L, int index) {
-    return 0;
-}
+LUALIB_API int luaJ_pcall(lua_State *L, int nargs, int nresults, int errfunc);
 
-#endif /* !LUACOMP_H */
+#endif // LUACOMP_H

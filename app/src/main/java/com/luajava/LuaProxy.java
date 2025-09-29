@@ -40,11 +40,11 @@ import java.util.Arrays;
  */
 public final class LuaProxy implements InvocationHandler, LuaReferable {
     final int ref;
-    final AbstractLua L;
+    final Lua L;
     private final Lua.Conversion degree;
     private final Class<?>[] interfaces;
 
-    LuaProxy(int ref, AbstractLua L, Lua.Conversion degree, Class<?>[] interfaces) {
+    LuaProxy(int ref, Lua L, Lua.Conversion degree, Class<?>[] interfaces) {
         this.ref = ref;
         this.L = L;
         this.degree = degree;
@@ -109,7 +109,7 @@ public final class LuaProxy implements InvocationHandler, LuaReferable {
         if (methodEquals(method, int.class, "hashCode")) {
             return hashCode();
         }
-        if (methodEquals(method, boolean.class, "equals", Object.class)) {
+        if (methodEquals(method, boolean.class, "equal", Object.class)) {
             return o == objects[0];
         }
         if (methodEquals(method, String.class, "toString")) {
@@ -121,12 +121,17 @@ public final class LuaProxy implements InvocationHandler, LuaReferable {
     public static boolean methodEquals(Method method, Class<?> returnType,
                                        String name, Class<?>... parameters) {
         return method.getReturnType() == returnType
-               && name.equals(method.getName())
-               && Arrays.equals(method.getParameterTypes(), parameters);
+                && name.equals(method.getName())
+                && Arrays.equals(method.getParameterTypes(), parameters);
     }
 
     @Override
-    public int getReference() {
+    public int getRef() {
         return ref;
+    }
+
+    @Override
+    public void unRef() {
+        L.unRef(ref);
     }
 }

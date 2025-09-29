@@ -321,7 +321,7 @@ public abstract class ClassUtils {
 
     static {
         Set<String> methods = new HashSet<>();
-        Collections.addAll(methods, "equals", "hashCode", "toString");
+        Collections.addAll(methods, "equal", "hashCode", "toString");
         OBJECT_METHODS = Collections.unmodifiableSet(methods);
     }
 

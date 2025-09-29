@@ -37,7 +37,7 @@ public class LuaReference<T extends LuaReferable> extends PhantomReference<T> {
 
     public LuaReference(T t, ReferenceQueue<? super T> referenceQueue) {
         super(t, referenceQueue);
-        ref = t.getReference();
+        ref = t.getRef();
     }
 
     /**

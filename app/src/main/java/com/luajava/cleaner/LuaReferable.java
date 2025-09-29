@@ -35,5 +35,10 @@ public interface LuaReferable {
     /**
      * @return a reference obtained with {@link Lua#ref()}, to be used with {@link Lua#unref(int)}
      */
-    int getReference();
+    int getRef();
+
+    /**
+     * Unref the reference
+     */
+    void unRef();
 }

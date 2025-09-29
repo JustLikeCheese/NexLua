@@ -61,33 +61,23 @@ public interface LuaContext {
         Lua L = getLua();
         L.openLibraries();
         // traceback
-        L.traceback(true);
+//        L.traceback(true);
         L.setExternalLoader(new LuaModuleLoader(this));
     }
 
     default void doModule(LuaModule luaModule, String name, Object... args) {
-        doString((ByteBuffer) luaModule.load(this), name, args);
+        Lua lua = getLua();
+        luaModule.load(this);
     }
 
-    default void doString(String code, String name, Object... args) {
-        doString(code.getBytes(), name, args);
-    }
-
-    default void doString(byte[] bytes, String name, Object... arg) {
-        ByteBuffer directBuffer = ByteBuffer.allocateDirect(bytes.length);
-        directBuffer.put(bytes);
-        directBuffer.flip();
-        doString(directBuffer, name, arg);
-    }
-
-    default void doString(ByteBuffer directBuffer, String name, Object... args) {
+    default void doString(ByteBuffer directBuffer, String name, Lua.Conversion degree, Object... args) {
         final Lua L = getLua();
         synchronized (L) {
             final int oldTop = L.getTop();
             try {
-                L.load(directBuffer, name);
+                L.loadBuffer(directBuffer, name);
                 if (args != null) {
-                    for (Object arg : args) L.push(arg, Lua.Conversion.SEMI);
+                    L.pushAll(args, degree);
                     L.pCall(args.length, 0);
                 } else {
                     L.pCall(0, 0);
@@ -105,18 +95,7 @@ public interface LuaContext {
     }
 
     default void doFile(File file, Object... args) {
-        try {
-            doString(LuaUtil.readFileBuffer(file), file.getPath(), args);
-        } catch (IOException e) {
-            sendError(e);
-        }
-    }
-
-    default void doAsset(String name, Object[] args) {
-        try {
-            doString(LuaUtil.readAssetBuffer(name), name, args);
-        } catch (IOException e) {
-            sendError(e);
-        }
+        final Lua L = getLua();
+        L.doFile(file.getPath());
     }
 }

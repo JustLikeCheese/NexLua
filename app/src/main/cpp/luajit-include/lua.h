@@ -297,7 +297,7 @@ LUA_API void lua_setallocf (lua_State *L, lua_Alloc f, void *ud);
 
 
 /* hack */
-LUA_API void lua_setlevel	(lua_State *from, lua_State *to);
+// LUA_API void lua_setlevel	(lua_State *from, lua_State *to);
 
 
 /*

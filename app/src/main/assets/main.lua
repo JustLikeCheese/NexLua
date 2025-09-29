@@ -1,3 +1,9 @@
+local String = luajava.bindClass "java.lang.String"
+print(tostring(String))
+local String2 = luajava.bindClass "java.lang.String"
+print(tostring(String))
+print(String == String2)
+
 local LinearLayout = luajava.bindClass("android.widget.LinearLayout")
 local Button = luajava.bindClass("android.widget.Button")
 local EditText = luajava.bindClass("android.widget.EditText")

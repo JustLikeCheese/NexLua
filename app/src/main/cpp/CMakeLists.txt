@@ -1,17 +1,11 @@
-# app/src/main/cpp/CMakeLists.txt
 cmake_minimum_required(VERSION 3.10)
 
-# project(nexlua C)
-project(nexlua)
-
+project(nexlua C)
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# set(CMAKE_C_STANDARD 99)
-# set(CMAKE_C_STANDARD_REQUIRED ON)
-# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -flto")
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -flto")
 
 # include
 include_directories(
@@ -28,8 +22,14 @@ set_target_properties(luajit PROPERTIES
 )
 
 # add luajava sources
-file(GLOB LUAJAVA_SRC
-        "${CMAKE_CURRENT_SOURCE_DIR}/luajava/com_luajava_luajit_LuaJitNatives.cpp"
+set(LUAJAVA_SRC
+        "${CMAKE_CURRENT_SOURCE_DIR}/luajava/com_luajava_LuaNatives.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/luajava/invokespecial.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/luajava/jnihelper.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/luajava/luacomp.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/luajava/luajava.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/luajava/luajavaapi.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/luajava/luajavacore.c"
 )
 add_library(luajava SHARED ${LUAJAVA_SRC})
 
