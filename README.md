@@ -9,7 +9,7 @@ NexLua 是一个基于 LuaJIT、LuaJava 的高性能框架，针对安卓平台�
 
 ## 项目正在施工
 
-欢迎提交 PR。QQ群: 954264081
+欢迎提交 PR。QQ群: 954264081。TG: https://t.me/NexLua
 
 ## 开发路线
 
