@@ -14,4 +14,5 @@ NexLua 是一个基于 LuaJIT、LuaJava 的高性能框架，针对安卓平台�
 ## 开发路线
 
 - [x] Java 层基础框架
-- [ ] 使用 C++ 重写 Luajava 库，不再委托给 com.luajava.LuaJavaAPI
+- [x] 使用纯 C 重写了 LuaJava 桥
+- [ ] 提升 JNI 性能
