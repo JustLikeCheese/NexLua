@@ -34,7 +34,56 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 // LuaJava Helper
-public abstract class JuaAPI {
+public final class JuaAPI {
+    private static byte getJNIShortSignature(Class<?> c) {
+        if (c.isPrimitive()) {
+            if (c == void.class) return 'V';
+            if (c == boolean.class) return 'Z';
+            if (c == char.class) return 'C';
+            if (c == byte.class) return 'B';
+            if (c == short.class) return 'S';
+            if (c == int.class) return 'I';
+            if (c == long.class) return 'J';
+            if (c == float.class) return 'F';
+            if (c == double.class) return 'D';
+        }
+        return 'L';
+    }
+
+    private static @Nullable String getJNISignature(Class<?> c) {
+        if (c.isPrimitive()) {
+            if (c == int.class) return "I";
+            if (c == long.class) return "J";
+            if (c == boolean.class) return "Z";
+            if (c == double.class) return "D";
+            if (c == float.class) return "F";
+            if (c == byte.class) return "B";
+            if (c == char.class) return "C";
+            if (c == short.class) return "S";
+            if (c == void.class) return "V";
+            return null;
+        }
+        if (c.isArray()) {
+            Class<?> type = c.getComponentType();
+            if (type == null) return null;
+            return "[" + getJNISignature(type);
+        }
+        return "L" + c.getName().replace('.', '/') + ";";
+    }
+
+    public static String getMethodSignature(Method method) {
+        Class<?>[] paramTypes = method.getParameterTypes();
+        int estimatedCapacity = 3 + (paramTypes.length << 1) + 2;
+        StringBuilder sb = new StringBuilder(estimatedCapacity);
+        sb.append('(');
+        for (Class<?> paramType : paramTypes) {
+            sb.append(getJNISignature(paramType));
+        }
+        sb.append(')');
+        sb.append(getJNISignature(method.getReturnType()));
+        return sb.toString();
+    }
+
     public static Field getPublicStaticField(Class<?> clazz, String fieldName) {
         try {
             Field field = clazz.getField(fieldName);
@@ -70,33 +119,48 @@ public abstract class JuaAPI {
         return false;
     }
 
-    // 0=>null, 1=>field, 2=>method, 3=>get/set method
-    public static int jclassIndex(long id, Class<?> clazz, String name) {
-        Lua L = Jua.get(id);
+    public static native long jclassIndexResult(byte type, String name, byte fieldType, Object fieldOrMethod);
+
+    // 0=>null, 1=>field, 2=>method, 3=>get method, 4=>get method(first char to upper case), 5=>get method(first char to lower case)
+    public static long jclassIndex(Class<?> clazz, String name) {
         // Class.staticMethod(XXX)
-        if (hasPublicStaticMethod(clazz, name)) {
-            return 2;
+        if (hasPublicStaticMethod(clazz, name)) { // Method?
+            return jclassIndexResult((byte) 2, name, (byte) 0, null);
         }
         // Class.STATIC_FIELD
         Field field = getPublicStaticField(clazz, name);
         if (field != null) {
-            L.pushJavaObject(field);
-            return 1;
+            // Field, JNIShortSignature
+            byte signature = getJNIShortSignature(field.getType());
+            return jclassIndexResult((byte) 1, name, signature, field);
         }
         // Class.XXX (origin Class.getXXX())
-        Method method;
-        String prefix = name.substring(0, 1);
-        String upperName = "get" + prefix.toUpperCase() + name.substring(1);
-        method = getPublicStaticNoArgsMethod(clazz, upperName);
+        Method method = getPublicStaticNoArgsMethod(clazz, "get" + name);
         if (method != null) {
-            L.pushJavaObject(method);
-            return 3;
+            // Method, JNIShortSignature
+            byte signature = getJNIShortSignature(method.getReturnType());
+            return jclassIndexResult((byte) 3, name, signature, method);
         }
-        String lowerName = "get" + prefix.toLowerCase() + name.substring(1);
-        method = getPublicStaticNoArgsMethod(clazz, lowerName);
-        if (method != null) {
-            L.pushJavaObject(method);
-            return 3;
+        char prefix = name.charAt(0);
+        boolean isLowerCase = Character.isLowerCase(prefix);
+        String suffix = name.substring(1);
+        // Class.getXxx()
+        if (isLowerCase) {
+            Method method1 = getPublicStaticNoArgsMethod(clazz, "get" + Character.toUpperCase(prefix) + suffix);
+            if (method1 != null) {
+                // Method, JNIShortSignature
+                byte signature = getJNIShortSignature(method1.getReturnType());
+                return jclassIndexResult((byte) 4, name, signature, method1);
+            }
+        }
+        // Class.getxXX();
+        if (!isLowerCase) {
+            Method method2 = getPublicStaticNoArgsMethod(clazz, "get" + Character.toLowerCase(prefix) + suffix);
+            if (method2 != null) {
+                // Method, JNIShortSignature
+                byte signature = getJNIShortSignature(method2.getReturnType());
+                return jclassIndexResult((byte) 5, name, signature, method2);
+            }
         }
         return 0;
     }
@@ -128,8 +192,8 @@ public abstract class JuaAPI {
             if (handler instanceof LuaProxy) {
                 LuaProxy proxy = (LuaProxy) handler;
 //                if (proxy.L == L.getMainState()) {
-                    L.refGet(proxy.ref);
-                    return 1;
+                L.refGet(proxy.ref);
+                return 1;
 //                }
 //                L.push("Proxied table is on different states");
             } else {
@@ -148,7 +212,7 @@ public abstract class JuaAPI {
      * Used in <code>jmoduleLoad</code> in <code>jni/luajava/juaapi.cpp</code>
      * </p>
      *
-     * @param id     see {@link AbstractLua#getInstance(int)}
+     * @param id     see {@link Jua#get(long)}
      * @param module the module name
      * @return always 1
      */
@@ -165,8 +229,8 @@ public abstract class JuaAPI {
     /**
      * Loads a Java static method that accepts a single {@link Lua} parameter and returns an integer
      *
-     * @param id     see {@link Lua#getInstance(int)}
-     * @param module the module name, i.e., the class name and the method name joined by a dot
+     * @param id     see {@link Jua#get(long)}
+     * @param module the module name, i.e., the clazz name and the method name joined by a dot
      * @return the number of elements pushed onto the stack
      */
     @SuppressWarnings("unused")
@@ -184,8 +248,8 @@ public abstract class JuaAPI {
     /**
      * Loads a Java static method that accepts a single {@link Lua} parameter and returns an integer
      *
-     * @param id         see {@link Lua#getInstance(int)}
-     * @param className  the class name
+     * @param id         see {@link Jua#get(long)}
+     * @param className  the clazz name
      * @param methodName the method name
      * @return the number of elements pushed onto the stack
      */
@@ -244,7 +308,7 @@ public abstract class JuaAPI {
                 return -1;
             }
         }
-        Object o = L.createProxy(classes.toArray(new Class[0]), Lua.Conversion.SEMI);
+        Object o = L.createProxy(null, Lua.Conversion.SEMI);
         L.pushJavaObject(o);
         return 1;
     }
@@ -252,7 +316,7 @@ public abstract class JuaAPI {
     /**
      * @param L the Lua state
      * @param i the stack position
-     * @return a class converted from the value (jobject, jclass or string) at the stack position
+     * @return a clazz converted from the value (jobject, jclass or string) at the stack position
      */
     private static @Nullable Class<?> looseGetClass(Lua L, int i) {
         if (L.isUserdata(i)) {
@@ -280,7 +344,7 @@ public abstract class JuaAPI {
      * </p>
      *
      * @param id        the lua state id
-     * @param className name of a class or a package
+     * @param className name of a clazz or a package
      * @return the number of values pushed onto the stack
      */
     @SuppressWarnings("unused")
@@ -312,8 +376,7 @@ public abstract class JuaAPI {
     /**
      * Allocates an ID for a thread created on the Lua side
      *
-     * @param mainId the main thread id
-     * @param ptr    the pointer to the lua state who does not have an id
+     * @param ptr the pointer to the lua state who does not have an id
      * @return an allocated id
      */
     @SuppressWarnings("unused")
@@ -347,7 +410,7 @@ public abstract class JuaAPI {
      * </p>
      *
      * <p>
-     * For static fields, use {@link #classIndex(int, Class, String)} instead.
+     * For static fields, use {@link #jclassIndex(Class, String)} instead.
      * </p>
      *
      * @param index  the id of {@link Jua} thread calling this method
@@ -370,7 +433,7 @@ public abstract class JuaAPI {
      * </p>
      *
      * <p>
-     * For static fields, use {@link #classInvoke(int, Class, String, int)} instead.
+     * For static fields, use {@link #classIndex(long, Class, String)} instead.
      * </p>
      *
      * @param index      the id of {@link Jua} thread calling this method
@@ -378,7 +441,7 @@ public abstract class JuaAPI {
      * @param name       the name of the field
      * @param paramCount number of parameters (on the lua stack)
      * @return the number result pushed on stack
-     * @see #methodInvoke(int, Class, Object, String, int)
+     * @see #methodInvoke(Lua, Method, Object, Object[])
      */
     public static int objectInvoke(long index, @NotNull Object obj, @Nullable String name, int paramCount) {
         return methodInvoke(index, obj.getClass(), obj, name, paramCount);
@@ -448,10 +511,10 @@ public abstract class JuaAPI {
     );
 
     /**
-     * Constructs an instance of a class
+     * Constructs an instance of a clazz
      *
      * @param index      the lua state index
-     * @param oClazz     the class ({@link Object} typed to manually handle mismatched types)
+     * @param oClazz     the clazz ({@link Object} typed to manually handle mismatched types)
      * @param paramCount the parameter count
      * @return the number of values pushed onto the stack
      */
@@ -467,7 +530,7 @@ public abstract class JuaAPI {
         }
         if (clazz.isInterface()) {
             try {
-                L.pushJavaObject(L.createProxy(new Class[]{clazz}, Lua.Conversion.SEMI));
+                L.pushJavaObject(L.createProxy(clazz, Lua.Conversion.SEMI));
                 return 1;
             } catch (IllegalArgumentException e) {
                 return L.error(e);
@@ -508,19 +571,19 @@ public abstract class JuaAPI {
     }
 
     /**
-     * Pushes a static field of a class onto the stack
+     * Pushes a static field of a clazz onto the stack
      *
      * <p>Used by <code>jobjectIndex</code> in <code>jni/luajava/luaapi.cpp</code></p>
      *
      * @param index the lua state index
-     * @param clazz the class
+     * @param clazz the clazz
      * @param name  the field name
      * @return the number of values pushed onto the stack
      */
     @SuppressWarnings("unused")
     public static int classIndex(long index, Class<?> clazz, String name) {
         Lua L = Jua.get(index);
-        if (name.equals("class")) {
+        if (name.equals("clazz")) {
             L.pushJavaObject(clazz);
             return 1;
         } else {
@@ -539,10 +602,10 @@ public abstract class JuaAPI {
     }
 
     /**
-     * Invokes a static method of a class
+     * Invokes a static method of a clazz
      *
      * @param index      the lua state index
-     * @param clazz      the class
+     * @param clazz      the clazz
      * @param name       the method name
      * @param paramCount the parameter count
      * @return the number of values pushed onto the stack
@@ -553,10 +616,10 @@ public abstract class JuaAPI {
     }
 
     /**
-     * Invokes a static method of a class
+     * Invokes a static method of a clazz
      *
      * @param index        the lua state index
-     * @param clazz        the class
+     * @param clazz        the clazz
      * @param name         the method name
      * @param notSignature the signature, comma separated
      * @param paramCount   the parameter count
@@ -572,7 +635,7 @@ public abstract class JuaAPI {
      * Assigns to a static field
      *
      * @param index the lua state index
-     * @param clazz the class
+     * @param clazz the clazz
      * @param name  the field name
      * @return the number of values pushed onto the stack
      */
@@ -590,7 +653,7 @@ public abstract class JuaAPI {
      * </p>
      *
      * @param index  the lua state index
-     * @param oClass the class
+     * @param oClass the clazz
      * @param size   the array size
      * @return the number of values pushed onto the stack
      */
@@ -727,7 +790,7 @@ public abstract class JuaAPI {
      * Invokes a method
      *
      * @param index        the lua state index
-     * @param clazz        the class
+     * @param clazz        the clazz
      * @param obj          the object, {@code null} if calling a static method
      * @param name         the method name
      * @param notSignature method signature, comma separated
@@ -891,7 +954,7 @@ public abstract class JuaAPI {
      * Assigns to a field
      *
      * @param index  the lua state index
-     * @param clazz  the class
+     * @param clazz  the clazz
      * @param object the object
      * @param name   the field name
      * @return 0
@@ -970,7 +1033,7 @@ public abstract class JuaAPI {
     /**
      * Find a certain constructor
      *
-     * @param clazz        the class
+     * @param clazz        the clazz
      * @param notSignature the signature, comma separated
      * @return the matching constructor
      */
@@ -991,7 +1054,7 @@ public abstract class JuaAPI {
     /**
      * Find a certain method
      *
-     * @param clazz        the class
+     * @param clazz        the clazz
      * @param name         the name of the method
      * @param notSignature the signature, comma separated
      * @return the matching method
@@ -1060,16 +1123,16 @@ public abstract class JuaAPI {
                 return L.toMap(index);
             } else if (clazz.isInterface() && !clazz.isAnnotation()) {
                 L.pushValue(index);
-                return L.createProxy(new Class[]{clazz}, Lua.Conversion.SEMI);
+                return L.createProxy(clazz, Lua.Conversion.SEMI);
             }
         } else if (type == LuaType.FUNCTION) {
-            String descriptor = ClassUtils.getLuaFunctionalDescriptor(clazz);
+            String descriptor = ClassUtils.getSingleInterfaceMethodName(clazz);
             if (descriptor != null) {
                 L.pushValue(index);
                 L.createTable(0, 1);
                 L.insert(L.getTop() - 1);
                 L.setField(-2, descriptor);
-                return L.createProxy(new Class[]{clazz}, Lua.Conversion.SEMI);
+                return L.createProxy(clazz, Lua.Conversion.SEMI);
             }
         }
         if (clazz.isAssignableFrom(LuaValue.class)) {
@@ -1097,7 +1160,7 @@ public abstract class JuaAPI {
                 return i.longValue();
             } else if (float.class == clazz) {
                 return i.floatValue();
-            } else /* if (double.class == clazz) */ {
+            } else /* if (double.clazz == clazz) */ {
                 return i.doubleValue();
             }
         } else {
@@ -1222,7 +1285,7 @@ public abstract class JuaAPI {
         } else if (clazz.isInterface() && !clazz.isAnnotation()) {
             // 批量转换 View.OnClickListener 等接口
             L.pushValue(index);
-            L.pushJavaObject(L.createProxy(new Class[]{clazz}, Lua.Conversion.SEMI));
+            L.pushJavaObject(L.createProxy(clazz, Lua.Conversion.SEMI));
         }
         return 1;
     }

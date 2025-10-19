@@ -42,9 +42,9 @@ public final class LuaProxy implements InvocationHandler, LuaReferable {
     final int ref;
     final Lua L;
     private final Lua.Conversion degree;
-    private final Class<?>[] interfaces;
+    private final Class<?> interfaces;
 
-    LuaProxy(int ref, Lua L, Lua.Conversion degree, Class<?>[] interfaces) {
+    LuaProxy(int ref, Lua L, Lua.Conversion degree, Class<?> interfaces) {
         this.ref = ref;
         this.L = L;
         this.degree = degree;
@@ -53,11 +53,7 @@ public final class LuaProxy implements InvocationHandler, LuaReferable {
 
     @Override
     public Object invoke(Object object, Method method, Object[] objects) throws Throwable {
-        if (L.shouldSynchronize()) {
-            synchronized (L.getMainState()) {
-                return syncFreeInvoke(object, method, objects);
-            }
-        } else {
+        synchronized (L.getMainState()) {
             return syncFreeInvoke(object, method, objects);
         }
     }
@@ -113,7 +109,7 @@ public final class LuaProxy implements InvocationHandler, LuaReferable {
             return o == objects[0];
         }
         if (methodEquals(method, String.class, "toString")) {
-            return "LuaProxy" + Arrays.toString(interfaces) + "@" + Integer.toHexString(hashCode());
+            return "LuaProxy" + interfaces.toString() + "@" + Integer.toHexString(hashCode());
         }
         throw new LuaException(LuaException.LuaError.JAVA, "method not implemented: " + method);
     }

@@ -317,54 +317,36 @@ public abstract class ClassUtils {
         }
     }
 
-    private final static Set<String> OBJECT_METHODS;
+    private final static Set<String> OBJECT_DEFAULT_METHODS;
 
     static {
         Set<String> methods = new HashSet<>();
-        Collections.addAll(methods, "equal", "hashCode", "toString");
-        OBJECT_METHODS = Collections.unmodifiableSet(methods);
+        Collections.addAll(methods, "equals", "hashCode", "toString");
+        OBJECT_DEFAULT_METHODS = Collections.unmodifiableSet(methods);
     }
 
     /**
      * Returns the method name if the class is considered a functional interface in a wilder sense
      *
-     * @param classes interfaces
+     * @param clazz interface
      * @return {@code null} if not applicable
      */
-    public static @Nullable String getLuaFunctionalDescriptor(Class<?>... classes) {
-        if (allInterfaces(classes)) {
-            Queue<Class<?>> searchQueue = new ArrayDeque<>(1);
-            String name = null;
-            Collections.addAll(searchQueue, classes);
-            while (!searchQueue.isEmpty()) {
-                Class<?> aClass = searchQueue.poll();
-                for (Method m : aClass.getDeclaredMethods()) {
-                    if (Modifier.isAbstract(m.getModifiers())) {
-                        String mName = m.getName();
-                        if (OBJECT_METHODS.contains(mName)) {
-                            continue;
-                        }
-                        if (name == null) {
-                            name = mName;
-                        } else if (!name.equals(mName)) {
-                            return null;
-                        }
-                    }
+    public static @Nullable String getSingleInterfaceMethodName(Class<?> clazz) {
+        if (!clazz.isInterface() || clazz.isAnnotation())
+            return null;
+        String methodName = null;
+        for (Method method : clazz.getMethods()) {
+            if (OBJECT_DEFAULT_METHODS.contains(method.getName()))
+                continue;
+            if (Modifier.isAbstract(method.getModifiers())) {
+                if (methodName == null) {
+                    methodName = method.getName();
+                } else if (!methodName.equals(method.getName())) {
+                    return null;  // More than one abstract method found
                 }
-                Collections.addAll(searchQueue, aClass.getInterfaces());
-            }
-            return name;
-        }
-        return null;
-    }
-
-    private static boolean allInterfaces(Class<?>[] classes) {
-        for (Class<?> c : classes) {
-            if (!c.isInterface() || c.isAnnotation()) {
-                return false;
             }
         }
-        return true;
+        return methodName;
     }
 
     private static final Method IS_DEFAULT;

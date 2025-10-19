@@ -1064,79 +1064,28 @@ public class Lua {
         }
     }
 
-    public void openLibrary(Library... libraries) {
-        for (Library library : libraries) {
-            switch (library) {
-                case LUALIB_BASE:
-                    C.luaopen_base(L);
-                    break;
-                case LUALIB_MATH:
-                    C.luaopen_math(L);
-                    break;
-                case LUALIB_STRING:
-                    C.luaopen_string(L);
-                    break;
-                case LUALIB_TABLE:
-                    C.luaopen_table(L);
-                    break;
-                case LUALIB_IO:
-                    C.luaopen_io(L);
-                    break;
-                case LUALIB_OS:
-                    C.luaopen_os(L);
-                    break;
-                case LUALIB_PACKAGE:
-                    C.luaopen_package(L);
-                    break;
-                case LUALIB_DEBUG:
-                    C.luaopen_debug(L);
-                    break;
-                case LUALIB_BIT:
-                    C.luaopen_bit(L);
-                    break;
-                case LUALIB_JIT:
-                    C.luaopen_jit(L);
-                    break;
-                case LUALIB_FFI:
-                    C.luaopen_ffi(L);
-                    break;
-                case LUALIB_STRING_BUFFER:
-                    C.luaopen_string_buffer(L);
-                    break;
-            }
-        }
-    }
-
-    public Object createProxy(Class<?>[] interfaces, Conversion degree)
-            throws IllegalArgumentException {
-        if (interfaces.length >= 1) {
-            switch (Objects.requireNonNull(type(-1))) {
-                case FUNCTION:
-                    String name = ClassUtils.getLuaFunctionalDescriptor(interfaces);
-                    if (name == null) {
-                        pop(1);
-                        throw new IllegalArgumentException("Unable to merge interfaces into a functional one");
-                    }
-                    createTable(0, 1);
-                    insert(getTop() - 1);
-                    setField(-2, name);
-                    // Fall through
-                case TABLE:
-                    try {
-                        LuaProxy proxy = new LuaProxy(ref(), this, degree, interfaces);
-                        recordedReferences.put(proxy.getRef(),
-                                new LuaReference<>(proxy, recyclableReferences));
-                        return Proxy.newProxyInstance(
-                                ClassUtils.getDefaultClassLoader(),
-                                interfaces,
-                                proxy
-                        );
-                    } catch (Throwable e) {
-                        throw new IllegalArgumentException(e);
-                    }
-                default:
-                    break;
-            }
+    public Object createProxy(Class<?> interfaces, Conversion degree) throws IllegalArgumentException {
+        switch (Objects.requireNonNull(type(-1))) {
+            case FUNCTION:
+                String name = ClassUtils.getSingleInterfaceMethodName(interfaces);
+                if (name == null) {
+                    pop(1);
+                    throw new IllegalArgumentException("Unable to merge interfaces into a functional one");
+                }
+                createTable(0, 1);
+                insert(getTop() - 1);
+                setField(-2, name);
+                // Fall through
+            case TABLE:
+                try {
+                    LuaProxy proxy = new LuaProxy(ref(), this, degree, interfaces);
+                    recordedReferences.put(proxy.getRef(), new LuaReference<>(proxy, recyclableReferences));
+                    return Proxy.newProxyInstance(interfaces.getClassLoader(), new Class[]{interfaces}, proxy);
+                } catch (Throwable e) {
+                    throw new IllegalArgumentException(e);
+                }
+            default:
+                break;
         }
         pop(1);
         throw new IllegalArgumentException("Expecting a table / function and interfaces");
@@ -1413,33 +1362,6 @@ public class Lua {
         }
     }
 
-    /**
-     * A method specifically for working around deadlocks caused by LuaJ.
-     *
-     * <p>
-     * In LuaJ bindings, without this work-around, deadlocks can happen when:
-     * </p>
-     * <pre><code>
-     * 1. (Thread#A) The user synchronizes on mainThread as is required by LuaJava when used
-     *    in multi-threaded environment.
-     * 2. (Thread#A) The user calls {@link #doString(String)} for example, to run a Lua snippet.
-     * 3. The snippet creates a coroutine, mandating LuaJ to create a Java thread (#B).
-     * 4. Inside the coroutine (i.e., the Java thread#B), the code calls a Lua proxy object.
-     * 5. (Thread#B) {@link LuaProxy#invoke(Object, Method, Object[])} tries to synchronizes
-     *    on mainThread.
-     * 6. Since thread#A is already inside a synchronization block, the two threads deadlocks.
-     * </code></pre>
-     * <p>
-     * This work-around asks {@link LuaProxy#invoke(Object, Method, Object[])} to avoid synchronization
-     * when it detects that it is called from a coroutine thread created by LuaJ.
-     * </p>
-     *
-     * @return {@code false} only when invoke within a coroutine thread created by LuaJ
-     */
-    protected boolean shouldSynchronize() {
-        return true;
-    }
-
     private static class JFunctionWrapper implements CFunction {
         private final @NotNull JFunction function;
 
@@ -1508,20 +1430,5 @@ public class Lua {
          * (with {@link Lua#pushJavaArray(Object)}).
          */
         NONE
-    }
-
-    public enum Library {
-        LUALIB_BASE,
-        LUALIB_MATH,
-        LUALIB_STRING,
-        LUALIB_TABLE,
-        LUALIB_IO,
-        LUALIB_OS,
-        LUALIB_PACKAGE,
-        LUALIB_DEBUG,
-        LUALIB_BIT,
-        LUALIB_JIT,
-        LUALIB_FFI,
-        LUALIB_STRING_BUFFER
     }
 }
