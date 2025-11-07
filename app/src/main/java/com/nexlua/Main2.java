@@ -1,14 +1,15 @@
 package com.nexlua;
 
-import java.nio.Buffer;
+import com.luajava.Lua;
 
 public class Main2 implements LuaModule {
-    public Buffer load(LuaContext luaContext) {
-        String code = "function main(code)\n" +
+    public int load(final Lua L, final LuaContext luaContext) {
+        L.doString("function main(code)\n" +
                 "    if code ~= nil then\n" +
-                "        loadString(code)()\n" +
+                "        load(code)()\n" +
                 "    end\n" +
-                "end";
-        return LuaModule.toBuffer(code);
+                "end\n" +
+                "print('Main function loaded')");
+        return 0;
     }
 }

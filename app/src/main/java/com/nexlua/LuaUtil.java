@@ -51,6 +51,14 @@ public final class LuaUtil {
     private static final String ERR_COULD_NOT_READ_FILE = "Could not completely read file: %s";
     private static final String ERR_FILE_IS_NOT_DIRECTORY = "File %s is not a directory";
 
+    public static ByteBuffer wrap(String input) {
+        byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
+        ByteBuffer directBuffer = ByteBuffer.allocateDirect(bytes.length);
+        directBuffer.put(bytes);
+        directBuffer.flip();
+        return directBuffer;
+    }
+
     // FileUtil
     public static ByteBuffer readFileBuffer(File file) throws IOException {
         try (FileInputStream fis = new FileInputStream(file);

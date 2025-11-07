@@ -20,44 +20,51 @@
  * SOFTWARE.
  */
 
-package com.luajava;
+package com.luajava.value.referable;
 
+import com.luajava.Lua;
+import com.luajava.value.AbstractLuaRefValue;
+import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;
 
-/**
- * Interface for functions implemented in Java.
- */
-public abstract class JFunction implements CFunction {
-    public JFunction() {
+public class LuaUnknown extends AbstractLuaRefValue {
+    public LuaUnknown(Lua L, LuaType type) {
+        super(L, type);
     }
 
-    /**
-     * Implements the function body
-     *
-     * <p>
-     * Unlike {@link com.luajava.CFunction#__call(Lua)}, before actually calling this function,
-     * the library converts all the arguments to {@link LuaValue LuaValues} and pops them off the stack.
-     * </p>
-     *
-     * @param L    the Lua state
-     * @param args the arguments
-     * @return the return values (nullable)
-     */
-    public abstract LuaValue[] call(Lua L, LuaValue[] args);
+    public LuaUnknown(Lua L, LuaType type, int index) {
+        super(L, type, index);
+    }
+
+    private LuaUnknown(int ref, Lua L, LuaType type) {
+        super(ref, L, type);
+    }
+
+    public static LuaUnknown fromRef(Lua L, int ref, LuaType type) {
+        return new LuaUnknown(ref, L, type);
+    }
 
     @Override
-    public int __call(Lua L) {
-        LuaValue[] args = new LuaValue[L.getTop()];
-        for (int i = 0; i < args.length; i++) {
-            args[args.length - i - 1] = L.get();
-        }
-        LuaValue[] results = this.call(L, args);
-        if (results != null) {
-            for (LuaValue result : results) {
-                L.push(result);
-            }
-            return results.length;
-        }
-        return 0;
+    public LuaUnknown checkUnknown() {
+        return this;
+    }
+
+    @Override
+    public Object toJavaObject() {
+        return this;
+    }
+
+    @Override
+    public boolean isJavaObject(Class<?> clazz) {
+        return clazz == Object.class || clazz == LuaValue.class || clazz == LuaUnknown.class;
+    }
+
+    @Override
+    public Object toJavaObject(Class<?> clazz) throws IllegalArgumentException {
+        if (clazz == LuaValue.class || clazz == LuaUnknown.class)
+            return this;
+        else if (clazz == Object.class)
+            return null;
+        return super.toJavaObject(clazz);
     }
 }

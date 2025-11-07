@@ -1,6 +1,7 @@
 #ifndef LUAJAVA_H
 #define LUAJAVA_H
 
+#define LUAJAVA_LIBNAME "luajava"
 #define LUAJAVA_VERSION "NexLuaJava 1.0.0"
 #define LUAJAVA_COPYRIGHT "Copyright (C) 2025, JustLikeCheese"
 

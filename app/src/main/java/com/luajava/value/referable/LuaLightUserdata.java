@@ -20,53 +20,57 @@
  * SOFTWARE.
  */
 
-package com.luajava.value;
+package com.luajava.value.referable;
 
 import com.luajava.Lua;
-import com.luajava.LuaException;
-import com.luajava.cleaner.LuaReferable;
+import com.luajava.value.AbstractLuaRefValue;
+import com.luajava.value.LuaType;
+import com.luajava.value.LuaValue;
 
-public abstract class AbstractLuaRefValue extends AbstractLuaValue implements LuaReferable {
-    protected final int ref;
 
-    public AbstractLuaRefValue(Lua L, LuaType type) {
-        super(L, type);
-        this.ref = L.refSafe();
-        L.registerReference(this);
+public class LuaLightUserdata extends AbstractLuaRefValue {
+    public LuaLightUserdata(Lua L) {
+        super(L, LuaType.LIGHTUSERDATA);
     }
 
-    public AbstractLuaRefValue(Lua L, LuaType type, int index) {
-        super(L, type);
-        this.ref = L.refSafe(index);
-        L.registerReference(this);
+    public LuaLightUserdata(Lua L, int index) {
+        super(L, LuaType.LIGHTUSERDATA, index);
     }
 
-    public AbstractLuaRefValue(int ref, Lua L, LuaType type) {
-        super(L, type);
-        this.ref = ref;
-        L.registerReference(this);
+    private LuaLightUserdata(int ref, Lua L) {
+        super(ref, L, LuaType.LIGHTUSERDATA);
     }
 
-    @Override
-    public void push(Lua L) {
-        if (this.L != L) {
-            throw new LuaException(LuaException.LuaError.JAVA, "Cannot push a reference to a different Lua instance");
-        }
-        L.refGet(ref);
+    public static LuaLightUserdata fromRef(Lua L, int ref) {
+        return new LuaLightUserdata(ref, L);
     }
 
     @Override
-    public boolean isRef() {
+    public boolean isLightUserdata() {
         return true;
     }
 
     @Override
-    public int getRef() {
-        return ref;
+    public LuaLightUserdata checkLightUserdata() {
+        return this;
     }
 
     @Override
-    public void unRef() {
-        L.unRef(ref);
+    public Object toJavaObject() {
+        return this;
+    }
+
+    @Override
+    public boolean isJavaObject(Class<?> clazz) {
+        return clazz == Object.class || clazz == LuaValue.class || clazz == LuaLightUserdata.class;
+    }
+
+    @Override
+    public Object toJavaObject(Class<?> clazz) throws IllegalArgumentException {
+        if (clazz == LuaValue.class || clazz == LuaLightUserdata.class)
+            return this;
+        else if (clazz == Object.class)
+            return null;
+        return super.toJavaObject(clazz);
     }
 }

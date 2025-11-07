@@ -2,6 +2,7 @@ package com.nexlua;
 
 import com.luajava.ExternalLoader;
 import com.luajava.Lua;
+import com.luajava.LuaException;
 
 import java.nio.Buffer;
 
@@ -13,20 +14,21 @@ public class LuaModuleLoader implements ExternalLoader {
     }
 
     @Override
-    public Buffer load(String module, Lua L) {
-        Class<?> clazz = LuaConfig.LUA_DEX_MAP.get(module);
+    public int load(Lua L, String moduleName) throws LuaException {
+        Class<?> clazz = LuaConfig.LUA_DEX_MAP.get(moduleName);
         if (clazz == null) {
-            String luaDir = luaContext.getLuaDir().getAbsolutePath();
-            if (module.startsWith(luaDir))
-                clazz = LuaConfig.LUA_DEX_MAP.get(module.substring(luaDir.length() + 1));
+            String luaDir = luaContext.getLuaDir().getAbsolutePath(); // /data/data/xxx/files
+            if (moduleName.startsWith(luaDir)) // maybe /data/data/xxx/files/test.lua, but test.lua has bean moved to lua dex map
+                clazz = LuaConfig.LUA_DEX_MAP.get(moduleName.substring(luaDir.length() + 1));
         }
         if (clazz != null) {
             try {
-                return ((LuaModule) clazz.newInstance()).load(luaContext);
+                LuaModule module = (LuaModule) clazz.newInstance();
+                return module.load(L, luaContext);
             } catch (Exception e) {
                 luaContext.sendError(e);
             }
         }
-        return null;
+        return 0;
     }
 }

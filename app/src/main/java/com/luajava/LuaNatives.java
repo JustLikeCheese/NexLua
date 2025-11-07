@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 the original author or authors.
+ * Copyright (C) 2025 JustLikeCheese
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,6 +56,8 @@ public class LuaNatives {
     // luaJ_* extensions (custom LuaJava functions)
     public native long luaJ_newstate();
 
+    public native int luaJ_initloader(long ptr);
+
     public native void luaJ_pushbuffer(long ptr, Object obj_buffer, int size);
 
     public native void luaJ_pushobject(long ptr, Object obj);
@@ -70,13 +72,13 @@ public class LuaNatives {
 
     public native void luaJ_pushfunction(long ptr, Object func);
 
+    public native void luaJ_pushcclosure(long ptr, Object func, int n);
+
     public native String luaJ_tostring(long ptr, int index);
 
     public native int luaJ_loadbuffer(long ptr, Buffer buffer, int size, String name);
 
-    public native int luaJ_dobuffer(long ptr, Buffer buffer, int size, String name);
-
-    public native Object luaJ_dumptobuffer(long ptr);
+    public native Buffer luaJ_dump(long ptr);
 
     public native Object luaJ_tobuffer(long ptr, int index);
 
@@ -92,13 +94,28 @@ public class LuaNatives {
 
     public native void luaJ_gc(long ptr);
 
-    public native int luaJ_copyfunction(long ptr, long ptr1);
-
-    public native int luaJ_copystring(long ptr, long ptr1);
-
-    public native int luaJ_pushtraceback(long ptr);
+    public native int luaJ_copy(long ptr, long ptr1);
 
     public native int luaJ_pcall(long ptr, int nargs, int nresults, int errfunc);
+
+    public native int luaJ_dofile(long ptr, String filename);
+
+    public native int luaJ_dostring(long ptr, String string);
+
+    public native int luaJ_dobuffer(long ptr, Buffer buffer, int size, String name);
+
+    public native String luaJ_dumpstack(long ptr);
+
+    // nexlua.h binding
+    public native int luaJ_refsafe(long ptr, int idx);
+
+    public native void luaJ_refGet(long ptr, int ref);
+
+    public native void luaJ_unRef(long ptr, int ref);
+
+    public native int luaJ_ref(long ptr);
+
+    public native int luaJ_typeRef(long ptr, int ref);
 
     // lua.h bindings
     public native void lua_close(long ptr);
@@ -205,7 +222,7 @@ public class LuaNatives {
     public native void lua_call(long ptr, int nargs, int nresults);
 
     // Use luaJ_pcall instead
-    // public native int lua_pcall(long ptr, int nargs, int nresults, int errfunc);
+    public native int lua_pcall(long ptr, int nargs, int nresults, int errfunc);
 
     public native int lua_cpcall(long ptr, long cfunc, long ud);
 

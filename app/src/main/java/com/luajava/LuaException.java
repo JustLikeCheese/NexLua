@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 the original author or authors.
+ * Copyright (C) 2025 JustLikeCheese
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,11 +22,19 @@
 
 package com.luajava;
 
+import android.util.Log;
+
+import com.luajava.value.LuaType;
+
 /**
  * A wrapper around a Lua error message
  */
 public class LuaException extends RuntimeException {
     public final LuaError type;
+
+    public LuaException(String message) {
+        this(LuaError.JAVA, message);
+    }
 
     public LuaException(LuaError type, String message) {
         super(message);
@@ -35,7 +43,7 @@ public class LuaException extends RuntimeException {
 
     @Override
     public String toString() {
-        return type + ": " + super.toString();
+        return getType() + ": " + getMessage();
     }
 
     public final String getType() {
@@ -50,6 +58,7 @@ public class LuaException extends RuntimeException {
                 return "Memory Error";
             case OK:
                 return "No Error";
+            case JAVA:
             case RUNTIME:
                 return "Runtime Error";
             case SYNTAX:
@@ -58,8 +67,6 @@ public class LuaException extends RuntimeException {
                 return "Thread Error";
             case UNKNOWN:
                 return "Unknown Error";
-            case JAVA:
-                return "Java Error";
         }
         return "Unknown Error";
     }
@@ -117,6 +124,17 @@ public class LuaException extends RuntimeException {
          */
         JAVA;
 
+        public static LuaError from(int code, boolean runtime) {
+            if (runtime) {
+                if (code == LuaConsts.LUA_OK)
+                    return LuaError.OK;
+                else
+                    return LuaError.RUNTIME;
+            } else {
+                return LuaError.from(code);
+            }
+        }
+
         public static LuaError from(int code) {
             switch (code) {
                 case LuaConsts.LUA_OK:
@@ -135,5 +153,18 @@ public class LuaException extends RuntimeException {
                     throw new LuaException(LuaException.LuaError.RUNTIME, "Unrecognized error code: " + code);
             }
         }
+    }
+
+    public static LuaException from(Lua L, int code, boolean runtime) {
+        LuaError error = LuaError.from(code, runtime);
+        if (LuaError.OK == error) return null;
+        String message;
+        if (L.type(-1) == LuaType.STRING) {
+            message = L.toString(-1);
+        } else {
+            message = "Lua-side error";
+        }
+        L.pop(1);
+        return new LuaException(error, message);
     }
 }

@@ -9,10 +9,12 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.luajava.Lua;
 import com.luajava.value.LuaValue;
-import com.luajava.value.type.LuaTable;
+import com.luajava.value.referable.LuaTable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,7 +32,9 @@ public class LuaApplication extends Application implements LuaContext {
     private String luaLpath, luaCpath;
     private Lua L;
     private LuaValue mOnTerminate, mOnLowMemory, mOnTrimMemory, mOnConfigurationChanged;
-    private int tracebackRef;
+    private Toast mToast;
+    private StringBuilder mToastBuilder = new StringBuilder();
+    private long mToastTime;
 
     @Override
     public void onCreate() {
@@ -52,7 +56,7 @@ public class LuaApplication extends Application implements LuaContext {
             if (clazz != null) {
                 initializeLua();
                 LuaModule module = (LuaModule) clazz.newInstance();
-                doModule(module, luaFile.getPath());
+                module.load(L, this);
             } else if (luaFile.exists()) {
                 initializeLua();
                 L.loadBuffer(LuaUtil.readFileBuffer(luaFile), luaFile.getPath());
@@ -176,6 +180,23 @@ public class LuaApplication extends Application implements LuaContext {
         return true;
     }
 
+    @Override
+    public void showToast(String message) {
+        long now = System.currentTimeMillis();
+        if (mToast == null || now - mToastTime > 1000) {
+            mToastBuilder.setLength(0);
+            mToast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+            mToastBuilder.append(message);
+            mToast.show();
+        } else {
+            mToastBuilder.append("\n");
+            mToastBuilder.append(message);
+            mToast.setText(mToastBuilder.toString());
+            mToast.setDuration(Toast.LENGTH_LONG);
+        }
+        mToastTime = now;
+    }
+
     // @formatter:off
     public ArrayList<ClassLoader> getClassLoaders() { return null; }
     public Lua getLua() { return L; }
@@ -186,9 +207,10 @@ public class LuaApplication extends Application implements LuaContext {
     public String getLuaCpath() { return luaCpath; }
     public Context getContext() { return this; }
     // @formatter:on
-    @Override
     public void initializeLua() {
-        LuaContext.super.initializeLua();
+        L = new Lua();
+        L.openLibraries();
+        L.setExternalLoader(new LuaModuleLoader(this));
         // Lua Application
         // package.path 和 cpath
         L.getGlobal("package");

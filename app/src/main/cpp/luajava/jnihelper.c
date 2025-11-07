@@ -1,21 +1,14 @@
-#include "jnihelper.h"
+#define JNI_HELPER_EXTERN
 
-/* common class */
-jclass java_lang_Class = NULL;
-jmethodID java_lang_Class_forName = NULL;
-jmethodID java_lang_Class_toString = NULL;
-jclass java_lang_Throwable = NULL;
-jmethodID java_lang_Throwable_getMessage = NULL;
-jmethodID java_lang_Throwable_toString = NULL;
-/* com.luajava.JuaAPI */
-jclass com_luajava_JuaAPI = NULL;
-jmethodID com_luajava_JuaAPI_jclassIndex = NULL;
-jmethodID com_luajava_JuaAPI_jfunctionCall = NULL;
-jmethodID com_luajava_JuaAPI_allocateDirectBuffer = NULL;
+#include "jnihelper.h"
 
 int initJNIBindings(JNIEnv *env) {
     if (updateJNIEnv(env) != 0) return -1;
     // if (initBoxingBindings != 0) return -1;
+    // java.lang.Object
+    java_lang_Object = bindJavaClass(env, "java/lang/Object");
+    java_lang_Object_toString = bindJavaMethod(env, java_lang_Object,
+                                               "toString", "()Ljava/lang/String;");
     // java.lang.Class
     java_lang_Class = bindJavaClass(env, "java/lang/Class");
     java_lang_Class_forName = bindJavaStaticMethod(env, java_lang_Class,
@@ -23,6 +16,8 @@ int initJNIBindings(JNIEnv *env) {
                                                    "(Ljava/lang/String;)Ljava/lang/Class;");
     java_lang_Class_toString = bindJavaMethod(env, java_lang_Class,
                                               "toString", "()Ljava/lang/String;");
+    java_lang_Class_getName = bindJavaMethod(env, java_lang_Class,
+                                             "getName", "()Ljava/lang/String;");
     // java.lang.Throwable
     java_lang_Throwable = bindJavaClass(env, "java/lang/Throwable");
     java_lang_Throwable_getMessage = bindJavaMethod(env, java_lang_Throwable,
@@ -31,19 +26,31 @@ int initJNIBindings(JNIEnv *env) {
                                                   "toString", "()Ljava/lang/String;");
     // com.luajava.JuaAPI
     com_luajava_JuaAPI = bindJavaClass(env, "com/luajava/JuaAPI");
-    // jclassIndex
+    /* Java Class */
     com_luajava_JuaAPI_jclassIndex = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                           "jclassIndex",
                                                           "(JLjava/lang/Class;Ljava/lang/String;)I");
-    // jfunctionCall
-    com_luajava_JuaAPI_jfunctionCall = bindJavaStaticMethod(env, com_luajava_JuaAPI,
-                                                            "jfunctionCall",
-                                                            "(JLjava/lang/Object;)I");
-    // buffer
+    com_luajava_JuaAPI_jclassNew = bindJavaStaticMethod(env, com_luajava_JuaAPI,
+                                                        "jclassNew",
+                                                        "(JLjava/lang/Class;)I");
+    /* Java Object */
+    com_luajava_JuaAPI_jobjectIndex = bindJavaStaticMethod(env, com_luajava_JuaAPI,
+                                                           "jobjectIndex",
+                                                           "(JLjava/lang/Object;Ljava/lang/String;)I");
+    /* Lua - Java Bridge API */
     com_luajava_JuaAPI_allocateDirectBuffer = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                                    "allocateDirectBuffer",
                                                                    "(I)Ljava/nio/ByteBuffer;");
+    /* Java CFunction */
+    com_luajava_JuaAPI_jfunctionCall = bindJavaStaticMethod(env, com_luajava_JuaAPI,
+                                                            "jfunctionCall",
+                                                            "(JLjava/lang/Object;)I");
+    /* Java Module */
+    com_luajava_JuaAPI_jmoduleLoad = bindJavaStaticMethod(env, com_luajava_JuaAPI,
+                                                          "jmoduleLoad",
+                                                          "(JLjava/lang/String;)I");
     CHECK_NULL(
+            java_lang_Object && java_lang_Object_toString &&
             java_lang_Class && java_lang_Class_forName && java_lang_Class_toString &&
             java_lang_Throwable && java_lang_Throwable_getMessage && java_lang_Throwable_toString
     )
@@ -128,4 +135,3 @@ jmethodID bindJavaMethod(JNIEnv *env, jclass c, const char *name, const char *si
     }
     return id;
 }
-

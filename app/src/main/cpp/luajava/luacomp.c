@@ -40,7 +40,7 @@ static int dump_buffer_writer(lua_State *L, const void *p, size_t sz, void *ud) 
         if (new_capacity < new_size)
             return luaL_error(L, "Buffer overflow in buffer writer");  // Check for overflow
         void *new_buffer = realloc(dump->buffer, new_capacity);
-        if (new_buffer == NULL) return luaL_error(L, "Not enough memory in buffer writer");
+        if (new_buffer == NULL) return luaJ_error_memory(L);
         dump->capacity = new_capacity;
         dump->buffer = (unsigned char *) new_buffer;
     }
@@ -51,22 +51,127 @@ static int dump_buffer_writer(lua_State *L, const void *p, size_t sz, void *ud) 
 
 int luaJ_dumptobuffer(lua_State *L, DumpBuffer *buffer) {
     dump_buffer_init(buffer, 4096);
-    if (buffer->buffer == NULL) {
-        lua_pop(L, 1);
-        return -2;  // Memory allocation failed
-    }
+    if (buffer->buffer == NULL) return -1; // Memory allocation failed
     int result = lua_dump(L, dump_buffer_writer, buffer);
-    lua_pop(L, 1);
     if (result != 0) {
         dump_buffer_free(buffer);
-        return -3;  // Dump failed
+        return -2;  // Dump failed
     }
     return 0;
 }
 
-int luaJ_dobuffer(lua_State *L, unsigned char *buffer, int size, const char *name) {
-    return (luaL_loadbuffer(L, (const char *) buffer, size, name) ||
-            lua_pcall(L, 0, LUA_MULTRET, 0));
+const char* luaJ_dumpstack(lua_State *L) {
+    int top = lua_gettop(L);
+    luaL_Buffer b;
+    luaL_buffinit(L, &b);
+    lua_pushfstring(L, "stack dump (%d values):\n", top);
+    luaL_addvalue(&b);
+
+    for (int idx = 1; idx <= top; idx++) {
+        const char* str = luaJ_tostring(L, idx);
+        lua_pushfstring(L, "  [%d]: (%s) %s\n", idx, luaL_typename(L, idx), str);
+        lua_remove(L, -2);  // remove the string pushed by luaJ_tostring
+        luaL_addvalue(&b);
+    }
+    luaL_pushresult(&b);
+    const char* msg = lua_tostring(L, -1);
+    lua_pop(L, 1);
+    return msg;
+}
+
+// NOLINTNEXTLINE(misc-no-recursion)
+int luaJ_copy(lua_State *from, lua_State *to, int index) {
+    if (!lua_checkstack(to, 1)) return -1;
+    index = luaJ_absindex(from, index);
+    int type = lua_type(from, index);
+    switch (type) {
+        case LUA_TNONE:
+        case LUA_TNIL:
+            lua_pushnil(to);
+            break;
+        case LUA_TBOOLEAN:
+            lua_pushboolean(to, lua_toboolean(from, index));
+            break;
+        case LUA_TNUMBER:
+            lua_pushnumber(to, lua_tonumber(from, index));
+            break;
+        case LUA_TSTRING: {
+            size_t len;
+            const char *str = lua_tolstring(from, index, &len);
+            lua_pushlstring(to, str, len);
+            break;
+        }
+        case LUA_TTABLE: {
+            lua_newtable(to);
+            lua_pushnil(from);
+            while (lua_next(from, index)) {
+                if (luaJ_copy(from, to, lua_gettop(from) - 1) != 0) {
+                    lua_pop(from, 2);
+                    lua_pop(to, 2);
+                    return -1;
+                }
+                if (luaJ_copy(from, to, lua_gettop(from)) != 0) {
+                    lua_pop(from, 2);
+                    lua_pop(to, 3);
+                    return -1;
+                }
+
+                lua_settable(to, -3);
+                lua_pop(from, 1);
+            }
+            if (lua_getmetatable(from, index)) {
+                if (luaJ_copy(from, to, lua_gettop(from)) == 0) {
+                    lua_setmetatable(to, -2);
+                } else {
+                    lua_pop(to, 1);
+                }
+                lua_pop(from, 1);
+            }
+            break;
+        }
+        case LUA_TFUNCTION:
+            if (lua_iscfunction(from, index)) {
+                lua_CFunction func = lua_tocfunction(from, index);
+                lua_pushcfunction(to, func);
+            } else {
+                DumpBuffer buffer;
+                lua_pushvalue(from, index);
+                if (luaJ_dumptobuffer(from, &buffer) != 0) {
+                    lua_pop(from, 1);
+                    return -1;
+                }
+                lua_pop(from, 1);
+                if (luaL_loadbuffer(to, (const char *) buffer.buffer,
+                                    buffer.size, "=(copied)") != 0) {
+                    free(buffer.buffer);
+                    lua_pop(to, 1);
+                    return -1;
+                }
+                free(buffer.buffer);
+            }
+            break;
+        case LUA_TLIGHTUSERDATA:
+            lua_pushlightuserdata(to, lua_touserdata(from, index));
+            break;
+        case LUA_TUSERDATA: {
+            void *src_userdata = lua_touserdata(from, index);
+            size_t size = lua_objlen(from, index);
+            void *dst_userdata = lua_newuserdata(to, size);
+            memcpy(dst_userdata, src_userdata, size);
+            if (lua_getmetatable(from, index)) {
+                if (luaJ_copy(from, to, lua_gettop(from)) == 0) {
+                    lua_setmetatable(to, -2);
+                } else {
+                    lua_pop(to, 1);
+                }
+                lua_pop(from, 1);
+            }
+            break;
+        }
+        default:
+            return -1;
+    }
+    return 0;
 }
 
 // some functions to improve performance
@@ -87,42 +192,39 @@ int luaJ_compare(lua_State *L, int idx1, int idx2, int opc) {
     }
 }
 
-void luaJ_gc(lua_State *L) {
-    lua_gc(L, LUA_GCCOLLECT, 0);
-}
+// some functions to improve ref performance
+
+
 
 // some compatible functions
-const char *luaJ_tolstring(lua_State *L, int idx, size_t *len) { // from Lua5.3
-    if (luaL_callmeta(L, idx, "__tostring")) {  /* metafield? */
+int luaJ_absindex(lua_State *L, int index) {
+    return (index > 0 || index <= LUA_REGISTRYINDEX) ? index : lua_gettop(L) + index + 1;
+}
+
+const char *luaJ_tolstring(lua_State *L, int idx, size_t *len) {
+    if (luaL_callmeta(L, idx, "__tostring")) {
         if (!lua_isstring(L, -1))
             luaL_error(L, "'__tostring' must return a string");
     } else {
-        switch (lua_type(L, idx)) {
-            case LUA_TNUMBER: {
-                lua_Number n = lua_tonumber(L, idx);
-                if (n == floor(n)) {
-                    lua_pushfstring(L, "%I", n);
-                } else {
-                    lua_pushfstring(L, "%f", n);
-                }
-                break;
-            }
+        int type = lua_type(L, idx);
+        switch (type) {
+            case LUA_TNUMBER:
             case LUA_TSTRING:
                 lua_pushvalue(L, idx);
                 break;
             case LUA_TBOOLEAN:
-                lua_pushstring(L, (lua_toboolean(L, idx) ? "true" : "false"));
+                lua_pushstring(L, lua_toboolean(L, idx) ? "true" : "false");
                 break;
             case LUA_TNIL:
+            case LUA_TNONE:
                 lua_pushliteral(L, "nil");
                 break;
             default: {
-                int tt = luaL_getmetafield(L, idx, "__name");  /* try name */
-                const char *kind = (tt == LUA_TSTRING) ? lua_tostring(L, -1) :
-                                   luaL_typename(L, idx);
+                int tt = luaL_getmetafield(L, idx, "__name");
+                const char *kind = (tt == LUA_TSTRING) ? lua_tostring(L, -1) : lua_typename(L,
+                                                                                            type);
                 lua_pushfstring(L, "%s: %p", kind, lua_topointer(L, idx));
-                if (tt != LUA_TNIL)
-                    lua_remove(L, -2);  /* remove '__name' */
+                if (tt != LUA_TNIL) lua_remove(L, -2);
                 break;
             }
         }
@@ -131,62 +233,29 @@ const char *luaJ_tolstring(lua_State *L, int idx, size_t *len) { // from Lua5.3
 }
 
 // traceback
-static int LUA_TRACEBACK = 0;
-
-int luaJ_pushtraceback(lua_State *L) {
-    lua_pushlightuserdata(L, &LUA_TRACEBACK);
-    lua_rawget(L, LUA_REGISTRYINDEX);
-    int type = lua_type(L, -1);
-    switch (type) {
-        case LUA_TNIL:
-            lua_pop(L, 1); // pop nil
-            lua_getglobal(L, "debug");
-            if (lua_isnil(L, -1)) {
-                lua_pop(L, 1); // pop nil
-                return false;
-            }
-            lua_getfield(L, -1, "traceback");
-            lua_remove(L, -2); // pop debug table
-            if (!lua_isfunction(L, -1)) {
-                lua_pop(L, 1);
-                return false;
-            }
-            lua_pushlightuserdata(L, &LUA_TRACEBACK);
-            lua_pushvalue(L, -2);
-            lua_rawset(L, LUA_REGISTRYINDEX);
-            break;
-        case LUA_TFUNCTION:
-            // Already on stack: [key, func]
-            break;
-        default:
-            lua_pop(L, 1);
-            lua_getglobal(L, "debug");
-            if (lua_isnil(L, -1)) {
-                lua_pop(L, 1);
-                return 0;
-            }
-            lua_getfield(L, -1, "traceback");
-            lua_remove(L, -2); // pop debug
-            if (!lua_isfunction(L, -1)) {
-                lua_pop(L, 1);
-                return false;
-            }
-            break;
+int luaJ_traceback(lua_State *L) { // From LuaJIT/src/luajit.c:115
+    if (!lua_isstring(L, 1)) { /* Non-string error object? Try metamethod. */
+        if (lua_isnoneornil(L, 1) ||
+            !luaL_callmeta(L, 1, "__tostring") ||
+            !lua_isstring(L, -1))
+            return 1;  /* Return non-string error object. */
+        lua_remove(L, 1);  /* Replace object by result of __tostring metamethod. */
     }
-    lua_remove(L, -2); // pop key
-    return true;
+    luaL_traceback(L, L, lua_tostring(L, 1), 1);
+    return 1;
 }
 
 int luaJ_pcall(lua_State *L, int nargs, int nresults, int errfunc) {
-    if (errfunc == 0 && luaJ_pushtraceback(L)) {
-        errfunc = lua_gettop(L);
+    if (errfunc == 0) {
+        errfunc = lua_gettop(L) - nargs;
+        lua_pushcfunction(L, luaJ_traceback);
+        lua_insert(L, errfunc);
         int result = lua_pcall(L, nargs, nresults, errfunc);
-        lua_remove(L, errfunc - 1);
+        lua_remove(L, errfunc);
         return result;
     }
     return lua_pcall(L, nargs, nresults, errfunc);
 }
-
 
 const luaL_Reg allAvailableLibs[] = {
         {"",              luaopen_base},

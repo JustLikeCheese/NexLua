@@ -2,18 +2,18 @@ package com.nexlua;
 
 import com.luajava.CFunction;
 import com.luajava.Lua;
-import com.luajava.LuaException;
 
 public class LuaPrint implements CFunction {
     private final LuaContext mLuaContext;
     private final StringBuilder output = new StringBuilder();
 
     public LuaPrint(LuaContext luaContext) {
+        super();
         mLuaContext = luaContext;
     }
 
     @Override
-    public int __call(Lua L) throws LuaException {
+    public int __call(Lua L) {
         int top = L.getTop();
         if (top > 0) {
             output.append(L.ltoString(1));
@@ -29,4 +29,3 @@ public class LuaPrint implements CFunction {
         return 0;
     }
 }
-

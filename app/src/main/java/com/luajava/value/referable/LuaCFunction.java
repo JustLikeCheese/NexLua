@@ -20,11 +20,33 @@
  * SOFTWARE.
  */
 
-package com.luajava;
+package com.luajava.value.referable;
+import com.luajava.Lua;
 
-/**
- * Functional alternative to C closures in Lua to allow, for example, lambda grammar
- */
-public interface CFunction {
-    int __call(Lua L);
+public class LuaCFunction extends LuaFunction {
+    public LuaCFunction(Lua L) {
+        super(L);
+    }
+
+    public LuaCFunction(Lua L, int index) {
+        super(L, index);
+    }
+
+    private LuaCFunction(int ref, Lua L) {
+        super(ref, L);
+    }
+
+    public static LuaFunction fromRef(Lua L, int ref) {
+        return new LuaCFunction(ref, L);
+    }
+
+    @Override
+    public LuaFunction checkCFunction() {
+        return this;
+    }
+
+    @Override
+    public boolean isCFunction() {
+        return true;
+    }
 }

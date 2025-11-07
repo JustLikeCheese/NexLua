@@ -24,40 +24,37 @@ package com.luajava;
 
 import com.luajava.value.LuaValue;
 
-/**
- * Interface for functions implemented in Java.
- */
-public abstract class JFunction implements CFunction {
-    public JFunction() {
-    }
+import java.lang.reflect.Method;
 
-    /**
-     * Implements the function body
-     *
-     * <p>
-     * Unlike {@link com.luajava.CFunction#__call(Lua)}, before actually calling this function,
-     * the library converts all the arguments to {@link LuaValue LuaValues} and pops them off the stack.
-     * </p>
-     *
-     * @param L    the Lua state
-     * @param args the arguments
-     * @return the return values (nullable)
-     */
-    public abstract LuaValue[] call(Lua L, LuaValue[] args);
+public class JMethod implements CFunction {
+    private final Object object;
+    private final Class<?> clazz;
+    private final String name;
+
+    public JMethod(Object object, Class<?> clazz, String methodName) {
+        if (clazz == null || methodName == null) {
+            throw new IllegalArgumentException("Class and method name cannot be null");
+        }
+        this.object = object;
+        this.clazz = clazz;
+        this.name = methodName;
+    }
 
     @Override
     public int __call(Lua L) {
-        LuaValue[] args = new LuaValue[L.getTop()];
-        for (int i = 0; i < args.length; i++) {
-            args[args.length - i - 1] = L.get();
-        }
-        LuaValue[] results = this.call(L, args);
-        if (results != null) {
-            for (LuaValue result : results) {
-                L.push(result);
-            }
-            return results.length;
-        }
-        return 0;
+        LuaValue[] values = L.getAll();
+        Method[] methods = clazz.getMethods();
+//        L.log(L.dumpStack());
+//        if (values.length > 1) {
+//            LuaValue value1 = values[0];
+//            LuaValue value2 = values[1];
+//            if (value2.getClass() == LuaTable.class) {
+//                L.log("FUCKFUCKFUCKFUCK");
+//                L.log("Fuck You:" + value1.isJavaObject(String.class) + ", Fuck You!" + value1.typeName());
+//                L.log("Fuck You:" + value2.isJavaObject(Object[].class));
+//            }
+//        }
+        L.push(JuaAPI.callMethod(object, methods, name, values));
+        return 1;
     }
 }

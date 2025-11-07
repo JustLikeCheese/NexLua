@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 the original author or authors.
+ * Copyright (C) 2025 JustLikeCheese
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,9 @@
 
 package com.luajava;
 
-
 import com.luajava.util.ClassUtils;
 import com.luajava.util.LRUCacheFactory;
+import com.luajava.value.LuaProxy;
 import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;
 
@@ -35,136 +35,242 @@ import java.util.regex.Pattern;
 
 // LuaJava Helper
 public final class JuaAPI {
-    private static byte getJNIShortSignature(Class<?> c) {
-        if (c.isPrimitive()) {
-            if (c == void.class) return 'V';
-            if (c == boolean.class) return 'Z';
-            if (c == char.class) return 'C';
-            if (c == byte.class) return 'B';
-            if (c == short.class) return 'S';
-            if (c == int.class) return 'I';
-            if (c == long.class) return 'J';
-            if (c == float.class) return 'F';
-            if (c == double.class) return 'D';
+    public static boolean matchParams(Class<?>[] paramTypes, LuaValue[] values) {
+        if (paramTypes.length != values.length) {
+            return false;
         }
-        return 'L';
+        for (int i = 0; i < paramTypes.length; i++) {
+            if (!values[i].isJavaObject(paramTypes[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    private static @Nullable String getJNISignature(Class<?> c) {
-        if (c.isPrimitive()) {
-            if (c == int.class) return "I";
-            if (c == long.class) return "J";
-            if (c == boolean.class) return "Z";
-            if (c == double.class) return "D";
-            if (c == float.class) return "F";
-            if (c == byte.class) return "B";
-            if (c == char.class) return "C";
-            if (c == short.class) return "S";
-            if (c == void.class) return "V";
-            return null;
+    public static Object[] convertParams(Class<?>[] paramTypes, LuaValue[] values) {
+        int length = values.length;
+        Object[] objects = new Object[length];
+        for (int i = 0; i < length; i++) {
+            objects[i] = values[i].toJavaObject(paramTypes[i]);
         }
-        if (c.isArray()) {
-            Class<?> type = c.getComponentType();
-            if (type == null) return null;
-            return "[" + getJNISignature(type);
-        }
-        return "L" + c.getName().replace('.', '/') + ";";
+        return objects;
     }
 
-    public static String getMethodSignature(Method method) {
+    public static Object callMethod(Object object, Method method, Class<?>[] paramTypes, LuaValue[] values) throws InvocationTargetException, IllegalAccessException {
+        Object[] objects = convertParams(paramTypes, values);
+        return ClassUtils.callMethod(object, method, objects);
+    }
+
+    public static Object callMethod(Object object, Method method, LuaValue[] values) throws LuaException, IllegalArgumentException {
         Class<?>[] paramTypes = method.getParameterTypes();
-        int estimatedCapacity = 3 + (paramTypes.length << 1) + 2;
-        StringBuilder sb = new StringBuilder(estimatedCapacity);
-        sb.append('(');
-        for (Class<?> paramType : paramTypes) {
-            sb.append(getJNISignature(paramType));
-        }
-        sb.append(')');
-        sb.append(getJNISignature(method.getReturnType()));
-        return sb.toString();
-    }
-
-    public static Field getPublicStaticField(Class<?> clazz, String fieldName) {
-        try {
-            Field field = clazz.getField(fieldName);
-            if (Modifier.isStatic(field.getModifiers())) {
-                return field;
+        if ((object != null || Modifier.isStatic(method.getModifiers())) && matchParams(paramTypes, values)) {
+            try {
+                return callMethod(object, method, paramTypes, values);
+            } catch (Exception e) {
+                Throwable throwable = e.getCause();
+                Object cause = (throwable == null) ? e : throwable;
+                throw new LuaException("Invalid method call." +
+                        "\n  at " + method +
+                        "\n  -> " + cause +
+                        "\n");
             }
-            return null;
-        } catch (NoSuchFieldException e) {
-            return null;
         }
+        throw new IllegalArgumentException("Invalid method call. Invalid Parameters.");
     }
 
-    public static Method getPublicStaticNoArgsMethod(Class<?> clazz, String methodName) {
-        try {
-            Method method = clazz.getMethod(methodName);
-            if (Modifier.isStatic(method.getModifiers())) {
-                return method;
-            }
-            return null;
-        } catch (NoSuchMethodException e) {
-            return null;
-        }
-    }
-
-    public static boolean hasPublicStaticMethod(Class<?> clazz, String methodName) {
-        Method[] methods = clazz.getMethods();
+    public static Object callMethod(Object object, Method[] methods, String name, LuaValue[] values) throws LuaException {
+        ArrayList<Method> matchedMethod = new ArrayList<>();
+        StringBuilder msg = new StringBuilder();
         for (Method method : methods) {
-            if (Modifier.isStatic(method.getModifiers()) &&
-                    methodName.equals(method.getName())) {
-                return true;
+            if (!method.getName().equals(name)) continue;
+            matchedMethod.add(method);
+            try {
+                return JuaAPI.callMethod(object, method, values);
+            } catch (IllegalArgumentException ignored) {
             }
+            // catch (LuaException e) {}
         }
-        return false;
+        msg.append("Invalid method call. Invalid Parameters.").append("\n");
+        for (Method method : matchedMethod) {
+            msg.append(method);
+            msg.append("\n");
+        }
+        throw new LuaException(msg.toString());
     }
 
-    public static native long jclassIndexResult(byte type, String name, byte fieldType, Object fieldOrMethod);
+    public static Object callConstructor(Constructor<?> constructor, Class<?>[] paramTypes, LuaValue[] values) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+        Object[] objects = convertParams(paramTypes, values);
+        return constructor.newInstance(objects);
+    }
+
+    public static Object callConstructor(Constructor<?> constructor, LuaValue[] values) throws LuaException, IllegalArgumentException {
+        Class<?>[] paramTypes = constructor.getParameterTypes();
+        if (matchParams(paramTypes, values)) {
+            try {
+                return callConstructor(constructor, paramTypes, values);
+            } catch (Exception e) {
+                Throwable throwable = e.getCause();
+                Object cause = (throwable == null) ? e : throwable;
+                throw new LuaException("Invalid constructor method call." +
+                        "\n  at " + constructor +
+                        "\n  -> " + cause +
+                        "\n");
+            }
+        }
+        throw new IllegalArgumentException("Invalid constructor method call. Invalid Parameters.");
+    }
+
+    public static Object callConstructor(Constructor<?>[] constructors, LuaValue[] values) throws LuaException {
+        ArrayList<Constructor<?>> matchedConstructors = new ArrayList<>();
+        StringBuilder msg = new StringBuilder();
+        for (Constructor<?> constructor : constructors) {
+            matchedConstructors.add(constructor);
+            try {
+                return JuaAPI.callConstructor(constructor, values);
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        msg.append("Invalid constructor call. Invalid Parameters.").append("\n");
+        for (Constructor<?> constructor : matchedConstructors) {
+            msg.append(constructor);
+            msg.append("\n");
+        }
+        throw new LuaException(msg.toString());
+    }
 
     // 0=>null, 1=>field, 2=>method, 3=>get method, 4=>get method(first char to upper case), 5=>get method(first char to lower case)
-    public static long jclassIndex(Class<?> clazz, String name) {
-        // Class.staticMethod(XXX)
-        if (hasPublicStaticMethod(clazz, name)) { // Method?
-            return jclassIndexResult((byte) 2, name, (byte) 0, null);
-        }
+    public static int jclassIndex(long ptr, Class<?> clazz, String name) throws InvocationTargetException, IllegalAccessException {
+        // Get lua instance
+        Lua L = Jua.get(ptr);
         // Class.STATIC_FIELD
-        Field field = getPublicStaticField(clazz, name);
+        Field field = ClassUtils.getPublicStaticField(clazz, name);
         if (field != null) {
-            // Field, JNIShortSignature
-            byte signature = getJNIShortSignature(field.getType());
-            return jclassIndexResult((byte) 1, name, signature, field);
+            L.push(ClassUtils.getField(field));
+            return 1;
         }
-        // Class.XXX (origin Class.getXXX())
-        Method method = getPublicStaticNoArgsMethod(clazz, "get" + name);
-        if (method != null) {
-            // Method, JNIShortSignature
-            byte signature = getJNIShortSignature(method.getReturnType());
-            return jclassIndexResult((byte) 3, name, signature, method);
-        }
+        // Class.staticMethod(XXX)
+        Method[] methods = clazz.getMethods();
         char prefix = name.charAt(0);
-        boolean isLowerCase = Character.isLowerCase(prefix);
         String suffix = name.substring(1);
-        // Class.getXxx()
+        boolean isLowerCase = Character.isLowerCase(prefix);
+        String methodName1; // get Xxx
+        String methodName2; // get xXX
         if (isLowerCase) {
-            Method method1 = getPublicStaticNoArgsMethod(clazz, "get" + Character.toUpperCase(prefix) + suffix);
-            if (method1 != null) {
-                // Method, JNIShortSignature
-                byte signature = getJNIShortSignature(method1.getReturnType());
-                return jclassIndexResult((byte) 4, name, signature, method1);
+            methodName1 = Character.toUpperCase(prefix) + suffix;
+            methodName2 = prefix + suffix;
+        } else {
+            methodName1 = prefix + suffix;
+            methodName2 = Character.toLowerCase(prefix) + suffix;
+        }
+        Method matchMethod1 = null;
+        Method matchMethod2 = null;
+        for (Method method : methods) {
+            if (Modifier.isStatic(method.getModifiers())) {
+                String methodName = method.getName();
+                if (name.equals(method.getName())) {
+                    L.push(new JMethod(null, clazz, name));
+                    return 1;
+                } else if (matchMethod1 == null) {
+                    if (methodName1.equals(methodName)) {
+                        matchMethod1 = method;
+                    } else if (methodName2.equals(methodName)) {
+                        matchMethod2 = method;
+                    }
+                }
             }
         }
-        // Class.getxXX();
-        if (!isLowerCase) {
-            Method method2 = getPublicStaticNoArgsMethod(clazz, "get" + Character.toLowerCase(prefix) + suffix);
-            if (method2 != null) {
-                // Method, JNIShortSignature
-                byte signature = getJNIShortSignature(method2.getReturnType());
-                return jclassIndexResult((byte) 5, name, signature, method2);
-            }
+        if (matchMethod1 != null) {
+            L.push(ClassUtils.getMethodField(matchMethod1));
+            return 1;
+        } else if (matchMethod2 != null) {
+            L.push(ClassUtils.getMethodField(matchMethod2));
+            return 1;
         }
-        return 0;
+        throw new LuaException(String.format("%s@%s is not a field or method", clazz.getName(), name));
     }
 
+    @SuppressWarnings("unused")
+    public static int jclassNew(long ptr, Class<?> clazz) throws LuaException {
+        Lua L = Jua.get(ptr);
+        LuaValue[] values = L.getAll(2);
+        Constructor<?>[] constructors = clazz.getConstructors();
+        L.push(callConstructor(constructors, values));
+        return 1;
+    }
+
+    /* Java Object */
+    public static int jobjectIndex(long ptr, Object instance, String name) throws IllegalAccessException, InvocationTargetException {
+        Lua L = Jua.get(ptr);
+        // Class.STATIC_FIELD
+        Class<?> clazz = instance.getClass();
+        Field field = ClassUtils.getPublicStaticField(clazz, name);
+        if (field != null) {
+            L.push(ClassUtils.getField(field));
+            return 1;
+        }
+        // Class.staticMethod(XXX)
+        Method[] methods = clazz.getMethods();
+        char prefix = name.charAt(0);
+        String suffix = name.substring(1);
+        boolean isLowerCase = Character.isLowerCase(prefix);
+        String methodName1; // get Xxx
+        String methodName2; // get xXX
+        if (isLowerCase) {
+            methodName1 = Character.toUpperCase(prefix) + suffix;
+            methodName2 = prefix + suffix;
+        } else {
+            methodName1 = prefix + suffix;
+            methodName2 = Character.toLowerCase(prefix) + suffix;
+        }
+        Method matchedGetMethod1 = null;
+        Method matchedGetMethod2 = null;
+        Method matchedStaticGetMethod1 = null;
+        Method matchedStaticGetMethod2 = null;
+        Method matchedMethod = null;
+        Method matchedStaticMethod = null;
+        for (Method method : methods) {
+            String methodName = method.getName();
+            if (!Modifier.isStatic(method.getModifiers())) { // Instance method first
+                if (name.equals(method.getName())) {
+                    L.push(new JMethod(instance, clazz, name));
+                    return 1;
+                } else if (matchedGetMethod1 == null) {
+                    if (methodName1.equals(methodName)) {
+                        matchedGetMethod1 = method;
+                    } else if (methodName2.equals(methodName)) {
+                        matchedGetMethod2 = method;
+                    }
+                }
+            } else {
+                if (name.equals(method.getName())) {
+                    matchedStaticMethod = method;
+                } else if (matchedGetMethod1 == null) {
+                    if (methodName1.equals(methodName)) {
+                        matchedStaticGetMethod1 = method;
+                    } else if (methodName2.equals(methodName)) {
+                        matchedStaticGetMethod2 = method;
+                    }
+                }
+            }
+        }
+        if (matchedStaticMethod != null) {
+            L.push(new JMethod(null, clazz, name));
+            return 1;
+        } else if (matchedGetMethod1 != null) {
+            L.push(ClassUtils.callMethod(instance, matchedGetMethod1, null));
+            return 1;
+        } else if (matchedGetMethod2 != null) {
+            L.push(ClassUtils.callMethod(instance, matchedGetMethod2, null));
+            return 1;
+        } else if (matchedStaticGetMethod1 != null) {
+            L.push(ClassUtils.callMethod(null, matchedStaticGetMethod1, null));
+            return 1;
+        } else if (matchedStaticGetMethod2 != null) {
+            L.push(ClassUtils.callMethod(null, matchedStaticGetMethod2, null));
+            return 1;
+        }
+        throw new LuaException(String.format("%s@%s is not a field or method", clazz.getName(), name));
+    }
 
     /**
      * Allocates a direct buffer whose memory is managed by Java
@@ -191,15 +297,13 @@ public final class JuaAPI {
             InvocationHandler handler = Proxy.getInvocationHandler(obj);
             if (handler instanceof LuaProxy) {
                 LuaProxy proxy = (LuaProxy) handler;
-//                if (proxy.L == L.getMainState()) {
-                L.refGet(proxy.ref);
-                return 1;
-//                }
-//                L.push("Proxied table is on different states");
-            } else {
-                L.push("No a LuaProxy backed object");
+                if (proxy.state() == L) {
+                    proxy.unwrap();
+                    return 1;
+                }
+                throw new IllegalArgumentException("Cannot unwrap LuaProxy on different LuaState");
             }
-            return -1;
+            throw new IllegalArgumentException("Not a LuaProxy");
         } catch (IllegalArgumentException | SecurityException e) {
             return L.error(e);
         }
@@ -216,33 +320,9 @@ public final class JuaAPI {
      * @param module the module name
      * @return always 1
      */
-    public static int load(long id, String module) {
+    public static int jmoduleLoad(long id, String module) {
         Lua L = Jua.get(id);
-        try {
-            L.loadExternal(module);
-        } catch (LuaException e) {
-            L.push("\n  no module '" + module + "': " + e);
-        }
-        return 1;
-    }
-
-    /**
-     * Loads a Java static method that accepts a single {@link Lua} parameter and returns an integer
-     *
-     * @param id     see {@link Jua#get(long)}
-     * @param module the module name, i.e., the clazz name and the method name joined by a dot
-     * @return the number of elements pushed onto the stack
-     */
-    @SuppressWarnings("unused")
-    public static int loadModule(long id, String module) {
-        int i = module.lastIndexOf('.');
-        if (i == -1) {
-            Lua L = Jua.get(id);
-            L.pushNil();
-            L.push("\n  no method '" + module + "': invalid name");
-            return 2;
-        }
-        return loadLib(id, module.substring(0, i), module.substring(i + 1));
+        return L.loadExternal(module);
     }
 
     /**
@@ -256,7 +336,7 @@ public final class JuaAPI {
     public static int loadLib(long id, String className, String methodName) {
         Lua L = Jua.get(id);
         try {
-            Class<?> clazz = ClassUtils.forName(className);
+            Class<?> clazz = Class.forName(className);
             final Method method = clazz.getDeclaredMethod(methodName, Lua.class);
             if (method.getReturnType() == int.class) {
                 //noinspection Convert2Lambda
@@ -286,34 +366,6 @@ public final class JuaAPI {
     }
 
     /**
-     * Creates a proxy
-     *
-     * <p>
-     * See also the <code>java.proxy</code> API and <code>javaProxy</code> in <code>jni/luajava/lualib.cpp</code>.
-     * </p>
-     *
-     * @param id the Lua state id
-     * @return the number of return values pushed on stack (i.e., 1 if successful)
-     */
-    public static int proxy(long id) {
-        Lua L = Jua.get(id);
-        int interfaces = L.getTop() - 1;
-        LinkedList<Class<?>> classes = new LinkedList<>();
-        for (int i = 1; i <= interfaces; i++) {
-            Class<?> c = looseGetClass(L, i);
-            if (c != null && c.isInterface()) {
-                classes.add(c);
-            } else {
-                L.push("bad argument #" + i + " to 'java.proxy' (expecting an interface)");
-                return -1;
-            }
-        }
-        Object o = L.createProxy(null, Lua.Conversion.SEMI);
-        L.pushJavaObject(o);
-        return 1;
-    }
-
-    /**
      * @param L the Lua state
      * @param i the stack position
      * @return a clazz converted from the value (jobject, jclass or string) at the stack position
@@ -326,7 +378,7 @@ public final class JuaAPI {
             String name = L.toString(i);
             if (name != null) {
                 try {
-                    return ClassUtils.forName(name);
+                    return Class.forName(name);
                 } catch (ClassNotFoundException e) {
                     return null;
                 }
@@ -351,7 +403,7 @@ public final class JuaAPI {
     public static int javaImport(long id, String className) {
         Lua L = Jua.get(id);
         try {
-            L.pushJavaClass(ClassUtils.forName(className));
+            L.push(Class.forName(className));
             return 1;
         } catch (ClassNotFoundException e) {
             return L.error(e);
@@ -410,7 +462,7 @@ public final class JuaAPI {
      * </p>
      *
      * <p>
-     * For static fields, use {@link #jclassIndex(Class, String)} instead.
+     * For static fields, use {@link #jclassIndex(long, Class, String)} instead.
      * </p>
      *
      * @param index  the id of {@link Jua} thread calling this method
@@ -484,7 +536,7 @@ public final class JuaAPI {
             String iClass = name.substring(0, colon);
             String method = name.substring(colon + 1);
             try {
-                return methodInvoke(index, ClassUtils.forName(iClass), obj, method,
+                return methodInvoke(index, Class.forName(iClass), obj, method,
                         notSignature, paramCount);
             } catch (ClassNotFoundException e) {
                 return Jua.get(index).error(e);
@@ -530,7 +582,7 @@ public final class JuaAPI {
         }
         if (clazz.isInterface()) {
             try {
-                L.pushJavaObject(L.createProxy(clazz, Lua.Conversion.SEMI));
+                L.pushJavaObject(L.createProxy(-1, clazz, Lua.Conversion.SEMI));
                 return 1;
             } catch (IllegalArgumentException e) {
                 return L.error(e);
@@ -592,7 +644,7 @@ public final class JuaAPI {
                 return 1;
             } else {
                 try {
-                    L.pushJavaClass(ClassUtils.forName(clazz.getName() + '$' + name));
+                    L.pushJavaObject(Class.forName(clazz.getName() + '$' + name));
                     return 1;
                 } catch (ClassNotFoundException e) {
                     return i;
@@ -668,7 +720,7 @@ public final class JuaAPI {
             return -1;
         }
         if (size >= 0) {
-            L.pushJavaArray(Array.newInstance(clazz, size));
+            L.pushJavaObject(Array.newInstance(clazz, size));
         } else {
             int depth = -size;
             int[] sizes = new int[depth];
@@ -684,7 +736,7 @@ public final class JuaAPI {
                 }
                 sizes[i - size] = current;
             }
-            L.pushJavaArray(Array.newInstance(clazz, sizes));
+            L.pushJavaObject(Array.newInstance(clazz, sizes));
         }
         return 1;
     }
@@ -1123,7 +1175,7 @@ public final class JuaAPI {
                 return L.toMap(index);
             } else if (clazz.isInterface() && !clazz.isAnnotation()) {
                 L.pushValue(index);
-                return L.createProxy(clazz, Lua.Conversion.SEMI);
+                return L.createProxy(-1, clazz, Lua.Conversion.SEMI);
             }
         } else if (type == LuaType.FUNCTION) {
             String descriptor = ClassUtils.getSingleInterfaceMethodName(clazz);
@@ -1132,7 +1184,7 @@ public final class JuaAPI {
                 L.createTable(0, 1);
                 L.insert(L.getTop() - 1);
                 L.setField(-2, descriptor);
-                return L.createProxy(clazz, Lua.Conversion.SEMI);
+                return L.createProxy(-1, clazz, Lua.Conversion.SEMI);
             }
         }
         if (clazz.isAssignableFrom(LuaValue.class)) {
@@ -1196,7 +1248,7 @@ public final class JuaAPI {
         Class<?>[] classes = new Class[names.length];
         for (int i = 0; i < names.length; i++) {
             try {
-                classes[i] = ClassUtils.forName(names[i]);
+                classes[i] = Class.forName(names[i]);
             } catch (ClassNotFoundException e) {
                 classes[i] = null;
             }
@@ -1271,21 +1323,21 @@ public final class JuaAPI {
         return 0;
     }
 
-    public static int createArray(int stateIndex, Class<?> clazz, int index) {
+    public static int createArray(long stateIndex, Class<?> clazz, int index) {
         Lua L = Jua.get(stateIndex);
         // 判断是否为 ArrayList / List, 是的话则转换成 List
         if (clazz.isAssignableFrom(List.class)) {
             L.pushJavaObject(L.toList(index));
         } else if (clazz.isArray() && clazz.getComponentType() == Object.class) {
             // 只匹配 Object[]
-            L.pushJavaArray(L.toList(index).toArray(new Object[0]));
+            L.pushJavaObject(L.toList(index).toArray(new Object[0]));
         } else if (clazz.isAssignableFrom(Map.class)) {
             // 匹配 Map
             L.pushJavaObject(L.toMap(index));
         } else if (clazz.isInterface() && !clazz.isAnnotation()) {
             // 批量转换 View.OnClickListener 等接口
             L.pushValue(index);
-            L.pushJavaObject(L.createProxy(clazz, Lua.Conversion.SEMI));
+            L.pushJavaObject(L.createProxy(-1, clazz, Lua.Conversion.SEMI));
         }
         return 1;
     }

@@ -1,4 +1,3 @@
-// File: com/luajava/util/LuaJavaCaches.java
 package com.luajava.util;
 
 import java.util.ArrayList;

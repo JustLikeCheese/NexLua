@@ -20,53 +20,59 @@
  * SOFTWARE.
  */
 
-package com.luajava.value;
+package com.luajava.value.referable;
 
 import com.luajava.Lua;
-import com.luajava.LuaException;
-import com.luajava.cleaner.LuaReferable;
+import com.luajava.value.AbstractLuaRefValue;
+import com.luajava.value.LuaType;
+import com.luajava.value.LuaValue;
 
-public abstract class AbstractLuaRefValue extends AbstractLuaValue implements LuaReferable {
-    protected final int ref;
+import java.util.List;
+import java.util.Map;
 
-    public AbstractLuaRefValue(Lua L, LuaType type) {
-        super(L, type);
-        this.ref = L.refSafe();
-        L.registerReference(this);
+public class LuaThread extends AbstractLuaRefValue {
+    public LuaThread(Lua L) {
+        super(L, LuaType.THREAD);
     }
 
-    public AbstractLuaRefValue(Lua L, LuaType type, int index) {
-        super(L, type);
-        this.ref = L.refSafe(index);
-        L.registerReference(this);
+    public LuaThread(Lua L, int index) {
+        super(L, LuaType.THREAD, index);
     }
 
-    public AbstractLuaRefValue(int ref, Lua L, LuaType type) {
-        super(L, type);
-        this.ref = ref;
-        L.registerReference(this);
+    private LuaThread(int ref, Lua L) {
+        super(ref, L, LuaType.THREAD);
     }
 
-    @Override
-    public void push(Lua L) {
-        if (this.L != L) {
-            throw new LuaException(LuaException.LuaError.JAVA, "Cannot push a reference to a different Lua instance");
-        }
-        L.refGet(ref);
+    public static LuaThread fromRef(Lua L, int ref) {
+        return new LuaThread(ref, L);
     }
 
     @Override
-    public boolean isRef() {
+    public boolean isThread() {
         return true;
     }
 
     @Override
-    public int getRef() {
-        return ref;
+    public LuaThread checkThread() {
+        return this;
     }
 
     @Override
-    public void unRef() {
-        L.unRef(ref);
+    public Object toJavaObject() {
+        return this;
+    }
+
+    @Override
+    public boolean isJavaObject(Class<?> clazz) {
+        return clazz == Object.class || clazz == LuaValue.class || clazz == LuaThread.class;
+    }
+
+    @Override
+    public Object toJavaObject(Class<?> clazz) throws IllegalArgumentException {
+        if (clazz == LuaValue.class || clazz == LuaThread.class)
+            return this;
+        else if (clazz == Object.class)
+            return null;
+        return super.toJavaObject(clazz);
     }
 }

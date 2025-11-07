@@ -1,10 +1,43 @@
+/*
+ * Copyright (C) 2025 JustLikeCheese
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.luajava.value;
 
 import com.luajava.Lua;
 import com.luajava.LuaConsts;
-import com.luajava.Nullable;
+import com.luajava.LuaException;
+import com.luajava.value.immutable.LuaBoolean;
+import com.luajava.value.immutable.LuaNil;
+import com.luajava.value.immutable.LuaNumber;
+import com.luajava.value.referable.LuaFunction;
+import com.luajava.value.referable.LuaLightUserdata;
+import com.luajava.value.referable.LuaString;
+import com.luajava.value.referable.LuaTable;
+import com.luajava.value.referable.LuaThread;
+import com.luajava.value.referable.LuaUnknown;
+import com.luajava.value.referable.LuaUserdata;
 
 import java.nio.Buffer;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,11 +65,6 @@ public abstract class AbstractLuaValue implements LuaValue {
     @Override
     public abstract void push(Lua L);
 
-    @Override
-    public @Nullable LuaValue copyTo(Lua L) {
-        return this;
-    }
-
     public LuaType type() {
         return TYPE;
     }
@@ -52,12 +80,11 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public boolean containsKey(Object key, Lua.Conversion degree) {
-        Lua L = state();
-        push(L);
+        push();
         L.push(key, degree);
         L.getTable(-2);
         boolean result = !L.isNil(-1);
-        L.pop(1);
+        L.pop(2);
         return result;
     }
 
@@ -68,15 +95,12 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public LuaValue get(Object key, Lua.Conversion degree) {
-        int top = L.getTop();
-        try {
-            push();
-            L.push(key, degree);
-            L.getTable(-2);
-            return L.get();
-        } finally {
-            L.setTop(top);
-        }
+        push();
+        L.push(key, degree);
+        L.getTable(-2);
+        LuaValue result = L.get();
+        L.pop(1);
+        return result;
     }
 
     @Override
@@ -91,15 +115,11 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public void set(Object key, Object value, Lua.Conversion degree1, Lua.Conversion degree2) {
-        int top = L.getTop();
-        try {
-            push();
-            L.push(key, degree1);
-            L.push(value, degree2);
-            L.setTable(-3);
-        } finally {
-            L.setTop(top);
-        }
+        push();
+        L.push(key, degree1);
+        L.push(value, degree2);
+        L.setTable(-3);
+        L.pop(1);
     }
 
     @Override
@@ -109,15 +129,12 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public LuaValue rawget(Object key, Lua.Conversion degree) {
-        int top = L.getTop();
-        try {
-            push();
-            L.push(key, degree);
-            L.rawGet(-2);
-            return L.get();
-        } finally {
-            L.setTop(top);
-        }
+        push();
+        L.push(key, degree);
+        L.rawGet(-2);
+        LuaValue result = L.get();
+        L.pop(1);
+        return result;
     }
 
 
@@ -133,62 +150,48 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public void rawset(Object key, Object value, Lua.Conversion degree1, Lua.Conversion degree2) {
-        int top = L.getTop();
-        try {
-            push();
-            L.push(key, degree1);
-            L.push(value, degree2);
-            L.rawSet(-3);
-        } finally {
-            L.setTop(top);
-        }
+        push();
+        L.push(key, degree1);
+        L.push(value, degree2);
+        L.rawSet(-3);
+        L.pop(1);
     }
 
     @Override
     public void pairs(LuaPairsIterator iterator) {
-        int top = L.getTop();
-        try {
-            push();
-            L.pushNil();
-            while (L.next(-2)) {
-                LuaValue key = L.get(-2);
-                LuaValue value = L.get(-1);
-                boolean shouldContinue = iterator.iterate(key, value);
-                L.pop(1);
-                if (!shouldContinue) {
-                    L.pop(1); // pop key
-                    break;
-                }
-            }
-        } finally {
-            L.setTop(top);
-        }
+        push();
+        L.pairs(iterator);
+        L.pop(1);
     }
 
     @Override
     public void ipairs(LuaIpairsIterator iterator) {
-        int top = L.getTop();
-        try {
-            push();
-            long index = 1;
-            while (true) {
-                L.push(index);
-                L.getTable(-2);
-                if (L.isNil(-1)) {
-                    L.pop(1); // pop nil value
-                    break;
-                }
-                LuaValue value = L.get(-1);
-                boolean shouldContinue = iterator.iterate(index, value);
-                L.pop(1); // pop value
-                if (!shouldContinue) {
-                    break;
-                }
-                index++;
-            }
-        } finally {
-            L.setTop(top);
-        }
+        push();
+        L.ipairs(iterator);
+        L.pop(1);
+    }
+
+    @Override
+    public LuaValue[] toArray() {
+        push();
+        int length = (int) L.rawLength(-1);
+        LuaValue[] array = new LuaValue[length];
+        L.ipairs((index, value) -> {
+            array[(int) index - 1] = value;
+            return true;
+        });
+        L.pop(1);
+        return array;
+    }
+
+    @Override
+    public List<LuaValue> toList() {
+        List<LuaValue> list = new ArrayList<>();
+        ipairs((index, value) -> {
+            list.add(value);
+            return true;
+        });
+        return list;
     }
 
     @Override
@@ -202,53 +205,40 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public List<LuaValue> toList() {
-        List<LuaValue> list = new java.util.ArrayList<>();
-        ipairs((index, value) -> {
-            while (list.size() < index) {
-                list.add(null);
-            }
-            list.set((int) (index - 1), value);
-            return true;
-        });
-        return list;
-    }
-
-    @Override
     public long length() {
         push();
-        long length = L.rawLength(-1);
+        long result = L.rawLength(-1);
         L.pop(1);
-        return length;
+        return result;
     }
 
     @Override
     public LuaValue getMetatable() {
         push();
         if (L.getMetatable(-1)) {
-            LuaValue value = L.get();
+            LuaValue result = L.get();
             L.pop(1);
-            return value;
+            return result;
         }
         L.pop(1);
         return null;
     }
 
     @Override
-    public void setMetatable(String tname) {
+    public boolean setMetatable(String tname) {
         push();
-        L.getRegisteredMetatable(tname);
-        L.setMetatable(-2);
-        L.pop(1);
+        L.setMetatable(tname);
+        L.pop(2);
+        return false;
     }
 
     @Override
     public LuaValue callMetatable(String method) {
         push();
-        if (L.callMeta(-1, method)) {
-            LuaValue value = L.get();
+        if (L.callMetatable(-1, method)) {
+            LuaValue result = L.get();
             L.pop(1);
-            return value;
+            return result;
         }
         L.pop(1);
         return null;
@@ -340,7 +330,13 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public LuaValue[] call() {
-        return call((Object) null);
+        push();
+        int oldTop = L.getTop();
+        L.call(0, LuaConsts.LUA_MULTRET);
+        int nResult = L.getTop() - oldTop;
+        LuaValue[] result = L.getArgs(nResult);
+        L.pop(nResult);
+        return result;
     }
 
     @Override
@@ -350,26 +346,40 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public LuaValue[] call(Lua.Conversion degree, Object... args) {
-        int top = L.getTop();
-        try {
-            push();
-            int argsLength = args == null ? 0 : args.length;
-            if (args != null) {
-                for (Object arg : args) {
-                    L.push(arg, degree);
-                }
-            }
-            int oldTop = L.getTop();
-            L.call(argsLength, LuaConsts.LUA_MULTRET);
-            int resultLength = L.getTop() - oldTop;
-            LuaValue[] result = new LuaValue[argsLength];
-            for (int i = 0; i < resultLength; i++) {
-                result[i] = L.get();
-            }
-            return result;
-        } finally {
-            L.setTop(top);
-        }
+        push();
+        int oldTop = L.getTop();
+        L.call(args, degree, LuaConsts.LUA_MULTRET);
+        int nResult = L.getTop() - oldTop;
+        LuaValue[] result = L.getArgs(nResult);
+        L.pop(nResult);
+        return result;
+    }
+
+    @Override
+    public LuaValue[] pCall() {
+        push();
+        int oldTop = L.getTop();
+        L.pCall(0, LuaConsts.LUA_MULTRET);
+        int nResult = L.getTop() - oldTop;
+        LuaValue[] result = L.getArgs(nResult);
+        L.pop(nResult);
+        return result;
+    }
+
+    @Override
+    public LuaValue[] pCall(Object... args) {
+        return pCall(Lua.Conversion.SEMI, args);
+    }
+
+    @Override
+    public LuaValue[] pCall(Lua.Conversion degree, Object... args) {
+        push();
+        int oldTop = L.getTop();
+        L.pCall(args, degree, LuaConsts.LUA_MULTRET);
+        int nResult = L.getTop() - oldTop;
+        LuaValue[] result = L.getArgs(nResult);
+        L.pop(nResult);
+        return result;
     }
 
     @Override
@@ -430,53 +440,194 @@ public abstract class AbstractLuaValue implements LuaValue {
     @Override
     public boolean toBoolean() {
         push();
-        boolean bool = L.toBoolean(-1);
+        boolean result = L.toBoolean(-1);
         L.pop(1);
-        return bool;
+        return result;
     }
 
     @Override
     public long toInteger() {
         push();
-        long integer = L.toInteger(-1);
+        long result = L.toInteger(-1);
         L.pop(1);
-        return integer;
+        return result;
     }
 
     @Override
     public double toNumber() {
         push();
-        double number = L.toNumber(-1);
+        double result = L.toNumber(-1);
         L.pop(1);
-        return number;
+        return result;
+    }
+
+    @Override
+    public boolean isJavaObject() {
+        /*push();
+        boolean result = L.isJavaObject(-1);
+        L.pop(1);
+        return result;*/
+        return false;
     }
 
     @Override
     public Object toJavaObject() {
         push();
-        Object javaObject = L.toJavaObject(-1);
+        Object result = L.toJavaObject(-1);
         L.pop(1);
-        return javaObject;
+        return result;
     }
 
     @Override
     public String toString() {
         push();
-        String str = L.toString(-1);
+        String result = L.toString(-1);
         L.pop(1);
-        return str;
+        return result;
+    }
+
+    @Override
+    public String ltoString() {
+        push();
+        String result = L.ltoString(-1);
+        L.pop(1);
+        return result;
     }
 
     @Override
     public Buffer toBuffer() {
         push();
-        Buffer buffer = L.toDirectBuffer(-1);
+        Buffer result = L.toBuffer(-1);
         L.pop(1);
-        return buffer;
+        return result;
     }
 
     @Override
     public Buffer dump() {
-        return null;
+        push();
+        Buffer result = L.dump();
+        L.pop(1);
+        return result;
+    }
+
+    @Override
+    public long getPointer() {
+        push();
+        long result = L.getPointer(-1);
+        L.pop(1);
+        return result;
+    }
+
+    @Override
+    public boolean isRef() {
+        return false;
+    }
+
+    @Override
+    public int getRef() {
+        throw new IllegalArgumentException("Not a reference");
+    }
+
+    @Override
+    public void unRef() {
+        throw new IllegalArgumentException("Not a reference");
+    }
+
+    @Override
+    public LuaNil checkNil() {
+        throw new IllegalArgumentException("Not a nil");
+    }
+
+    @Override
+    public LuaBoolean checkBoolean() {
+        throw new IllegalArgumentException("Not a boolean");
+    }
+
+    @Override
+    public LuaNumber checkNumber() {
+        throw new IllegalArgumentException("Not a number");
+    }
+
+    @Override
+    public LuaString checkString() {
+        throw new IllegalArgumentException("Not a string");
+    }
+
+    @Override
+    public LuaTable checkTable() {
+        throw new IllegalArgumentException("Not a table");
+    }
+
+    @Override
+    public LuaFunction checkFunction() {
+        throw new IllegalArgumentException("Not a function");
+    }
+
+    @Override
+    public LuaFunction checkCFunction() {
+        throw new IllegalArgumentException("Not a C function");
+    }
+
+    @Override
+    public LuaLightUserdata checkLightUserdata() {
+        throw new IllegalArgumentException("Not a light userdata");
+    }
+
+    @Override
+    public LuaUserdata checkUserdata() {
+        throw new IllegalArgumentException("Not a userdata");
+    }
+
+    @Override
+    public LuaThread checkThread() {
+        throw new IllegalArgumentException("Not a thread");
+    }
+
+    @Override
+    public LuaUnknown checkUnknown() {
+        throw new IllegalArgumentException("Not a unknown");
+    }
+
+    @Override
+    public Object checkJavaObject() {
+        throw new IllegalArgumentException("Not a java object");
+    }
+
+    @Override
+    public Object toJavaObject(Class<?> clazz) {
+        throw new LuaException(String.format("Could not convert %s to %s", typeName(), clazz.getName()));
+    }
+
+    @Override
+    public Object[] toJavaArray() {
+        push();
+        int length = (int) L.rawLength(-1);
+        Object[] array = new Object[length];
+        L.ipairs((index, value) -> {
+            array[(int) index - 1] = value.toJavaObject(Object.class);
+            return true;
+        });
+        L.pop(1);
+        return array;
+    }
+
+    @Override
+    public List<Object> toJavaList() {
+        List<Object> list = new ArrayList<>();
+        ipairs((index, value) -> {
+            list.add(value.toJavaObject(Object.class));
+            return true;
+        });
+        return list;
+    }
+
+    @Override
+    public Map<Object, Object> toJavaMap() {
+        Map<Object, Object> map = new LinkedHashMap<>();
+        pairs((key, value) -> {
+            map.put(key.toJavaObject(Object.class), value.toJavaObject(Object.class));
+            return true; // continue iteration
+        });
+        return map;
     }
 }

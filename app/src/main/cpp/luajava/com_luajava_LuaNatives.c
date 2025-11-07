@@ -2,12 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "luakit.h"
-#include "luacomp.h"
-#include "luajava.h"
-#include "luajavaapi.h"
 #include "jnihelper.h"
-#include "com_luajava_LuaNatives.h"
-#include "luajavacore.h"
 
 /*
  * JNIWRAP(returnType, methodName, methodArgs..)
@@ -15,144 +10,15 @@
 
 #define L ((lua_State *) ptr)
 #define L1 ((lua_State *) ptr1)
+#define JNIWRAP(RET, NAME, ...) \
+    JNIEXPORT RET JNICALL Java_com_luajava_LuaNatives_##NAME(JNIEnv* env, jobject thiz, ##__VA_ARGS__)
+
+#define JNIWRAP_STATIC(RET, NAME, ...) \
+    JNIEXPORT RET JNICALL Java_com_luajava_LuaNatives_##NAME(JNIEnv* env, jclass thiz, ##__VA_ARGS__)
 
 // luaJ_* extensions (unchanged)
 JNIWRAP_STATIC(jint, initBindings) {
     return initJNIBindings(env);
-}
-
-JNIWRAP(jlong, luaJ_1newstate) {
-    return (jlong) luaJ_newstate();
-}
-
-JNIWRAP(jstring, luaJ_1tostring, jlong ptr, jint index) {
-    const char *string = luaJ_tolstring(L, index, NULL);
-    return ToString(string);
-}
-
-JNIWRAP(void, luaJ_1pushobject, jlong ptr, jobject obj) {
-    luaJ_pushobject(env, L, obj);
-}
-
-JNIWRAP(jobject, luaJ_1toobject, jlong ptr, jint index) {
-    return (jobject) luaJ_toobject(L, (int) index);
-}
-
-JNIWRAP(jint, luaJ_1isobject, jlong ptr, jint index) {
-    return luaJ_isobject(L, (int) index);
-}
-
-JNIWRAP(void, luaJ_1pushclass, jlong ptr, jobject obj) {
-    luaJ_pushclass(env, L, obj);
-}
-
-JNIWRAP(void, luaJ_1pusharray, jlong ptr, jobject array) {
-    luaJ_pusharray(env, L, array);
-}
-
-JNIWRAP(void, luaJ_1pushfunction, jlong ptr, jobject func) {
-    luaJ_pushfunction(env, L, func);
-}
-
-JNIWRAP(void, luaJ_1pushbuffer, jlong ptr, jobject obj_buffer, jint size) {
-    luaJ_pushbuffer(env, L, obj_buffer);
-}
-
-JNIWRAP(jint, luaJ_1loadbuffer, jlong ptr, jobject obj_buffer, jint size, jstring obj_name) {
-    const char *name = GetString(obj_name);
-    unsigned char *buffer = obj_buffer ? (unsigned char *) (*env)->GetDirectBufferAddress(env,
-                                                                                          obj_buffer)
-                                       : NULL;
-    jint result = luaL_loadbuffer(L, (char *) buffer, (int) size, name);
-    ReleaseString(obj_name, name);
-    return result;
-}
-
-JNIWRAP(jint, luaJ_1dobuffer, jlong ptr, jobject obj_buffer, jint size, jstring obj_name) {
-    const char *name = GetString(obj_name);
-    unsigned char *buffer = obj_buffer ? (unsigned char *) (*env)->GetDirectBufferAddress(env,
-                                                                                          obj_buffer)
-                                       : NULL;
-    jint result = (jint) luaJ_dobuffer(L, buffer, (int) size, name);
-    ReleaseString(obj_name, name);
-    return result;
-}
-
-JNIWRAP(jobject, luaJ_1dumptobuffer, jlong ptr) {
-    DumpBuffer dumpBuffer;
-    luaJ_dumptobuffer(L, &dumpBuffer);
-    return luaJ_javabuffer(env, L, dumpBuffer.buffer, (jint) dumpBuffer.size);
-}
-
-JNIWRAP(jobject, luaJ_1tobuffer, jlong ptr, jint index) {
-    return luaJ_tojavabuffer(env, L, (int) index);
-}
-
-JNIWRAP(jobject, luaJ_1todirectbuffer, jlong ptr, jint index) {
-    return luaJ_todirectbuffer(env, L, (int) index);
-}
-
-JNIWRAP(void, luaJ_1openlib, jlong ptr, jstring obj_lib) {
-    const char *lib = GetString(obj_lib);
-    luaJ_openlib(L, lib);
-    ReleaseString(obj_lib, lib);
-}
-
-#define lua_morethan(l, idx1, idx2) (lua_lessthan(l, idx1, idx2))
-
-JNIWRAP(jint, luaJ_1compare, jlong ptr, jint idx1, jint idx2, jint opc) {
-    return luaJ_compare(L, idx1, idx2, opc);
-}
-
-JNIWRAP(jlong, luaJ_1newthread, jlong ptr, jint lid) {
-    lua_State *l = lua_newthread(L);
-    luaopen_luajava(l);
-    return (jlong) l;
-}
-
-JNIWRAP(jint, luaJ_1invokespecial, jlong ptr, jclass clazz, jstring obj_method, jstring obj_sig,
-        jobject obj, jstring obj_params) {
-    const char *method = GetString(obj_method);
-    const char *sig = GetString(obj_sig);
-    const char *params = GetString(obj_params);
-    jint result = luaJ_invokespecial(env, L, clazz, method, sig, obj, params);
-    ReleaseString(obj_method, method);
-    ReleaseString(obj_sig, sig);
-    ReleaseString(obj_params, params);
-    return result;
-}
-
-JNIWRAP(void, luaJ_1gc, jlong ptr) {
-    luaJ_gc(L);
-}
-
-JNIWRAP(jint, luaJ_1copyfunction, jlong ptr, jlong ptr1) {
-    if (lua_iscfunction(L, -1) || !lua_isfunction(L, -1)) {
-        luaL_typerror(L, 1, "<function>");
-        return false; // failed
-    }
-    DumpBuffer buffer;
-    luaJ_dumptobuffer(L, &buffer);
-    luaL_loadbuffer(L, (const char *) buffer.buffer, buffer.size, "<function>");
-    return true; // success
-}
-
-JNIWRAP(jint, luaJ_1copystring, jlong ptr, jlong ptr1) {
-    if (!lua_isstring(L, -1)) {
-        luaL_typerror(L, 1, "string");
-        return false; // failed
-    }
-    char *string = (char *) lua_tostring(L, -1);
-    lua_pushstring(L1, string);
-    return true; // success
-}
-
-JNIWRAP(jint, luaJ_1pushtraceback, jlong ptr) {
-    return luaJ_pushtraceback(L);
-}
-
-JNIWRAP(jint, luaJ_1pcall, jlong ptr, int nargs, int nresults, int errfunc) {
-    return luaJ_pcall(L, nargs, nresults, errfunc);
 }
 
 // lua.h
@@ -484,16 +350,16 @@ JNIWRAP(jint, lua_1isnoneornil, jlong ptr, jint idx) {
     return (jint) lua_isnoneornil(L, idx);
 }
 
-JNIWRAP(void, lua_1setglobal, jlong ptr, jstring name) {
-    const char *c_string = GetString(name);
-    lua_setglobal(L, c_string);
-    ReleaseString(name, c_string);
+JNIWRAP(void, lua_1setglobal, jlong ptr, jstring j_name) {
+    UseString(j_name, name, {
+        lua_setglobal(L, name);
+    });
 }
 
-JNIWRAP(void, lua_1getglobal, jlong ptr, jstring name) {
-    const char *c_string = GetString(name);
-    lua_getglobal(L, c_string);
-    ReleaseString(name, c_string);
+JNIWRAP(void, lua_1getglobal, jlong ptr, jstring j_name) {
+    UseString(j_name, name, {
+        lua_getglobal(L, name);
+    });
 }
 
 JNIWRAP(jstring, lua_1tostring, jlong ptr, jint idx) {
@@ -790,17 +656,17 @@ JNIWRAP(jint, luaL_1dofile, jlong ptr, jstring filename) {
     return result;
 }
 
-JNIWRAP(jint, luaL_1dostring, jlong ptr, jstring s) {
-    const char *c_s = GetString(s);
-    int result = luaL_dostring(L, c_s);
-    ReleaseString(s, c_s);
+JNIWRAP(jint, luaL_1dostring, jlong ptr, jstring string) {
+    const char *c_string = GetString(string);
+    int result = luaL_dostring(L, c_string);
+    ReleaseString(string, c_string);
     return result;
 }
 
-JNIWRAP(void, luaL_1getmetatable, jlong ptr, jstring n) {
-    const char *c_n = GetString(n);
-    luaL_getmetatable(L, c_n);
-    ReleaseString(n, c_n);
+JNIWRAP(void, luaL_1getmetatable, jlong ptr, jstring name) {
+    const char *c_name = GetString(name);
+    luaL_getmetatable(L, c_name);
+    ReleaseString(name, c_name);
 }
 
 /*#define luaL_opt(L,f,n,d)	(lua_isnoneornil(L,(n)) ? (d) : f(L,(n)))
@@ -822,39 +688,39 @@ LUALIB_API void (luaL_addvalue) (luaL_Buffer *B);
 LUALIB_API void (luaL_pushresult) (luaL_Buffer *B);*/
 
 // lualib.h
-#define JNIWRAP_LUALIB(libname) \
+#define JNIWRAP_LUALIB_WRAP(libname) \
     JNIWRAP(jint, luaopen_1##libname, jlong ptr) { \
         return (jint) luaopen_##libname(L); \
     }
 
-#define JNIWRAP_LUALIB2(name, libname) \
+#define JNIWRAP_LUALIB(name, libname) \
     JNIWRAP(jint, luaopen_1##name, jlong ptr) { \
         return (jint) luaopen_##libname(L); \
     }
 
-JNIWRAP_LUALIB(base)
+JNIWRAP_LUALIB_WRAP(base)
 
-JNIWRAP_LUALIB(math)
+JNIWRAP_LUALIB_WRAP(math)
 
-JNIWRAP_LUALIB(string)
+JNIWRAP_LUALIB_WRAP(string)
 
-JNIWRAP_LUALIB(table)
+JNIWRAP_LUALIB_WRAP(table)
 
-JNIWRAP_LUALIB(io)
+JNIWRAP_LUALIB_WRAP(io)
 
-JNIWRAP_LUALIB(os)
+JNIWRAP_LUALIB_WRAP(os)
 
-JNIWRAP_LUALIB(package)
+JNIWRAP_LUALIB_WRAP(package)
 
-JNIWRAP_LUALIB(debug)
+JNIWRAP_LUALIB_WRAP(debug)
 
-JNIWRAP_LUALIB(bit)
+JNIWRAP_LUALIB_WRAP(bit)
 
-JNIWRAP_LUALIB(jit)
+JNIWRAP_LUALIB_WRAP(jit)
 
-JNIWRAP_LUALIB(ffi)
+JNIWRAP_LUALIB_WRAP(ffi)
 
-JNIWRAP_LUALIB2(string_1buffer, string_buffer)
+JNIWRAP_LUALIB(string_1buffer, string_buffer)
 
 JNIWRAP(void, luaL_1openlibs, jlong ptr) {
     luaL_openlibs(L);
@@ -882,3 +748,5 @@ JNIWRAP(jint, luaJIT_1setmode, jlong ptr, jint idx, jint mode) {
 
 #undef L
 #undef L1
+#undef JNIWRAP
+#undef JNIWRAP_STATIC

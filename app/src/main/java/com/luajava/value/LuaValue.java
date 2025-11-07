@@ -1,6 +1,38 @@
+/*
+ * Copyright (C) 2025 JustLikeCheese
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.luajava.value;
 
 import com.luajava.Lua;
+import com.luajava.value.immutable.LuaBoolean;
+import com.luajava.value.immutable.LuaNil;
+import com.luajava.value.immutable.LuaNumber;
+import com.luajava.value.referable.LuaFunction;
+import com.luajava.value.referable.LuaLightUserdata;
+import com.luajava.value.referable.LuaString;
+import com.luajava.value.referable.LuaTable;
+import com.luajava.value.referable.LuaThread;
+import com.luajava.value.referable.LuaUnknown;
+import com.luajava.value.referable.LuaUserdata;
 
 import java.nio.Buffer;
 import java.util.List;
@@ -13,8 +45,6 @@ public interface LuaValue {
     void push();
 
     void push(Lua L);
-
-    LuaValue copyTo(Lua L);
 
     LuaType type();
 
@@ -49,16 +79,18 @@ public interface LuaValue {
 
     void ipairs(LuaIpairsIterator iterator);
 
-    Map<LuaValue, LuaValue> toMap();
+    LuaValue[] toArray();
 
     List<LuaValue> toList();
+
+    Map<LuaValue, LuaValue> toMap();
 
     long length();
 
     // metatable
     LuaValue getMetatable();
 
-    void setMetatable(String tname);
+    boolean setMetatable(String tname);
 
     LuaValue callMetatable(String method);
 
@@ -90,9 +122,15 @@ public interface LuaValue {
     // call
     LuaValue[] call();
 
-    LuaValue[] call(Object...args);
+    LuaValue[] call(Object... args);
 
-    LuaValue[] call(Lua.Conversion degree, Object...args);
+    LuaValue[] call(Lua.Conversion degree, Object... args);
+
+    LuaValue[] pCall();
+
+    LuaValue[] pCall(Object... args);
+
+    LuaValue[] pCall(Lua.Conversion degree, Object... args);
 
     // sugar
     boolean isNone();
@@ -124,11 +162,57 @@ public interface LuaValue {
 
     String toString();
 
+    String ltoString();
+
     long toInteger();
+
+    boolean isJavaObject();
 
     Object toJavaObject();
 
     Buffer toBuffer();
 
     Buffer dump();
+
+    long getPointer();
+
+    boolean isRef();
+
+    int getRef();
+
+    void unRef();
+
+    LuaNil checkNil();
+
+    LuaBoolean checkBoolean();
+
+    LuaNumber checkNumber();
+
+    LuaString checkString();
+
+    LuaTable checkTable();
+
+    LuaFunction checkFunction();
+
+    LuaFunction checkCFunction();
+
+    LuaLightUserdata checkLightUserdata();
+
+    LuaUserdata checkUserdata();
+
+    LuaThread checkThread();
+
+    LuaUnknown checkUnknown();
+
+    Object checkJavaObject();
+
+    boolean isJavaObject(Class<?> clazz);
+
+    Object toJavaObject(Class<?> clazz) throws IllegalArgumentException;
+
+    Object[] toJavaArray();
+
+    List<Object> toJavaList();
+
+    Map<Object, Object> toJavaMap();
 }

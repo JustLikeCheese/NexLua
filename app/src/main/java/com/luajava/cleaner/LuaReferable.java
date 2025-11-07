@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 the original author or authors.
+ * Copyright (C) 2025 JustLikeCheese
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ import com.luajava.Lua;
  */
 public interface LuaReferable {
     /**
-     * @return a reference obtained with {@link Lua#ref()}, to be used with {@link Lua#unref(int)}
+     * @return a reference obtained with {@link Lua#ref()}, to be used with {@link Lua#unRef(int)}
      */
     int getRef();
 

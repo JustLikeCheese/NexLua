@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.os.StrictMode;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -36,8 +37,8 @@ import com.luajava.value.LuaValue;
 import java.io.File;
 import java.util.ArrayList;
 
-public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnReceiveListener, LuaContext {
-    private int mWidth, mHeight;
+public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnReceiveListener, com.nexlua.LuaContext {
+    protected int mWidth, mHeight;
     private LuaValue mOnKeyDown, mOnKeyUp, mOnKeyLongPress, mOnKeyShortcut, mOnTouchEvent, mOnAccessibilityEvent;
     private LuaValue mOnCreateOptionsMenu, mOnCreateContextMenu, mOnOptionsItemSelected, mOnMenuItemSelected, mOnContextItemSelected;
     private LuaValue mOnActivityResult, onRequestPermissionsResult, mOnSaveInstanceState, mOnRestoreInstanceState;
@@ -45,10 +46,11 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     private LuaValue mOnConfigurationChanged;
     private LuaValue mOnError, mOnReceive, mOnNewIntent, mOnResult;
     private LuaBroadcastReceiver mReceiver;
-    private File luaDir, luaFile;
-    private String luaPath, luaLpath, luaCpath;
-    private final Lua L = new Lua();
-    private LuaApplication app;
+    protected File luaDir, luaFile;
+    protected String luaPath, luaLpath, luaCpath;
+    protected final Lua L = new Lua();
+    public LuaPrint print;
+    protected LuaApplication app;
     private Menu optionsMenu;
 
     @Override
@@ -73,9 +75,37 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         luaCpath = app.getLuaCpath();
         luaLpath = app.getLuaLpath();
         // 初始化 Lua 环境
-        initializeLua();
-        // 执行 Lua
         try {
+            L.openLibraries();
+            L.setExternalLoader(new LuaModuleLoader(this));
+            if (!luaDir.equals(app.getLuaDir())) {
+                luaCpath = luaCpath + luaDir + "/lib?.so;";
+                luaLpath = luaLpath + luaDir + "/?.lua;" + luaDir + "/lua/?.lua;" + luaDir + "/?/init.lua;";
+            }
+            // package.path 和 cpath
+            L.getGlobal("package");
+            if (L.isTable(-1)) {
+                L.push(luaLpath);
+                L.setField(-2, "path");
+                L.push(luaCpath);
+                L.setField(-2, "cpath");
+            }
+            L.pop(1); // pop package 或 nil
+            // 插入 LuaActivity
+            L.pushJavaObject(this);
+            L.pushValue(-1);
+            L.setGlobal("activity");
+            L.setGlobal("this");
+            // 插入 LuaPrint
+            L.pushNil();
+            L.setGlobal("print");
+            LuaPrint print = new LuaPrint(this);
+            L.pushJavaObject(print);
+            L.setGlobal("print");
+            this.print = print;
+            // 插入 LuaApplication
+            L.pushJavaObject(app);
+            L.setGlobal("application");
             loadLua();
             // onCreate
             LuaValue mOnCreate = L.getFunction("onCreate");
@@ -139,11 +169,13 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         if (luaPath.startsWith(filesPath)) {
             String temp = luaPath.substring(filesPath.length());
             Class<?> clazz = LuaConfig.LUA_DEX_MAP.get(temp);
-            if (clazz != null) {
-                LuaModule module = (LuaModule) clazz.newInstance();
-                doModule(module, luaPath);
-            } else {
-                doFile(getLuaFile());
+            synchronized (L) {
+                if (clazz != null) {
+                    LuaModule module = (LuaModule) clazz.newInstance();
+                    module.load(L, this);
+                } else {
+                    L.doFile(getLuaFile().getPath());
+                }
             }
         }
     }
@@ -421,15 +453,26 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         synchronized (L) {
             final int oldTop = L.getTop();
             try {
+                // 调试日志
+                Log.d("LuaJava", "Calling function: " + funcName);
+                Log.d("LuaJava", "Args count: " + (args == null ? 0 : args.length));
+                if (args != null) {
+                    for (int i = 0; i < args.length; i++) {
+                        Log.d("LuaJava", "  Arg[" + i + "]: " + args[i] +
+                                " (type: " + (args[i] == null ? "null" : args[i].getClass().getName()) + ")");
+                    }
+                }
+
                 L.getGlobal(funcName);
                 if (!L.isFunction(-1)) {
+                    Log.e("LuaJava", funcName + " is not a function!");
                     return null;
                 }
-                for (Object arg : args) {
-                    L.push(arg, Lua.Conversion.SEMI);
-                }
-                L.pCall(args.length, 1);
-                return L.toObject(-1);
+
+                L.pCall(args, Lua.Conversion.SEMI, 1);
+                Object result = L.toObject(-1);
+                return result;
+
             } catch (LuaException e) {
                 sendError(e);
                 return null;
@@ -459,6 +502,10 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         }
         onLuaEvent(mOnActivityResult, requestCode, resultCode, intent);
         super.onActivityResult(requestCode, resultCode, intent);
+    }
+
+    public void newActivity(String name) {
+        newActivity(name, new Object[]{});
     }
 
     public void newActivity(String name, Object... args) {
@@ -498,6 +545,11 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
 
     public static String getClipboardText() {
         return LuaApplication.getClipboardText();
+    }
+
+    @Override
+    public void showToast(String message) {
+        app.showToast(message);
     }
 
     @Override
@@ -548,32 +600,4 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     public String getLuaCpath() { return luaCpath; }
     public Context getContext() { return this; }
     // @formatter:on
-    public void initializeLua() {
-        LuaContext.super.initializeLua();
-        if (!luaDir.equals(app.getLuaDir())) {
-            luaCpath = luaCpath + luaDir + "/lib?.so;";
-            luaLpath = luaLpath + luaDir + "/?.lua;" + luaDir + "/lua/?.lua;" + luaDir + "/?/init.lua;";
-        }
-        // package.path 和 cpath
-        L.getGlobal("package");
-        if (L.isTable(-1)) {
-            L.push(luaLpath);
-            L.setField(-2, "path");
-            L.push(luaCpath);
-            L.setField(-2, "cpath");
-        }
-        L.pop(1); // pop package 或 nil
-        // 插入 LuaActivity
-        L.pushJavaObject(this);
-        L.pushValue(-1);
-        L.setGlobal("activity");
-        L.setGlobal("this");
-        // 插入 LuaPrint
-        LuaPrint print = new LuaPrint(this);
-        L.push(print);
-        L.setGlobal("print");
-        // 插入 LuaApplication
-        L.pushJavaObject(app);
-        L.setGlobal("application");
-    }
 }

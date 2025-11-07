@@ -2,16 +2,15 @@ package com.nexlua;
 
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.luajava.Lua;
 import com.luajava.LuaException;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 public interface LuaContext {
@@ -50,52 +49,15 @@ public interface LuaContext {
         if (e instanceof LuaException) {
             LuaException luaException = (LuaException) e;
             sendError(luaException.getType(), e.getMessage());
+            // 打印完整堆栈到 Logcat
+            Log.e("LuaError", "Full stack trace:", e);
+
+            // 或者使用
+            e.printStackTrace();
         } else {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
             sendError(e.getClass().getSimpleName(), sw.toString());
         }
-    }
-
-    default void initializeLua() {
-        Lua L = getLua();
-        L.openLibraries();
-        // traceback
-//        L.traceback(true);
-        L.setExternalLoader(new LuaModuleLoader(this));
-    }
-
-    default void doModule(LuaModule luaModule, String name, Object... args) {
-        Lua lua = getLua();
-        luaModule.load(this);
-    }
-
-    default void doString(ByteBuffer directBuffer, String name, Lua.Conversion degree, Object... args) {
-        final Lua L = getLua();
-        synchronized (L) {
-            final int oldTop = L.getTop();
-            try {
-                L.loadBuffer(directBuffer, name);
-                if (args != null) {
-                    L.pushAll(args, degree);
-                    L.pCall(args.length, 0);
-                } else {
-                    L.pCall(0, 0);
-                }
-            } catch (Exception e) {
-                sendError(e);
-            } finally {
-                L.setTop(oldTop);
-            }
-        }
-    }
-
-    default void doFile(File filePath) {
-        doFile(filePath, new Object[0]);
-    }
-
-    default void doFile(File file, Object... args) {
-        final Lua L = getLua();
-        L.doFile(file.getPath());
     }
 }

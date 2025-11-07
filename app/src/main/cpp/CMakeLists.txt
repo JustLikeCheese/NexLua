@@ -30,6 +30,7 @@ set(LUAJAVA_SRC
         "${CMAKE_CURRENT_SOURCE_DIR}/luajava/luajava.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/luajava/luajavaapi.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/luajava/luajavacore.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/luajava/nexlua.c"
 )
 add_library(luajava SHARED ${LUAJAVA_SRC})
 

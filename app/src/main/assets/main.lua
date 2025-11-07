@@ -1,8 +1,10 @@
-local String = luajava.bindClass "java.lang.String"
-print(tostring(String))
+local String1 = luajava.bindClass "java.lang.String"
+print("String1: " .. String1)
 local String2 = luajava.bindClass "java.lang.String"
-print(tostring(String))
-print(String == String2)
+print("String1 is String2: " .. tostring(String == String2))
+
+local String = luajava.bindClass "java.lang.String"
+print("String.valueOf: " .. String.valueOf(123))
 
 local LinearLayout = luajava.bindClass("android.widget.LinearLayout")
 local Button = luajava.bindClass("android.widget.Button")
