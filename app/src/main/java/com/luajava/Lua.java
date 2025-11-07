@@ -130,6 +130,11 @@ public class Lua {
         C.lua_pushinteger(L, integer);
     }
 
+    public void push(float number) {
+        checkStack(1);
+        C.lua_pushnumber(L, number);
+    }
+
     public void push(double number) {
         checkStack(1);
         C.lua_pushnumber(L, number);
@@ -161,7 +166,7 @@ public class Lua {
     }
 
     public void push(Object object) {
-        push(object, Conversion.NONE);
+        push(object, Conversion.SEMI);
     }
 
     public void push(@Nullable Object object, Conversion degree) {
@@ -170,27 +175,42 @@ public class Lua {
             case SEMI:
                 if (object instanceof Boolean) {
                     push((boolean) object);
+                    return;
                 } else if (object instanceof String) {
                     push((String) object);
-                } else if (object instanceof Integer || object instanceof Byte || object instanceof Short) {
-                    push(((Number) object).intValue());
-                } else if (object instanceof Character) {
-                    push((int) (Character) object);
+                    return;
                 } else if (object instanceof Long) {
                     push((long) object);
+                    return;
+                } else if (object instanceof Integer) {
+                    push((int) object);
+                    return;
+                } else if (object instanceof Short) {
+                    push((short) object);
+                    return;
+                } else if (object instanceof Byte) {
+                    push((byte) object);
+                    return;
+                } else if (object instanceof Character) {
+                    push((char) object);
+                    return;
                 } else if (object instanceof Float || object instanceof Double) {
                     push((Number) object);
+                    return;
                 }
-                return;
+                break;
             case FULL:
                 if (object.getClass().isArray()) {
                     pushArray(object);
+                    return;
                 } else if (object instanceof Collection<?>) {
                     pushCollection((Collection<?>) object);
+                    return;
                 } else if (object instanceof Map<?, ?>) {
                     pushMap((Map<?, ?>) object);
+                    return;
                 }
-                return;
+                break;
         }
         // fallback or none conversion
         pushJavaObject(object);

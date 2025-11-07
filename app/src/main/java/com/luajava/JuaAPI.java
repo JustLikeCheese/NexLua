@@ -272,6 +272,15 @@ public final class JuaAPI {
         throw new LuaException(String.format("%s@%s is not a field or method", clazz.getName(), name));
     }
 
+    public static int jobjectLength(long ptr, Object instance) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        Lua L = Jua.get(ptr);
+        Class<?> clazz = instance.getClass();
+        Method method = clazz.getMethod("length");
+        Object result = method.invoke(instance);
+        L.push(result);
+        return 1;
+    }
+
     /**
      * Allocates a direct buffer whose memory is managed by Java
      *

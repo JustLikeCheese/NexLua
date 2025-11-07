@@ -8,8 +8,7 @@ public class Main2 implements LuaModule {
                 "    if code ~= nil then\n" +
                 "        load(code)()\n" +
                 "    end\n" +
-                "end\n" +
-                "print('Main function loaded')");
+                "end\n");
         return 0;
     }
 }
