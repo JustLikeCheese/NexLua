@@ -19,3 +19,9 @@ luajavaapi.h                luajavaapi.c 的头文件
 
 luajavacore.c               NexLuaJava 核心, 包含了主要操作
 luajavacore.h               luajavacore.c 的头文件
+
+# Lua API 设计规范
+
+Lua C API 主要使用 0 表示成功，非零表示错误 的约定
+
+lua_CFunction 等都是返回推送到栈上的结果数量
