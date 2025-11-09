@@ -4,8 +4,6 @@ import com.luajava.ExternalLoader;
 import com.luajava.Lua;
 import com.luajava.LuaException;
 
-import java.nio.Buffer;
-
 public class LuaModuleLoader implements ExternalLoader {
     private LuaContext luaContext;
 

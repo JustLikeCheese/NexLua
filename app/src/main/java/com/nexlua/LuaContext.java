@@ -2,7 +2,6 @@ package com.nexlua;
 
 
 import android.content.Context;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.luajava.Lua;
@@ -49,11 +48,6 @@ public interface LuaContext {
         if (e instanceof LuaException) {
             LuaException luaException = (LuaException) e;
             sendError(luaException.getType(), e.getMessage());
-            // 打印完整堆栈到 Logcat
-            Log.e("LuaError", "Full stack trace:", e);
-
-            // 或者使用
-            e.printStackTrace();
         } else {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));

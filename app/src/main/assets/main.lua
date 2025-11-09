@@ -1,11 +1,3 @@
-local String1 = luajava.bindClass "java.lang.String"
-print("String1: " .. String1)
-local String2 = luajava.bindClass "java.lang.String"
-print("String1 is String2: " .. tostring(String == String2))
-
-local String = luajava.bindClass "java.lang.String"
-print("String.valueOf: " .. String.valueOf(123))
-
 local LinearLayout = luajava.bindClass("android.widget.LinearLayout")
 local Button = luajava.bindClass("android.widget.Button")
 local EditText = luajava.bindClass("android.widget.EditText")
@@ -26,19 +18,30 @@ local function alert(text)
 end
 
 local layout = LinearLayout(activity)
-local button = Button(activity)
+local toolbar = LinearLayout(activity)
+local button1 = Button(activity)
+local button2 = Button(activity)
 local editor = EditText(activity)
 
-button.setText("Run")
-button.setOnClickListener(function()
+button1.setText("Run")
+button1.setOnClickListener(function()
     activity.newActivity("main2.lua", {editor.getText().toString()})
+end)
+
+button2.setText("Test")
+button2.setOnClickListener(function()
+    activity.newActivity("test.lua")
 end)
 
 editor.setText("print('hello world')")
 
+toolbar.setOrientation(LinearLayout.HORIZONTAL)
+toolbar.addView(button1)
+toolbar.addView(button2)
+
 layout.setOrientation(LinearLayout.VERTICAL)
 layout.setFitsSystemWindows(true)
-layout.addView(button)
+layout.addView(toolbar)
 layout.addView(editor)
 
 activity.setContentView(layout)

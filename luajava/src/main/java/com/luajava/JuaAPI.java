@@ -22,6 +22,9 @@
 
 package com.luajava;
 
+import android.app.AlertDialog;
+import android.widget.Button;
+
 import com.luajava.util.ClassUtils;
 import com.luajava.util.LRUCacheFactory;
 import com.luajava.value.LuaProxy;

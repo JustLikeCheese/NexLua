@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.luajava.Lua;
@@ -23,6 +22,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import io.github.justlikecheese.nextoast.NexToast;
+
 public class LuaApplication extends Application implements LuaContext {
     private static LuaApplication mApplication;
     private static final HashMap<String, Object> data = new HashMap<>();
@@ -32,7 +33,7 @@ public class LuaApplication extends Application implements LuaContext {
     private String luaLpath, luaCpath;
     private Lua L;
     private LuaValue mOnTerminate, mOnLowMemory, mOnTrimMemory, mOnConfigurationChanged;
-    private Toast mToast;
+    private NexToast mToast;
     private StringBuilder mToastBuilder = new StringBuilder();
     private long mToastTime;
 
@@ -185,7 +186,7 @@ public class LuaApplication extends Application implements LuaContext {
         long now = System.currentTimeMillis();
         if (mToast == null || now - mToastTime > 1000) {
             mToastBuilder.setLength(0);
-            mToast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+            mToast = NexToast.makeText(this, message, Toast.LENGTH_LONG);
             mToastBuilder.append(message);
             mToast.show();
         } else {

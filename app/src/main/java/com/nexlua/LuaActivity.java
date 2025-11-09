@@ -32,6 +32,7 @@ import android.widget.TextView;
 
 import com.luajava.Lua;
 import com.luajava.LuaException;
+import com.luajava.LuaHandler;
 import com.luajava.value.LuaValue;
 
 import java.io.File;
@@ -76,6 +77,10 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         luaLpath = app.getLuaLpath();
         // 初始化 Lua 环境
         try {
+            L.setHandler(e -> {
+                Lua.logError(e.toString());
+                sendError(e);
+            });
             L.openLibraries();
             L.setExternalLoader(new LuaModuleLoader(this));
             if (!luaDir.equals(app.getLuaDir())) {

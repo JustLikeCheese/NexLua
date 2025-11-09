@@ -265,6 +265,10 @@ static int objectToString(lua_State *L) {
 static int objectLength(lua_State *L) {
     jobject object = luaJ_checkobject(L, 1);
     JNIEnv *env = getJNIEnv(L);
+    int result = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI,
+                                             com_luajava_JuaAPI_jobjectLength,
+                                             (jlong) L, object);
+    return checkOrError(env, L, result);
 }
 
 /* Array Metatable */
@@ -351,6 +355,7 @@ void initMetaRegistry(lua_State *L) {
         bindMetatable(__gc, &objectGC); // gc
         bindMetatable(__index, &objectIndex); // index
         bindMetatable(__tostring, &objectToString); // tostring
+        bindMetatable(__len, &objectLength);
         bindMetatable(__concat, &commonConcat); // concat
     }
     lua_pop(L, 1);

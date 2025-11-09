@@ -30,7 +30,6 @@ import com.luajava.util.ClassUtils;
 import com.luajava.util.Type;
 
 import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
@@ -112,6 +111,14 @@ public class Lua {
 
     public static void log(String str) {
         Log.i(TAG, str);
+    }
+
+    public static void logError(String str) {
+        Log.e(TAG, str);
+    }
+
+    public static void logWarn(String str) {
+        Log.w(TAG, str);
     }
 
     // Push API

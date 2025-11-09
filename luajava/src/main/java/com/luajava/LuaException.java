@@ -22,8 +22,6 @@
 
 package com.luajava;
 
-import android.util.Log;
-
 import com.luajava.value.LuaType;
 
 /**

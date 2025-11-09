@@ -27,9 +27,6 @@ import com.luajava.value.AbstractLuaRefValue;
 import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;
 
-import java.util.List;
-import java.util.Map;
-
 public class LuaThread extends AbstractLuaRefValue {
     public LuaThread(Lua L) {
         super(L, LuaType.THREAD);

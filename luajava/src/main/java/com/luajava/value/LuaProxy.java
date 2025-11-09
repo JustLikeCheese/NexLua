@@ -22,9 +22,6 @@
 
 package com.luajava.value;
 
-import android.os.Handler;
-import android.os.Looper;
-
 import com.luajava.JuaAPI;
 import com.luajava.Lua;
 import com.luajava.LuaException;

@@ -1,7 +1,6 @@
 package com.luajava.value.immutable;
 
 import com.luajava.Lua;
-import com.luajava.LuaException;
 import com.luajava.value.AbstractLuaValue;
 import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;

@@ -1,7 +1,5 @@
 package com.luajava.value.immutable;
 
-import android.util.Log;
-
 import com.luajava.Lua;
 import com.luajava.value.AbstractLuaValue;
 import com.luajava.value.LuaType;

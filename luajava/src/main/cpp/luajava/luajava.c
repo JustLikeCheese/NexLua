@@ -21,9 +21,11 @@ static int bindClass(lua_State *L) {
     jclass clazz = (*env)->CallStaticObjectMethod(env, java_lang_Class,
                                                   java_lang_Class_forName, string);
     DeleteString(string);
-    if (checkIfError(env, L)) lua_error(L);
-    luaJ_pushclass(env, L, clazz);
-    return 1;
+    if (!checkIfError(env, L)) {
+        luaJ_pushclass(env, L, clazz);
+        return 1;
+    }
+    return lua_error(L);
 }
 
 static const luaL_Reg javalib[] = {

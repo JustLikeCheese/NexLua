@@ -9,9 +9,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # include
 include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/luajava
-        ${CMAKE_CURRENT_SOURCE_DIR}/luajava/lj
-        ${CMAKE_CURRENT_SOURCE_DIR}/luajit-include
+        luajava
+        luajava/lj
+        luajit-include
 )
 
 # add luajit library
