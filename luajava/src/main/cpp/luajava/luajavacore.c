@@ -167,7 +167,7 @@ static int classIndex(lua_State *L) {
     return checkOrError(env, L, result);
 }
 
-static int classNexIndex(lua_State *L) {
+static int classNewIndex(lua_State *L) {
     jclass clazz = luaJ_checkclass(L, 1);
     const char *name = luaL_checkstring(L, 2);
     JNIEnv *env = getJNIEnv(L);
@@ -195,12 +195,6 @@ static int classNew(lua_State *L) {
                                              com_luajava_JuaAPI_jclassNew,
                                              (jlong) L, clazz);
     return checkOrError(env, L, result);
-}
-
-static int classNewIndex(lua_State *L) {
-    jclass clazz = luaJ_checkclass(L, 1);
-    const char *name = luaL_checkstring(L, 2);
-    return 0;
 }
 
 static int classGC(lua_State *L) {
@@ -382,7 +376,7 @@ void initMetaRegistry(lua_State *L) {
         bindMetatable(__eq, &classEquals); // equal
         bindMetatable(__gc, &classGC); // gc
         bindMetatable(__index, &classIndex); // index
-        bindMetatable(__newindex, &classNexIndex); // newindex
+        bindMetatable(__newindex, &classNewIndex); // newindex
         bindMetatable(__call, &classNew); // call
         bindMetatable(__tostring, &classToString); // tostring
         bindMetatable(__len, &className); // length
