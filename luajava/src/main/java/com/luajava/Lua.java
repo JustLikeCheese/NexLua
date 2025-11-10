@@ -27,7 +27,6 @@ import android.util.Log;
 import com.luajava.cleaner.LuaReferable;
 import com.luajava.cleaner.LuaReference;
 import com.luajava.util.ClassUtils;
-import com.luajava.util.Type;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.reflect.Array;
@@ -157,23 +156,8 @@ public class Lua {
         C.luaJ_pushbuffer(L, buffer, buffer.remaining());
     }
 
-    public void push(@NotNull CFunction function) {
-        checkStack(1);
-        C.luaJ_pushfunction(L, function);
-    }
-
-    public void push(@NotNull CFunction function, int n) {
-        checkStack(1);
-        C.luaJ_pushcclosure(L, function, n);
-    }
-
-    public void push(@NotNull LuaValue value) {
-        checkStack(1);
-        value.push(this);
-    }
-
     public void push(Object object) {
-        push(object, Conversion.SEMI);
+        push(object, Conversion.NONE);
     }
 
     public void push(@Nullable Object object, Conversion degree) {
@@ -221,6 +205,31 @@ public class Lua {
         }
         // fallback or none conversion
         pushJavaObject(object);
+    }
+
+    public void push(Class<?> clazz) {
+        checkStack(1);
+        C.luaJ_pushclass(L, clazz);
+    }
+
+    public void push(Array array) {
+        checkStack(1);
+        C.luaJ_pusharray(L, array);
+    }
+
+    public void push(@NotNull CFunction function) {
+        checkStack(1);
+        C.luaJ_pushfunction(L, function);
+    }
+
+    public void push(@NotNull CFunction function, int n) {
+        checkStack(1);
+        C.luaJ_pushcclosure(L, function, n);
+    }
+
+    public void push(@NotNull LuaValue value) {
+        checkStack(1);
+        value.push(this);
     }
 
     public void pushJavaObject(@NotNull Object object) throws IllegalArgumentException {
@@ -1311,7 +1320,7 @@ public class Lua {
                 L,
                 method.getDeclaringClass(),
                 method.getName(),
-                Type.getMethodDescriptor(method),
+                ClassUtils.getMethodDescriptor(method),
                 object,
                 customSignature.toString()
         ) == -1) {
@@ -1329,7 +1338,7 @@ public class Lua {
 
     private void appendCustomDescriptor(Class<?> type, StringBuilder customSignature) {
         if (type.isPrimitive()) {
-            customSignature.append(Type.getPrimitiveDescriptor(type));
+            customSignature.append(ClassUtils.getPrimitiveDescriptor(type));
         } else {
             customSignature.append("_");
         }

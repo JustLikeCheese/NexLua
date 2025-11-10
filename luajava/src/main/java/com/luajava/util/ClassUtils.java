@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -15,20 +16,31 @@ import java.util.Set;
 
 public abstract class ClassUtils {
     private static final Map<Class<?>, Class<?>> PRIMITIVE_WRAPPER_TYPE_MAP = new IdentityHashMap<>(9);
+    private static final Map<String, Class<?>> PRIMITIVE_TYPE_MAP = new HashMap<>(9);
     private final static Set<String> OBJECT_DEFAULT_METHODS;
     private static final Method METHOD_IS_DEFAULT;
 
     static {
         // Primitives wrapper types
+        PRIMITIVE_WRAPPER_TYPE_MAP.put(Void.class, void.class);
+        PRIMITIVE_WRAPPER_TYPE_MAP.put(Character.class, char.class);
         PRIMITIVE_WRAPPER_TYPE_MAP.put(Boolean.class, boolean.class);
         PRIMITIVE_WRAPPER_TYPE_MAP.put(Byte.class, byte.class);
-        PRIMITIVE_WRAPPER_TYPE_MAP.put(Character.class, char.class);
-        PRIMITIVE_WRAPPER_TYPE_MAP.put(Double.class, double.class);
-        PRIMITIVE_WRAPPER_TYPE_MAP.put(Float.class, float.class);
+        PRIMITIVE_WRAPPER_TYPE_MAP.put(Short.class, short.class);
         PRIMITIVE_WRAPPER_TYPE_MAP.put(Integer.class, int.class);
         PRIMITIVE_WRAPPER_TYPE_MAP.put(Long.class, long.class);
-        PRIMITIVE_WRAPPER_TYPE_MAP.put(Short.class, short.class);
-        PRIMITIVE_WRAPPER_TYPE_MAP.put(Void.class, void.class);
+        PRIMITIVE_WRAPPER_TYPE_MAP.put(Float.class, float.class);
+        PRIMITIVE_WRAPPER_TYPE_MAP.put(Double.class, double.class);
+        // Primitives types
+        PRIMITIVE_TYPE_MAP.put("void", void.class);
+        PRIMITIVE_TYPE_MAP.put("char", char.class);
+        PRIMITIVE_TYPE_MAP.put("boolean", boolean.class);
+        PRIMITIVE_TYPE_MAP.put("byte", byte.class);
+        PRIMITIVE_TYPE_MAP.put("short", short.class);
+        PRIMITIVE_TYPE_MAP.put("int", int.class);
+        PRIMITIVE_TYPE_MAP.put("long", long.class);
+        PRIMITIVE_TYPE_MAP.put("float", float.class);
+        PRIMITIVE_TYPE_MAP.put("double", double.class);
         // Method.isDefault method
         Method method;
         try {
@@ -95,6 +107,18 @@ public abstract class ClassUtils {
             return wrapperType;
         }
         return type;
+    }
+
+    public static Class<?> getPrimitiveType(String name) {
+        return PRIMITIVE_TYPE_MAP.get(name);
+    }
+
+    public static Class<?> forName(String name) throws ClassNotFoundException {
+        Class<?> primitiveType = getPrimitiveType(name);
+        if (primitiveType != null) {
+            return primitiveType;
+        }
+        return Class.forName(name);
     }
 
     private static byte getJNIShortSignature(Class<?> c) {
@@ -183,5 +207,85 @@ public abstract class ClassUtils {
     public static Object getMethodField(Method method) throws InvocationTargetException, IllegalAccessException {
         method.setAccessible(true);
         return method.invoke(null);
+    }
+
+    public static Object callObjectNoArgsMethod(Object object, String name) {
+        try {
+            return object.getClass().getMethod(name).invoke(object);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the descriptor corresponding to the given method.
+     *
+     * @param method a {@link Method} object.
+     * @return the descriptor of the given method.
+     */
+    public static String getMethodDescriptor(final Method method) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append('(');
+        Class<?>[] parameters = method.getParameterTypes();
+        for (Class<?> parameter : parameters) {
+            appendDescriptor(parameter, stringBuilder);
+        }
+        stringBuilder.append(')');
+        appendDescriptor(method.getReturnType(), stringBuilder);
+        return stringBuilder.toString();
+    }
+
+    /**
+     * Appends the descriptor of the given class to the given string builder.
+     *
+     * @param clazz         the class whose descriptor must be computed.
+     * @param stringBuilder the string builder to which the descriptor must be appended.
+     */
+    private static void appendDescriptor(final Class<?> clazz, final StringBuilder stringBuilder) {
+        Class<?> currentClass = clazz;
+        while (currentClass.isArray()) {
+            stringBuilder.append('[');
+            currentClass = currentClass.getComponentType();
+        }
+        if (currentClass.isPrimitive()) {
+            stringBuilder.append(getPrimitiveDescriptor(currentClass));
+        } else {
+            stringBuilder.append('L').append(getInternalName(currentClass)).append(';');
+        }
+    }
+
+    public static char getPrimitiveDescriptor(Class<?> currentClass) {
+        if (currentClass == Integer.TYPE) {
+            return 'I';
+        } else if (currentClass == Void.TYPE) {
+            return 'V';
+        } else if (currentClass == Boolean.TYPE) {
+            return 'Z';
+        } else if (currentClass == Byte.TYPE) {
+            return 'B';
+        } else if (currentClass == Character.TYPE) {
+            return 'C';
+        } else if (currentClass == Short.TYPE) {
+            return 'S';
+        } else if (currentClass == Double.TYPE) {
+            return 'D';
+        } else if (currentClass == Float.TYPE) {
+            return 'F';
+        } else if (currentClass == Long.TYPE) {
+            return 'J';
+        } else {
+            throw new AssertionError();
+        }
+    }
+
+    /**
+     * Returns the internal name of the given class. The internal name of a class is its fully
+     * qualified name, as returned by Class.getName(), where '.' are replaced by '/'.
+     *
+     * @param clazz an object or array class.
+     * @return the internal name of the given class.
+     */
+    public static String getInternalName(final Class<?> clazz) {
+        return clazz.getName().replace('.', '/');
     }
 }
