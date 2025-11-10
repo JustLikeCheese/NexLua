@@ -601,7 +601,7 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public Object[] toJavaArray() {
-        return toJavaArray(Object.class);
+        return (Object[]) toJavaArray(Object.class);
     }
 
     @Override
@@ -615,13 +615,14 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> T[] toJavaArray(Class<T> clazz) {
+    public Object toJavaArray(Class<?> clazz) {
         push();
         int length = (int) L.rawLength(-1);
-        T[] array = (T[]) Array.newInstance(clazz, length);
+        Object array = Array.newInstance(clazz, length);
         L.ipairs((index, value) -> {
-            array[(int) (index - 1)] = (T) value.toJavaObject(clazz);
+            int arrayIndex = (int) (index - 1);
+            Object element = value.toJavaObject(clazz);
+            Array.set(array, arrayIndex, element);
             return true;
         });
         L.pop(1);

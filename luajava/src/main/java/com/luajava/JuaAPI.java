@@ -178,33 +178,33 @@ public final class JuaAPI {
         throw new LuaException(String.format("%s@%s is not a field or method", clazz.getName(), name));
     }
 
-    public static int jclassNew(long ptr, Class<?> clazz) throws LuaException {
-        Lua L = Jua.get(ptr);
-        LuaValue[] values = L.getAll(2);
-        ArrayList<Constructor<?>> matchedConstructors = new ArrayList<>();
-        StringBuilder msg = new StringBuilder();
-        for (Constructor<?> constructor : clazz.getConstructors()) {
-            matchedConstructors.add(constructor);
-            try {
-                L.push(JuaAPI.callConstructor(constructor, values));
-                return 1;
-            } catch (IllegalArgumentException ignored) {
+        public static int jclassNew(long ptr, Class<?> clazz) throws LuaException {
+            Lua L = Jua.get(ptr);
+            LuaValue[] values = L.getAll(2);
+            ArrayList<Constructor<?>> matchedConstructors = new ArrayList<>();
+            StringBuilder msg = new StringBuilder();
+            for (Constructor<?> constructor : clazz.getConstructors()) {
+                matchedConstructors.add(constructor);
+                try {
+                    L.push(JuaAPI.callConstructor(constructor, values));
+                    return 1;
+                } catch (IllegalArgumentException ignored) {
+                }
             }
-        }
-        if (values.length == 1) {
-            LuaValue value = values[0];
-            if (value.isTable()) {
-                L.push(value.toJavaArray(clazz));
-                return 1;
+            if (values.length == 1) {
+                LuaValue value = values[0];
+                if (value.isTable()) {
+                    L.push((Object)value.toJavaArray(clazz));
+                    return 1;
+                }
             }
+            msg.append("Invalid constructor call. Invalid Parameters.").append("\n");
+            for (Constructor<?> constructor : matchedConstructors) {
+                msg.append(constructor);
+                msg.append("\n");
+            }
+            throw new LuaException(msg.toString());
         }
-        msg.append("Invalid constructor call. Invalid Parameters.").append("\n");
-        for (Constructor<?> constructor : matchedConstructors) {
-            msg.append(constructor);
-            msg.append("\n");
-        }
-        throw new LuaException(msg.toString());
-    }
 
     /* Java Object */
     public static int jobjectIndex(long ptr, Object instance, String name) throws IllegalAccessException, InvocationTargetException {
