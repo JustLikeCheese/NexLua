@@ -38,9 +38,12 @@ int initJNIBindings(JNIEnv *env) {
                                                            "jobjectIndex",
                                                            "(JLjava/lang/Object;Ljava/lang/String;)I");
     com_luajava_JuaAPI_jobjectLength = bindJavaStaticMethod(env, com_luajava_JuaAPI,
-                                                          "jobjectLength",
-                                                          "(JLjava/lang/Object;)I");
+                                                            "jobjectLength",
+                                                            "(JLjava/lang/Object;)I");
     /* Lua - Java Bridge API */
+    com_luajava_JuaAPI_bindClass = bindJavaStaticMethod(env, com_luajava_JuaAPI,
+                                                        "bindClass",
+                                                        "(JLjava/lang/String;)I");
     com_luajava_JuaAPI_allocateDirectBuffer = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                                    "allocateDirectBuffer",
                                                                    "(I)Ljava/nio/ByteBuffer;");

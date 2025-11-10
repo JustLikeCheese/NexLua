@@ -33,6 +33,7 @@ JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_jobjectIndex;
 JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_jobjectLength;
 JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_jfunctionCall;
 JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_jmoduleLoad;
+JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_bindClass;
 JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_allocateDirectBuffer;
 
 /* some useful macros */

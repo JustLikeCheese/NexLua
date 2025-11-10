@@ -18,14 +18,10 @@ static int bindClass(lua_State *L) {
     const char *name = luaL_checkstring(L, 1);
     JNIEnv *env = getJNIEnv(L);
     jstring string = ToString(name);
-    jclass clazz = (*env)->CallStaticObjectMethod(env, java_lang_Class,
-                                                  java_lang_Class_forName, string);
+    int result = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI,
+                                             com_luajava_JuaAPI_bindClass, (jlong) L, string);
     DeleteString(string);
-    if (!checkIfError(env, L)) {
-        luaJ_pushclass(env, L, clazz);
-        return 1;
-    }
-    return lua_error(L);
+    return checkOrError(env, L, result);
 }
 
 static const luaL_Reg javalib[] = {
