@@ -27,6 +27,8 @@ import com.luajava.value.LuaProxy;
 import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.*;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -297,6 +299,16 @@ public final class JuaAPI {
         Lua L = Jua.get(ptr);
         L.push(ClassUtils.forName(name));
         return 1;
+    }
+
+    public static String getStackTrace(Throwable throwable) {
+        if (throwable.getClass() == LuaException.class) {
+            return throwable.getMessage();
+        }
+        StringWriter sw = new StringWriter(2048);
+        PrintWriter pw = new PrintWriter(sw);
+        throwable.printStackTrace(pw);
+        return sw.toString();
     }
 
     /**

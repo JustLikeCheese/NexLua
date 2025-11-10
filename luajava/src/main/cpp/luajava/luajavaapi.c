@@ -16,7 +16,8 @@ bool checkIfError(JNIEnv *env, lua_State *L) {
         return 0;
     }
     (*env)->ExceptionClear(env);
-    jstring message = (jstring) (*env)->CallObjectMethod(env, e, java_lang_Throwable_toString);
+    jstring message = (jstring) (*env)->CallStaticObjectMethod(env, com_luajava_JuaAPI,
+                                                         com_luajava_JuaAPI_getStackTrace, e);
     const char *str = (*env)->GetStringUTFChars(env, message, NULL);
     lua_pushstring(L, str);
     (*env)->ReleaseStringUTFChars(env, message, str);

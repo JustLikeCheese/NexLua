@@ -44,6 +44,9 @@ int initJNIBindings(JNIEnv *env) {
     com_luajava_JuaAPI_bindClass = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                         "bindClass",
                                                         "(JLjava/lang/String;)I");
+    com_luajava_JuaAPI_getStackTrace = bindJavaStaticMethod(env, com_luajava_JuaAPI,
+                                                          "getStackTrace",
+                                                          "(Ljava/lang/Throwable;)Ljava/lang/String;");
     com_luajava_JuaAPI_allocateDirectBuffer = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                                    "allocateDirectBuffer",
                                                                    "(I)Ljava/nio/ByteBuffer;");
