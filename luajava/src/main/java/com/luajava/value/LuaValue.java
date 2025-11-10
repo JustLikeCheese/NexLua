@@ -215,4 +215,12 @@ public interface LuaValue {
     List<Object> toJavaList();
 
     Map<Object, Object> toJavaMap();
+
+    <T> T[] toJavaArray(Class<T> clazz);
+
+    <T> List<T> toJavaList(Class<T> clazz);
+
+    <K, V> Map<K, V> toJavaMap(Class<K> keyClazz, Class<V> valueClazz);
+
+    <T> Map<T, T> toJavaMap(Class<T> clazz);
 }

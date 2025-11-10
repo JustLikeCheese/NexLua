@@ -36,6 +36,7 @@ import com.luajava.value.referable.LuaThread;
 import com.luajava.value.referable.LuaUnknown;
 import com.luajava.value.referable.LuaUserdata;
 
+import java.lang.reflect.Array;
 import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -600,11 +601,27 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public Object[] toJavaArray() {
+        return toJavaArray(Object.class);
+    }
+
+    @Override
+    public List<Object> toJavaList() {
+        return toJavaList(Object.class);
+    }
+
+    @Override
+    public Map<Object, Object> toJavaMap() {
+        return toJavaMap(Object.class);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T[] toJavaArray(Class<T> clazz) {
         push();
         int length = (int) L.rawLength(-1);
-        Object[] array = new Object[length];
+        T[] array = (T[]) Array.newInstance(clazz, length);
         L.ipairs((index, value) -> {
-            array[(int) index - 1] = value.toJavaObject(Object.class);
+            array[(int) (index - 1)] = (T) value.toJavaObject(clazz);
             return true;
         });
         L.pop(1);
@@ -612,22 +629,32 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public List<Object> toJavaList() {
-        List<Object> list = new ArrayList<>();
+    @SuppressWarnings("unchecked")
+    public <T> List<T> toJavaList(Class<T> clazz) {
+        List<T> list = new ArrayList<>();
         ipairs((index, value) -> {
-            list.add(value.toJavaObject(Object.class));
+            list.add((T) value.toJavaObject(clazz));
             return true;
         });
         return list;
     }
 
     @Override
-    public Map<Object, Object> toJavaMap() {
-        Map<Object, Object> map = new LinkedHashMap<>();
+    @SuppressWarnings("unchecked")
+    public <K, V> Map<K, V> toJavaMap(Class<K> keyClazz, Class<V> valueClazz) {
+        Map<K, V> map = new LinkedHashMap<>();
         pairs((key, value) -> {
-            map.put(key.toJavaObject(Object.class), value.toJavaObject(Object.class));
-            return true; // continue iteration
+            map.put(
+                    (K) key.toJavaObject(keyClazz),
+                    (V) value.toJavaObject(valueClazz)
+            );
+            return true;
         });
         return map;
+    }
+
+    @Override
+    public <T> Map<T, T> toJavaMap(Class<T> clazz) {
+        return toJavaMap(clazz, clazz);
     }
 }
