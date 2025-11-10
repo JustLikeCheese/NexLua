@@ -306,6 +306,13 @@ static int arrayToString(lua_State *L) {
     return 1;
 }
 
+static int arrayLength(lua_State *L) {
+    jarray object = luaJ_checkarray(L, 1);
+    JNIEnv *env = getJNIEnv(L);
+    lua_pushinteger(L, (*env)->GetArrayLength(env, object));
+    return 1;
+}
+
 /* Common Metatable */
 bindMetaname(__index)
 bindMetaname(__newindex)
@@ -355,7 +362,7 @@ void initMetaRegistry(lua_State *L) {
         bindMetatable(__gc, &objectGC); // gc
         bindMetatable(__index, &objectIndex); // index
         bindMetatable(__tostring, &objectToString); // tostring
-        bindMetatable(__len, &objectLength);
+        bindMetatable(__len, &objectLength); // length
         bindMetatable(__concat, &commonConcat); // concat
     }
     lua_pop(L, 1);
@@ -364,6 +371,7 @@ void initMetaRegistry(lua_State *L) {
         bindMetatable(__eq, &arrayEquals); // equal
         bindMetatable(__gc, &arrayGC); // gc
         bindMetatable(__tostring, &arrayToString); // tostring
+        bindMetatable(__len, &arrayLength); // length
         bindMetatable(__concat, &commonConcat); // concat
     }
     lua_pop(L, 1);
