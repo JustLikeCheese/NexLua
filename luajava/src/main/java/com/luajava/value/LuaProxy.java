@@ -189,8 +189,8 @@ public final class LuaProxy implements InvocationHandler {
                 && Arrays.equals(method.getParameterTypes(), parameters);
     }
 
-    public void unwrap() {
-        L.refGet(value.getRef());
+    public int unwrap() {
+        return L.refGet(value.getRef());
     }
 
     public Lua state() {

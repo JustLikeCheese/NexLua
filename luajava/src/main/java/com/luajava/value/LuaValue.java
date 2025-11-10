@@ -44,7 +44,7 @@ public interface LuaValue {
 
     void push();
 
-    void push(Lua L);
+    int push(Lua L);
 
     LuaType type();
 

@@ -123,16 +123,10 @@ public final class JuaAPI {
         Lua L = Jua.get(ptr);
         // Class.STATIC_FIELD
         Field field = ClassUtils.getPublicStaticField(clazz, name);
-        if (field != null) {
-            L.push(ClassUtils.getField(field));
-            return 1;
-        }
+        if (field != null) return L.push(ClassUtils.getField(field));
         // Class.innerClass
         Class<?> innerClass = ClassUtils.getInnerClass(clazz, name);
-        if (innerClass != null) {
-            L.push(innerClass);
-            return 1;
-        }
+        if (innerClass != null) return L.push(innerClass);
         // Class.staticMethod(XXX)
         Method[] methods = clazz.getMethods();
         char prefix = name.charAt(0);
@@ -154,8 +148,7 @@ public final class JuaAPI {
             if (Modifier.isStatic(method.getModifiers())) {
                 String methodName = method.getName();
                 if (name.equals(method.getName())) {
-                    L.push(new JMethod(null, clazz, name));
-                    return 1;
+                    return L.push(new JMethod(null, clazz, name));
                 } else if (matchMethod1 == null && method.getParameterCount() == 0) {
                     if (methodName1.equals(methodName)) {
                         matchMethod1 = method;
@@ -165,13 +158,8 @@ public final class JuaAPI {
                 }
             }
         }
-        if (matchMethod1 != null) {
-            L.push(ClassUtils.getMethodField(matchMethod1));
-            return 1;
-        } else if (matchMethod2 != null) {
-            L.push(ClassUtils.getMethodField(matchMethod2));
-            return 1;
-        }
+        if (matchMethod1 != null) return L.push(ClassUtils.getMethodField(matchMethod1));
+        else if (matchMethod2 != null) return L.push(ClassUtils.getMethodField(matchMethod2));
         throw new LuaException(String.format("%s@%s is not a field or method", clazz.getName(), name));
     }
 
@@ -232,16 +220,14 @@ public final class JuaAPI {
         for (Constructor<?> constructor : clazz.getConstructors()) {
             matchedConstructors.add(constructor);
             try {
-                L.push(JuaAPI.callConstructor(constructor, values));
-                return 1;
+                return L.push(JuaAPI.callConstructor(constructor, values));
             } catch (IllegalArgumentException ignored) {
             }
         }
         if (values.length == 1) {
             LuaValue value = values[0];
             if (value.isTable()) {
-                L.push((Object) value.toJavaArray(clazz));
-                return 1;
+                return L.push(value.toJavaArray(clazz));
             }
         }
         msg.append("Invalid constructor call. Invalid Parameters.").append("\n");
@@ -258,10 +244,7 @@ public final class JuaAPI {
         // Class.STATIC_FIELD
         Class<?> clazz = instance.getClass();
         Field field = ClassUtils.getPublicStaticField(clazz, name);
-        if (field != null) {
-            L.push(ClassUtils.getField(field));
-            return 1;
-        }
+        if (field != null) return L.push(ClassUtils.getField(field));
         // Class.staticMethod(XXX)
         Method[] methods = clazz.getMethods();
         char prefix = name.charAt(0);
@@ -284,7 +267,7 @@ public final class JuaAPI {
         Method matchedStaticMethod = null;
         for (Method method : methods) {
             String methodName = method.getName();
-            if (!Modifier.isStatic(method.getModifiers())) { // Instance method first
+            if (!Modifier.isStatic(method.getModifiers())) { // instance method first
                 if (name.equals(method.getName())) {
                     L.push(new JMethod(instance, clazz, name));
                     return 1;
@@ -307,22 +290,15 @@ public final class JuaAPI {
                 }
             }
         }
-        if (matchedStaticMethod != null) {
-            L.push(new JMethod(null, clazz, name));
-            return 1;
-        } else if (matchedGetMethod1 != null) {
-            L.push(ClassUtils.callMethod(instance, matchedGetMethod1, null));
-            return 1;
-        } else if (matchedGetMethod2 != null) {
-            L.push(ClassUtils.callMethod(instance, matchedGetMethod2, null));
-            return 1;
-        } else if (matchedStaticGetMethod1 != null) {
-            L.push(ClassUtils.callMethod(null, matchedStaticGetMethod1, null));
-            return 1;
-        } else if (matchedStaticGetMethod2 != null) {
-            L.push(ClassUtils.callMethod(null, matchedStaticGetMethod2, null));
-            return 1;
-        }
+        if (matchedStaticMethod != null) return L.push(new JMethod(null, clazz, name));
+        else if (matchedGetMethod1 != null)
+            return L.push(ClassUtils.callMethod(instance, matchedGetMethod1, null));
+        else if (matchedGetMethod2 != null)
+            return L.push(ClassUtils.callMethod(instance, matchedGetMethod2, null));
+        else if (matchedStaticGetMethod1 != null)
+            return L.push(ClassUtils.callMethod(null, matchedStaticGetMethod1, null));
+        else if (matchedStaticGetMethod2 != null)
+            return L.push(ClassUtils.callMethod(null, matchedStaticGetMethod2, null));
         throw new LuaException(String.format("%s@%s is not a field or method", clazz.getName(), name));
     }
 
@@ -333,10 +309,7 @@ public final class JuaAPI {
         Class<?> clazz = instance.getClass();
         for (String name : LENGTH_DEFAULT_METHOD_NAME) {
             Object result = ClassUtils.callObjectNoArgsMethod(instance, name);
-            if (result != null) {
-                L.push(result);
-                return 1;
-            }
+            if (result != null) return L.push(result);
         }
         throw new LuaException(String.format("%s has no default method to get length", clazz.getName()));
     }
@@ -383,8 +356,7 @@ public final class JuaAPI {
             if (handler instanceof LuaProxy) {
                 LuaProxy proxy = (LuaProxy) handler;
                 if (proxy.state() == L) {
-                    proxy.unwrap();
-                    return 1;
+                    return proxy.unwrap();
                 }
                 throw new IllegalArgumentException("Cannot unwrap LuaProxy on different LuaState");
             }
@@ -425,7 +397,7 @@ public final class JuaAPI {
             final Method method = clazz.getDeclaredMethod(methodName, Lua.class);
             if (method.getReturnType() == int.class) {
                 //noinspection Convert2Lambda
-                L.push(new CFunction() {
+                return L.push(new CFunction() {
                     @Override
                     public int __call(Lua l) {
                         try {
@@ -437,7 +409,6 @@ public final class JuaAPI {
                         }
                     }
                 });
-                return 1;
             } else {
                 L.pushNil();
                 L.push("\n  no method '" + methodName + "': not returning int values");

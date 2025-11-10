@@ -48,11 +48,12 @@ public abstract class AbstractLuaRefValue extends AbstractLuaValue implements Lu
     }
 
     @Override
-    public void push(Lua L) {
+    public int push(Lua L) {
         if (this.L != L) {
             throw new LuaException(LuaException.LuaError.JAVA, "Cannot push a reference to a different Lua instance");
         }
-        L.refGet(ref);
+        L.checkStack(1);
+        return L.refGet(ref);
     }
 
     @Override

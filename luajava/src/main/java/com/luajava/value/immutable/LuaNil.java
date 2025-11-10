@@ -21,8 +21,8 @@ public class LuaNil extends AbstractLuaValue {
     }
 
     @Override
-    public void push(Lua L) {
-        L.pushNil();
+    public int push(Lua L) {
+        return L.pushNil();
     }
 
     @Override

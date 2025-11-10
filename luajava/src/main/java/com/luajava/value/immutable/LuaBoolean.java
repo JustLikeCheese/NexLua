@@ -28,8 +28,8 @@ public class LuaBoolean extends AbstractLuaValue {
     }
 
     @Override
-    public void push(Lua L) {
-        L.push(value);
+    public int push(Lua L) {
+        return L.push(value);
     }
 
     @Override

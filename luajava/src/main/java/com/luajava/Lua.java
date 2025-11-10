@@ -121,151 +121,154 @@ public class Lua {
     }
 
     // Push API
-    public void pushNil() {
+    public int pushNil() {
         checkStack(1);
         C.lua_pushnil(L);
+        return 1;
     }
 
-    public void push(boolean bool) {
+    public int push(boolean bool) {
         checkStack(1);
         C.lua_pushboolean(L, bool ? 1 : 0);
+        return 1;
     }
 
-    public void push(long integer) {
+    public int push(long integer) {
         checkStack(1);
         C.lua_pushinteger(L, integer);
+        return 1;
     }
 
-    public void push(float number) {
+    public int push(int integer) {
+        return push((long) integer);
+    }
+
+    public int push(short integer) {
+        return push((long) integer);
+    }
+
+    public int push(byte integer) {
+        return push((long) integer);
+    }
+
+    public int push(double number) {
         checkStack(1);
         C.lua_pushnumber(L, number);
+        return 1;
     }
 
-    public void push(double number) {
+    public int push(float number) {
         checkStack(1);
         C.lua_pushnumber(L, number);
+        return 1;
     }
 
-    public void push(@NotNull String string) {
+    public int push(char ch) {
+        return push((long) ch);
+    }
+
+    public int push(@NotNull String string) {
         checkStack(1);
         C.lua_pushstring(L, string);
+        return 1;
     }
 
-    public void push(Buffer buffer) {
+    public int push(Buffer buffer) {
         checkStack(1);
         C.luaJ_pushbuffer(L, buffer, buffer.remaining());
+        return 1;
     }
 
-    public void push(Object object) {
-        push(object, Conversion.NONE);
+    public int push(Object object) {
+        return push(object, Conversion.NONE);
     }
 
-    public void push(@Nullable Object object, Conversion degree) {
+    public int push(@Nullable Object object, Conversion degree) {
         checkStack(1);
         switch (degree) {
-            case SEMI:
-                if (object instanceof Boolean) {
-                    push((boolean) object);
-                    return;
-                } else if (object instanceof String) {
-                    push((String) object);
-                    return;
-                } else if (object instanceof Long) {
-                    push((long) object);
-                    return;
-                } else if (object instanceof Integer) {
-                    push((int) object);
-                    return;
-                } else if (object instanceof Short) {
-                    push((short) object);
-                    return;
-                } else if (object instanceof Byte) {
-                    push((byte) object);
-                    return;
-                } else if (object instanceof Character) {
-                    push((char) object);
-                    return;
-                } else if (object instanceof Float || object instanceof Double) {
-                    push((Number) object);
-                    return;
-                }
-                break;
             case FULL:
                 if (object.getClass().isArray()) {
-                    pushArray(object);
-                    return;
+                    return pushArray(object);
                 } else if (object instanceof Collection<?>) {
-                    pushCollection((Collection<?>) object);
-                    return;
+                    return pushCollection((Collection<?>) object);
                 } else if (object instanceof Map<?, ?>) {
-                    pushMap((Map<?, ?>) object);
-                    return;
+                    return pushMap((Map<?, ?>) object);
                 }
-                break;
+            case SEMI:
+                if (object instanceof Boolean) {
+                    return push((boolean) object);
+                } else if (object instanceof String) {
+                    return push((String) object);
+                } else if (object instanceof Long) {
+                    return push((long) object);
+                } else if (object instanceof Integer) {
+                    return push((int) object);
+                } else if (object instanceof Short) {
+                    return push((short) object);
+                } else if (object instanceof Byte) {
+                    return push((byte) object);
+                } else if (object instanceof Character) {
+                    return push((char) object);
+                } else if (object instanceof Float) {
+                    return push((float) object);
+                } else if (object instanceof Double) {
+                    return push((double) object);
+                }
         }
         // fallback or none conversion
-        pushJavaObject(object);
+        return pushJavaObject(object);
     }
 
-    public void push(Class<?> clazz) {
+    public int push(Class<?> clazz) {
         checkStack(1);
         C.luaJ_pushclass(L, clazz);
+        return 1;
     }
 
-    public void push(Array array) {
+    public int push(LuaValue value) {
         checkStack(1);
-        C.luaJ_pusharray(L, array);
+        return value.push(this);
     }
 
-    public void push(@NotNull CFunction function) {
+    public int push(CFunction func) {
         checkStack(1);
-        C.luaJ_pushfunction(L, function);
+        C.luaJ_pushfunction(L, func);
+        return 1;
     }
 
-    public void push(@NotNull CFunction function, int n) {
-        checkStack(1);
-        C.luaJ_pushcclosure(L, function, n);
-    }
-
-    public void push(@NotNull LuaValue value) {
-        checkStack(1);
-        value.push(this);
-    }
-
-    public void pushJavaObject(@NotNull Object object) throws IllegalArgumentException {
+    public int pushJavaObject(@NotNull Object object) throws IllegalArgumentException {
         checkStack(1);
         if (object == null) {
             C.lua_pushnil(L);
-        } else if (object instanceof Class<?>) {
-            C.luaJ_pushclass(L, object);
         } else if (object.getClass().isArray()) {
             C.luaJ_pusharray(L, object);
-        } else if (object instanceof LuaValue) {
-            ((LuaValue) object).push(this);
-        } else if (object instanceof JFunction) {
-            push((JFunction) object);
+        } else if (object instanceof Class<?>) {
+            C.luaJ_pushclass(L, object);
         } else if (object instanceof CFunction) {
-            push((CFunction) object);
+            C.luaJ_pushfunction(L, object);
+        } else if (object instanceof LuaValue) {
+            return push((LuaValue) object);
         } else {
             C.luaJ_pushobject(L, object);
         }
+        return 1;
     }
 
-    public void pushArray(@NotNull Object array) throws IllegalArgumentException {
-        checkStack(2);
-        if (array.getClass().isArray()) {
-            int len = Array.getLength(array);
-            C.lua_createtable(L, len, 0);
-            for (int i = 0; i != len; ++i) {
-                push(Array.get(array, i), Conversion.FULL);
-                C.lua_rawseti(L, -2, i + 1);
-            }
-        } else {
+    public int pushArray(@NotNull Object array) throws IllegalArgumentException {
+        if (!array.getClass().isArray()) {
             throw new IllegalArgumentException("Not an array");
         }
+        checkStack(2);
+        int len = Array.getLength(array);
+        C.lua_createtable(L, len, 0);
+        for (int i = 0; i != len; ++i) {
+            push(Array.get(array, i), Conversion.FULL);
+            C.lua_rawseti(L, -2, i + 1);
+        }
+        return 1;
     }
 
-    public void pushCollection(@NotNull Collection<?> collection) {
+    public int pushCollection(@NotNull Collection<?> collection) {
         checkStack(2);
         C.lua_createtable(L, collection.size(), 0);
         int i = 1;
@@ -274,9 +277,10 @@ public class Lua {
             C.lua_rawseti(L, -2, i);
             i++;
         }
+        return 1;
     }
 
-    public void pushMap(@NotNull Map<?, ?> map) {
+    public int pushMap(@NotNull Map<?, ?> map) {
         checkStack(3);
         C.lua_createtable(L, 0, map.size());
         for (Map.Entry<?, ?> entry : map.entrySet()) {
@@ -284,6 +288,7 @@ public class Lua {
             push(entry.getValue(), Conversion.FULL);
             C.lua_rawset(L, -3);
         }
+        return 1;
     }
 
     public int pushAll(Object[] objects) {
@@ -292,10 +297,11 @@ public class Lua {
 
     public int pushAll(Object[] objects, Lua.Conversion degree) {
         if (objects == null) return 0;
+        int length = 0;
         for (Object object : objects) {
-            push(object, degree);
+            length = length + push(object, degree);
         }
-        return objects.length;
+        return length;
     }
 
     // Get API
@@ -1357,8 +1363,10 @@ public class Lua {
         return C.luaJ_ref(L);
     }
 
-    public void refGet(int ref) {
+    public int refGet(int ref) {
+        checkStack(1);
         C.luaJ_refGet(L, ref);
+        return 1;
     }
 
     public void unRef(int ref) {

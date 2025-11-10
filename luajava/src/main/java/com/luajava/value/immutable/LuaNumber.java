@@ -27,8 +27,8 @@ public class LuaNumber extends AbstractLuaValue {
     }
 
     @Override
-    public void push(Lua L) {
-        L.push(value.doubleValue());
+    public int push(Lua L) {
+        return L.push(value.doubleValue());
     }
 
     @Override

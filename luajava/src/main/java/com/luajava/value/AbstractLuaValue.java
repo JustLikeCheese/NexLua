@@ -64,7 +64,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public abstract void push(Lua L);
+    public abstract int push(Lua L);
 
     public LuaType type() {
         return TYPE;
