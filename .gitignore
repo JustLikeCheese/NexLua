@@ -51,6 +51,11 @@ captures/
 .idea/navEditor.xml
 .idea/compiler.xml
 .idea/misc.xml
+# More file
+.idea/AndroidProjectSystem.xml
+.idea/deviceManager.xml
+.idea/migrations.xml
+.idea/runConfigurations.xml
 .idea/deploymentTargetSelector.xml
 
 # Keystore files
