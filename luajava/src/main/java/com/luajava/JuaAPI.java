@@ -36,9 +36,7 @@ import java.util.*;
 // LuaJava Helper
 public final class JuaAPI {
     public static boolean matchParams(Class<?>[] paramTypes, LuaValue[] values) {
-        if (paramTypes.length != values.length) {
-            return false;
-        }
+        if (paramTypes.length != values.length) return false;
         for (int i = 0; i < paramTypes.length; i++) {
             if (!values[i].isJavaObject(paramTypes[i])) {
                 return false;
@@ -80,17 +78,16 @@ public final class JuaAPI {
 
     public static Object callMethod(Object object, Method[] methods, String name, LuaValue[] values) throws LuaException {
         ArrayList<Method> matchedMethod = new ArrayList<>();
-        StringBuilder msg = new StringBuilder();
         for (Method method : methods) {
             if (!method.getName().equals(name)) continue;
             matchedMethod.add(method);
+            if (method.getParameterCount() != values.length) continue;
             try {
                 return JuaAPI.callMethod(object, method, values);
             } catch (IllegalArgumentException ignored) {
             }
-            // catch (LuaException e) {}
         }
-        msg.append("Invalid method call. Invalid Parameters.").append("\n");
+        StringBuilder msg = new StringBuilder("Invalid method call. Invalid Parameters.\n");
         for (Method method : matchedMethod) {
             msg.append(method);
             msg.append("\n");
@@ -131,25 +128,25 @@ public final class JuaAPI {
             return 1;
         }
         // Class.innerClass
-        try {
-            Class<?> innerClass = Class.forName(clazz.getName() + "$" + name);
+        Class<?> innerClass = ClassUtils.getInnerClass(clazz, name);
+        if (innerClass != null) {
             L.push(innerClass);
             return 1;
-        } catch (ClassNotFoundException ignore) {
         }
         // Class.staticMethod(XXX)
         Method[] methods = clazz.getMethods();
         char prefix = name.charAt(0);
         String suffix = name.substring(1);
         boolean isLowerCase = Character.isLowerCase(prefix);
+        final String PREFIX = "get";
         String methodName1; // get Xxx
         String methodName2; // get xXX
         if (isLowerCase) {
-            methodName1 = Character.toUpperCase(prefix) + suffix;
-            methodName2 = prefix + suffix;
+            methodName1 = PREFIX + Character.toUpperCase(prefix) + suffix;
+            methodName2 = PREFIX + prefix + suffix;
         } else {
-            methodName1 = prefix + suffix;
-            methodName2 = Character.toLowerCase(prefix) + suffix;
+            methodName1 = PREFIX + prefix + suffix;
+            methodName2 = PREFIX + Character.toLowerCase(prefix) + suffix;
         }
         Method matchMethod1 = null;
         Method matchMethod2 = null;
@@ -159,10 +156,10 @@ public final class JuaAPI {
                 if (name.equals(method.getName())) {
                     L.push(new JMethod(null, clazz, name));
                     return 1;
-                } else if (matchMethod1 == null) {
+                } else if (matchMethod1 == null && method.getParameterCount() == 0) {
                     if (methodName1.equals(methodName)) {
                         matchMethod1 = method;
-                    } else if (methodName2.equals(methodName)) {
+                    } else if (matchMethod2 == null && methodName2.equals(methodName)) {
                         matchMethod2 = method;
                     }
                 }
@@ -178,33 +175,82 @@ public final class JuaAPI {
         throw new LuaException(String.format("%s@%s is not a field or method", clazz.getName(), name));
     }
 
-        public static int jclassNew(long ptr, Class<?> clazz) throws LuaException {
-            Lua L = Jua.get(ptr);
-            LuaValue[] values = L.getAll(2);
-            ArrayList<Constructor<?>> matchedConstructors = new ArrayList<>();
-            StringBuilder msg = new StringBuilder();
-            for (Constructor<?> constructor : clazz.getConstructors()) {
-                matchedConstructors.add(constructor);
-                try {
-                    L.push(JuaAPI.callConstructor(constructor, values));
-                    return 1;
-                } catch (IllegalArgumentException ignored) {
-                }
+    public static int jclassNewIndex(long ptr, Class<?> clazz, String name) throws InvocationTargetException, IllegalAccessException {
+        // Get lua instance
+        Lua L = Jua.get(ptr);
+        // Class.STATIC_FIELD = value
+        LuaValue[] values = L.getAll(3);
+        Field field = ClassUtils.getPublicStaticField(clazz, name);
+        if (field != null) {
+            if (!Modifier.isFinal(field.getModifiers())) {
+                field.setAccessible(true);
+                field.set(null, values[0].toJavaObject(field.getType()));
+                return 0;
             }
-            if (values.length == 1) {
-                LuaValue value = values[0];
-                if (value.isTable()) {
-                    L.push((Object)value.toJavaArray(clazz));
-                    return 1;
-                }
-            }
-            msg.append("Invalid constructor call. Invalid Parameters.").append("\n");
-            for (Constructor<?> constructor : matchedConstructors) {
-                msg.append(constructor);
-                msg.append("\n");
-            }
-            throw new LuaException(msg.toString());
+            throw new LuaException(String.format("%s@%s is a final field that cannot be changed", clazz.getName(), name));
         }
+        // Class.STATIC_METHOD = value (setter)
+        Method[] methods = clazz.getMethods();
+        char prefix = name.charAt(0);
+        String suffix = name.substring(1);
+        boolean isLowerCase = Character.isLowerCase(prefix);
+        final String PREFIX = "set";
+        String methodName1; // set Xxx
+        String methodName2; // set xXX
+        if (isLowerCase) {
+            methodName1 = PREFIX + Character.toUpperCase(prefix) + suffix;
+            methodName2 = PREFIX + prefix + suffix;
+        } else {
+            methodName1 = PREFIX + prefix + suffix;
+            methodName2 = PREFIX + Character.toLowerCase(prefix) + suffix;
+        }
+        // Method matchMethod1 = null;
+        Method matchMethod2 = null;
+        for (Method method : methods) {
+            if (Modifier.isStatic(method.getModifiers()) && method.getParameterCount() == values.length) {
+                String methodName = method.getName();
+                if (methodName1.equals(methodName)) {
+                    callMethod(null, method, method.getParameterTypes(), values);
+                    return 0;
+                } else if (methodName2.equals(methodName)) {
+                    matchMethod2 = method;
+                }
+            }
+        }
+        if (matchMethod2 != null) {
+            callMethod(null, matchMethod2, matchMethod2.getParameterTypes(), values);
+            return 0;
+        }
+        throw new LuaException(String.format("%s@%s is not a field", clazz.getName(), name));
+    }
+
+    public static int jclassNew(long ptr, Class<?> clazz) throws LuaException {
+        Lua L = Jua.get(ptr);
+        LuaValue[] values = L.getAll(2);
+        ArrayList<Constructor<?>> matchedConstructors = new ArrayList<>();
+        StringBuilder msg = new StringBuilder();
+        for (Constructor<?> constructor : clazz.getConstructors()) {
+            matchedConstructors.add(constructor);
+            try {
+                L.push(JuaAPI.callConstructor(constructor, values));
+                return 1;
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        if (values.length == 1) {
+            LuaValue value = values[0];
+            if (value.isTable()) {
+                L.push((Object) value.toJavaArray(clazz));
+                return 1;
+            }
+        }
+        msg.append("Invalid constructor call. Invalid Parameters.").append("\n");
+        for (Constructor<?> constructor : matchedConstructors) {
+            msg.append(constructor);
+            msg.append("\n");
+        }
+        throw new LuaException(msg.toString());
+    }
 
     /* Java Object */
     public static int jobjectIndex(long ptr, Object instance, String name) throws IllegalAccessException, InvocationTargetException {

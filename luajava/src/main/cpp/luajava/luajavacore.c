@@ -159,11 +159,31 @@ static int classIndex(lua_State *L) {
     jclass clazz = luaJ_checkclass(L, 1);
     const char *name = luaL_checkstring(L, 2);
     JNIEnv *env = getJNIEnv(L);
-    jstring methodName = ToString(name);
+    jstring fieldName = ToString(name);
     int result = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI,
                                              com_luajava_JuaAPI_jclassIndex,
-                                             (jlong) L, clazz, methodName);
-    DeleteString(methodName);
+                                             (jlong) L, clazz, fieldName);
+    DeleteString(fieldName);
+    return checkOrError(env, L, result);
+}
+
+static int classNexIndex(lua_State *L) {
+    jclass clazz = luaJ_checkclass(L, 1);
+    const char *name = luaL_checkstring(L, 2);
+    JNIEnv *env = getJNIEnv(L);
+    if (lua_gettop(L) == 2) {
+        jstring className = (*env)->CallStaticObjectMethod(env, java_lang_Class,
+                                                            java_lang_Class_getName, clazz);
+        luaJ_pushstring(env, L, className);
+        lua_pushfstring(L, "@%s missing field value", name);
+        lua_concat(L, 3);
+        return lua_error(L);
+    }
+    jstring fieldName = ToString(name);
+    int result = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI,
+                                             com_luajava_JuaAPI_jclassNewIndex,
+                                             (jlong) L, clazz, fieldName);
+    DeleteString(fieldName);
     return checkOrError(env, L, result);
 }
 
@@ -213,6 +233,17 @@ static int classToString(lua_State *L) {
     }
     luaJ_pushstring(env, L, string);
     return 1;
+}
+
+static int className(lua_State *L) {
+    jclass clazz = luaJ_checkclass(L, 1);
+    JNIEnv *env = getJNIEnv(L);
+    jstring name = (*env)->CallObjectMethod(env, clazz, java_lang_Class_getName);
+    if (!checkIfError(env, L)) {
+        luaJ_pushstring(env, L, name);
+        return 1;
+    }
+    return lua_error(L);
 }
 
 /* Object Metatable */
@@ -351,8 +382,10 @@ void initMetaRegistry(lua_State *L) {
         bindMetatable(__eq, &classEquals); // equal
         bindMetatable(__gc, &classGC); // gc
         bindMetatable(__index, &classIndex); // index
+        bindMetatable(__newindex, &classNexIndex); // newindex
         bindMetatable(__call, &classNew); // call
         bindMetatable(__tostring, &classToString); // tostring
+        bindMetatable(__len, &className); // length
         bindMetatable(__concat, &commonConcat); // concat
     }
     lua_pop(L, 1);

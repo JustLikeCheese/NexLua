@@ -174,6 +174,7 @@ public abstract class ClassUtils {
         try {
             Method method = clazz.getMethod(methodName);
             if (Modifier.isStatic(method.getModifiers())) {
+                method.setAccessible(true);
                 return method;
             }
             return null;
@@ -209,10 +210,23 @@ public abstract class ClassUtils {
         return method.invoke(null);
     }
 
+    public static void setMethodField(Method method, Object value) throws InvocationTargetException, IllegalAccessException {
+        method.setAccessible(true);
+        method.invoke(null, value);
+    }
+
     public static Object callObjectNoArgsMethod(Object object, String name) {
         try {
             return object.getClass().getMethod(name).invoke(object);
         } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static Class<?> getInnerClass(Class<?> clazz, String name) {
+        try {
+            return Class.forName(clazz.getName() + "$" + name);
+        } catch (ClassNotFoundException e) {
             return null;
         }
     }

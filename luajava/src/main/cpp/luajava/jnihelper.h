@@ -28,6 +28,7 @@ JNI_HELPER_EXTERN jmethodID java_lang_Throwable_toString;
 // com.luajava.JuaAPI
 JNI_HELPER_EXTERN jclass com_luajava_JuaAPI;
 JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_jclassIndex;
+JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_jclassNewIndex;
 JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_jclassNew;
 JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_jobjectIndex;
 JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_jobjectLength;

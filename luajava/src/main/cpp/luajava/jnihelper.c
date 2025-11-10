@@ -33,6 +33,9 @@ int initJNIBindings(JNIEnv *env) {
     com_luajava_JuaAPI_jclassNew = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                         "jclassNew",
                                                         "(JLjava/lang/Class;)I");
+    com_luajava_JuaAPI_jclassNewIndex = bindJavaStaticMethod(env, com_luajava_JuaAPI,
+                                                           "jclassNewIndex",
+                                                           "(JLjava/lang/Class;Ljava/lang/String;)I");
     /* Java Object */
     com_luajava_JuaAPI_jobjectIndex = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                            "jobjectIndex",
