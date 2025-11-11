@@ -110,7 +110,7 @@ public final class LuaProxy implements InvocationHandler {
                 L.pop(1);
                 return result;
             } catch (final Exception e) {
-                L.onError(e);
+                L.sendError(e);
                 Class<?> returnType = method.getReturnType();
                 if (returnType.isPrimitive()) {
                     if (returnType == boolean.class) {

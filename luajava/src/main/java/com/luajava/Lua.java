@@ -100,7 +100,7 @@ public class Lua {
         this.handler = handler;
     }
 
-    public void onError(Exception e) {
+    public void sendError(Exception e) {
         if (handler != null) {
             handler.onError(e);
         } else {

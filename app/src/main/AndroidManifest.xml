@@ -75,5 +75,8 @@
         <activity
             android:name="com.nexlua.LuaActivity"
             android:exported="true" />
+        <activity
+            android:name="com.nexlua.TestActivity"
+            android:exported="true" />
     </application>
 </manifest>
