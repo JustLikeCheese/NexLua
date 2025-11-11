@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace 'com.nexlua'
-    compileSdkVersion 28
+    compileSdkVersion 36
 
     defaultConfig {
         applicationId "com.nexlua"
@@ -27,6 +27,6 @@ android {
 }
 
 dependencies {
-    implementation 'io.github.justlikecheese.nextoast:NexToast:1.1.0'
+    implementation libs.nextoast
     implementation project(':luajava')
 }

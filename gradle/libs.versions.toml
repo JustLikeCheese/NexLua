@@ -1,7 +1,9 @@
 [versions]
 agp = "8.13.1"
+nextoast = "1.2.1"
 
 [libraries]
+nextoast = { module = "io.github.justlikecheese.nextoast:NexToast", version.ref = "nextoast" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
