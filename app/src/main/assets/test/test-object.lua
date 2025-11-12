@@ -19,7 +19,7 @@ local test = function(name, func, value)
     end)
 end
 
-print("Java Object Instance Method & Field Testing:")
+print("Java Object Static Method & Field Testing:")
 print("Test Class: " .. TestClass)
 print("Test Object: " .. testClass)
 
@@ -70,4 +70,54 @@ test("Object Class InnerClass", function()
     return testClass.InnerClass
 end, NO_NIL)
 
+
+
 print("\nObject Class OK!")
+print("Java Object Method & Field Testing:")
+
+test("Object Field", function()
+    return testClass.field
+end, 10)
+
+test("Change Object Field", function()
+    testClass.field = 20
+    return testClass.field
+end, 20)
+pcall(function()
+    testClass.field = 10
+end)
+
+test("Object Final Field", function()
+    return testClass.finalField
+end, 20)
+
+test("Change Object Final Field", function()
+    -- should be nil or error
+    testClass.finalField = 30
+    return testClass.finalField
+end, NO_RESULT)
+
+test("Object getX Getter", function()
+    return testClass.x
+end, 30)
+
+test("Object setX Setter", function()
+    testClass.x = 40
+    return testClass.x
+end, 40)
+pcall(function()
+    testClass.x = 30
+end)
+
+test("Object getY Getter", function()
+    return testClass.y
+end, 40)
+
+test("Object Static setB Setter", function()
+    -- should be nil or error
+    testClass.y = 1
+end, NO_RESULT)
+
+test("Object Class InnerClass", function()
+    return testClass.InnerClass
+end, NO_NIL)
