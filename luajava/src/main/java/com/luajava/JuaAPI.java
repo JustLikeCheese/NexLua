@@ -209,7 +209,7 @@ public final class JuaAPI {
                 if (methodName1.equals(methodName)) {
                     callMethod(null, method, method.getParameterTypes(), values);
                     return 0;
-                } else if (methodName2.equals(methodName)) {
+                } else if (matchMethod2 == null && methodName2.equals(methodName)) {
                     matchMethod2 = method;
                 }
             }
@@ -313,6 +313,70 @@ public final class JuaAPI {
         else if (matchedStaticGetMethod2 != null)
             return L.push(ClassUtils.callMethod(null, matchedStaticGetMethod2, null), matchedStaticGetMethod2.getReturnType());
         throw new LuaException(String.format("%s@%s is not a field or method", clazz.getName(), name));
+    }
+
+    public static int jobjectNewIndex(long ptr, Object object, String name) throws InvocationTargetException, IllegalAccessException {
+        // Get lua instance
+        Lua L = Jua.get(ptr);
+        Class<?> clazz = object.getClass();
+        LuaValue[] values = L.getAll(3);
+        Field field = ClassUtils.getPublicField(clazz, name);
+        if (field != null) {
+            if (!Modifier.isFinal(field.getModifiers())) {
+                field.setAccessible(true);
+                field.set(object, values[0].toJavaObject(field.getType()));
+                return 0;
+            }
+            throw new LuaException(String.format("%s@%s is a final field that cannot be changed", clazz.getName(), name));
+        }
+        // Class.STATIC_METHOD = value (setter)
+        Method[] methods = clazz.getMethods();
+        char prefix = name.charAt(0);
+        String suffix = name.substring(1);
+        boolean isLowerCase = Character.isLowerCase(prefix);
+        final String PREFIX = "set";
+        String methodName1; // set Xxx
+        String methodName2; // set xXX
+        if (isLowerCase) {
+            methodName1 = PREFIX + Character.toUpperCase(prefix) + suffix;
+            methodName2 = PREFIX + prefix + suffix;
+        } else {
+            methodName1 = PREFIX + prefix + suffix;
+            methodName2 = PREFIX + Character.toLowerCase(prefix) + suffix;
+        }
+        // Method matchMethod1 = null;
+        Method matchStaticMethod1 = null;
+        Method matchStaticMethod2 = null;
+        Method matchMethod2 = null;
+        for (Method method : methods) {
+            if (method.getParameterCount() == values.length) {
+                String methodName = method.getName();
+                if (!Modifier.isStatic(method.getModifiers())) { // instance method first
+                    if (methodName1.equals(methodName)) {
+                        callMethod(object, method, method.getParameterTypes(), values);
+                        return 0;
+                    } else if (matchMethod2 == null && methodName2.equals(methodName)) {
+                        matchMethod2 = method;
+                    }
+                } else {
+                    if (methodName1.equals(methodName)) {
+                        matchStaticMethod1 = method;
+                    } else if (matchStaticMethod2 == null && methodName2.equals(methodName)) {
+                        matchStaticMethod2 = method;
+                    }
+                }
+            }
+        }
+        if (matchMethod2 != null) {
+            callMethod(object, matchMethod2, matchMethod2.getParameterTypes(), values);
+        } else if (matchStaticMethod1 != null) {
+            callMethod(object, matchStaticMethod1, matchStaticMethod1.getParameterTypes(), values);
+        } else if (matchStaticMethod2 != null) {
+            callMethod(object, matchStaticMethod2, matchStaticMethod2.getParameterTypes(), values);
+        } else {
+            throw new LuaException(String.format("%s@%s is not a field", clazz.getName(), name));
+        }
+        return 0;
     }
 
     private final static String[] LENGTH_DEFAULT_METHOD_NAME = new String[]{"length", "size"};
