@@ -391,6 +391,35 @@ public final class JuaAPI {
         throw new LuaException(String.format("%s has no default method to get length", clazz.getName()));
     }
 
+    public static int jarrayIndex(long ptr, Object array) {
+        Lua L = Jua.get(ptr);
+        int index = (int) L.get(2).toJavaObject(int.class);
+        Class<?> type = array.getClass().getComponentType();
+        Object object = Array.get(array, index);
+        return L.push(object, type);
+    }
+
+    public static int jarrayNewIndex(long ptr, Object array) {
+        Lua L = Jua.get(ptr);
+        Class<?> type = array.getClass().getComponentType();
+        int index = (int) L.get(2).toJavaObject(int.class);
+        Object value = L.get(3).toJavaObject(type);
+        Array.set(array, index, value);
+        return 0;
+    }
+
+    public static int jarrayIpairsIterator(long ptr, Object array) {
+        Lua L = Jua.get(ptr);
+        int index = (int) L.get(2).toJavaObject(int.class);
+        int nextIndex = index + 1;
+        if (nextIndex >= Array.getLength(array)) {
+            return 0;
+        }
+        L.push(nextIndex);
+        L.push(Array.get(array, nextIndex), array.getClass().getComponentType());
+        return 2;
+    }
+
     public static int bindClass(long ptr, String name) throws ClassNotFoundException {
         Lua L = Jua.get(ptr);
         L.push(ClassUtils.forName(name));

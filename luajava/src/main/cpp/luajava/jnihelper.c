@@ -46,6 +46,16 @@ int initJNIBindings(JNIEnv *env) {
     com_luajava_JuaAPI_jobjectNewIndex = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                             "jobjectNewIndex",
                                                             "(JLjava/lang/Object;Ljava/lang/String;)I");
+    /* Java Array */
+    com_luajava_JuaAPI_jarrayIndex = bindJavaStaticMethod(env, com_luajava_JuaAPI,
+                                                          "jarrayIndex",
+                                                          "(JLjava/lang/Object;)I");
+    com_luajava_JuaAPI_jarrayNewIndex = bindJavaStaticMethod(env, com_luajava_JuaAPI,
+                                                          "jarrayNewIndex",
+                                                          "(JLjava/lang/Object;)I");
+    com_luajava_JuaAPI_jarrayIpairsIterator = bindJavaStaticMethod(env, com_luajava_JuaAPI,
+                                                                   "jarrayIpairsIterator",
+                                                                   "(JLjava/lang/Object;)I");
     /* Lua - Java Bridge API */
     com_luajava_JuaAPI_bindClass = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                         "bindClass",

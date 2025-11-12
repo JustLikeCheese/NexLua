@@ -267,14 +267,7 @@ static int objectNewIndex(lua_State *L) {
     jobject object = luaJ_checkobject(L, 1);
     const char *name = luaL_checkstring(L, 2);
     JNIEnv *env = getJNIEnv(L);
-    if (lua_gettop(L) == 2) {
-        jstring className = (*env)->CallStaticObjectMethod(env, java_lang_Class,
-                                                           java_lang_Class_getName, object);
-        luaJ_pushstring(env, L, className);
-        lua_pushfstring(L, "@%s missing field value", name);
-        lua_concat(L, 2);
-        return lua_error(L);
-    }
+    luaL_checkany(L, 3);
     jstring fieldName = ToString(name);
     int result = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI,
                                              com_luajava_JuaAPI_jobjectNewIndex,
@@ -358,6 +351,44 @@ static int arrayLength(lua_State *L) {
     return 1;
 }
 
+static int arrayIndex(lua_State *L) {
+    jarray array = luaJ_checkarray(L, 1);
+    luaL_checkany(L, 2);
+    JNIEnv *env = getJNIEnv(L);
+    int result = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI,
+                                             com_luajava_JuaAPI_jarrayIndex,
+                                             (jlong) L, array);
+    return checkOrError(env, L, result);
+}
+
+static int arrayNewIndex(lua_State *L) {
+    jarray array = luaJ_checkarray(L, 1);
+    luaL_checkany(L, 3);
+    JNIEnv *env = getJNIEnv(L);
+    int result = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI,
+                                             com_luajava_JuaAPI_jarrayNewIndex,
+                                             (jlong) L, array);
+    return checkOrError(env, L, result);
+}
+
+static int arrayIpairsIterator(lua_State *L) {
+    jarray array = luaJ_checkarray(L, 1);
+    luaL_checkany(L, 2);
+    JNIEnv *env = getJNIEnv(L);
+    int result = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI,
+                                             com_luajava_JuaAPI_jarrayIpairsIterator,
+                                             (jlong) L, array);
+    return checkOrError(env, L, result);
+}
+
+static int arrayIpairs(lua_State *L) {
+    luaJ_checkarray(L, 1);
+    lua_pushcfunction(L, &arrayIpairsIterator);
+    lua_pushvalue(L, 1);
+    lua_pushinteger(L, -1);
+    return 3;
+}
+
 /* Common Metatable */
 bindMetaname(__index)
 bindMetaname(__newindex)
@@ -420,6 +451,10 @@ void initMetaRegistry(lua_State *L) {
         bindMetatable(__gc, &arrayGC); // gc
         bindMetatable(__tostring, &arrayToString); // tostring
         bindMetatable(__len, &arrayLength); // length
+        bindMetatable(__index, &arrayIndex); // index
+        bindMetatable(__newindex, &arrayNewIndex); // newindex
+        bindMetatable(__ipairs, &arrayIpairs); // ipairs
+        bindMetatable(__pairs, &arrayIpairs); // pairs
         bindMetatable(__concat, &commonConcat); // concat
     }
     lua_pop(L, 1);
