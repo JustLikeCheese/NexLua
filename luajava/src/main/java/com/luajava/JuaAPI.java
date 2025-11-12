@@ -276,7 +276,6 @@ public final class JuaAPI {
         Method matchedGetMethod2 = null;
         Method matchedStaticGetMethod1 = null;
         Method matchedStaticGetMethod2 = null;
-        Method matchedMethod = null;
         Method matchedStaticMethod = null;
         for (Method method : methods) {
             String methodName = method.getName();
