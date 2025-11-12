@@ -117,53 +117,53 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
             L.setGlobal("application");
             loadLua();
             // onCreate
-            LuaValue mOnCreate = L.getFunction("onCreate");
+            LuaValue mOnCreate = L.getLuaFunction("onCreate");
             // onKeyEvent
-            mOnKeyShortcut = L.getFunction("onKeyShortcut");
-            mOnKeyDown = L.getFunction("onKeyDown");
-            mOnKeyUp = L.getFunction("onKeyUp");
-            mOnKeyLongPress = L.getFunction("onKeyLongPress");
+            mOnKeyShortcut = L.getLuaFunction("onKeyShortcut");
+            mOnKeyDown = L.getLuaFunction("onKeyDown");
+            mOnKeyUp = L.getLuaFunction("onKeyUp");
+            mOnKeyLongPress = L.getLuaFunction("onKeyLongPress");
             // onTouchEvent
-            mOnTouchEvent = L.getFunction("onTouchEvent");
+            mOnTouchEvent = L.getLuaFunction("onTouchEvent");
             // onAccessibilityEvent
             // onCreateOptionsMenu
-            mOnCreateOptionsMenu = L.getFunction("onCreateOptionsMenu");
+            mOnCreateOptionsMenu = L.getLuaFunction("onCreateOptionsMenu");
             // mOnCreateContextMenu
-            mOnCreateContextMenu = L.getFunction("onCreateContextMenu");
+            mOnCreateContextMenu = L.getLuaFunction("onCreateContextMenu");
             // onOptionsItemSelected
-            mOnOptionsItemSelected = L.getFunction("onOptionsItemSelected");
+            mOnOptionsItemSelected = L.getLuaFunction("onOptionsItemSelected");
             // onMenuItemSelected
-            mOnMenuItemSelected = L.getFunction("onMenuItemSelected");
+            mOnMenuItemSelected = L.getLuaFunction("onMenuItemSelected");
             // onContextItemSelected
-            mOnContextItemSelected = L.getFunction("onContextItemSelected");
+            mOnContextItemSelected = L.getLuaFunction("onContextItemSelected");
             // onActivityResult
-            mOnActivityResult = L.getFunction("onActivityResult");
+            mOnActivityResult = L.getLuaFunction("onActivityResult");
             // onRequestPermissionsResult
-            onRequestPermissionsResult = L.getFunction("onRequestPermissionsResult");
+            onRequestPermissionsResult = L.getLuaFunction("onRequestPermissionsResult");
             // onConfigurationChanged
-            mOnConfigurationChanged = L.getFunction("onConfigurationChanged");
+            mOnConfigurationChanged = L.getLuaFunction("onConfigurationChanged");
             // onReceive
-            mOnReceive = L.getFunction("onReceive");
+            mOnReceive = L.getLuaFunction("onReceive");
             // onError
-            mOnError = L.getFunction("onError");
+            mOnError = L.getLuaFunction("onError");
             // onNewIntent
-            mOnNewIntent = L.getFunction("onNewIntent");
+            mOnNewIntent = L.getLuaFunction("onNewIntent");
             // onResult
-            mOnResult = L.getFunction("onResult");
+            mOnResult = L.getLuaFunction("onResult");
             // onSaveInstanceState
-            mOnSaveInstanceState = L.getFunction("onSaveInstanceState");
+            mOnSaveInstanceState = L.getLuaFunction("onSaveInstanceState");
             // onRestoreInstanceState
-            mOnRestoreInstanceState = L.getFunction("onRestoreInstanceState");
+            mOnRestoreInstanceState = L.getLuaFunction("onRestoreInstanceState");
             // onStart
-            mOnStart = L.getFunction("onStart");
+            mOnStart = L.getLuaFunction("onStart");
             // onResume
-            mOnResume = L.getFunction("onResume");
+            mOnResume = L.getLuaFunction("onResume");
             // onPause
-            mOnPause = L.getFunction("onPause");
+            mOnPause = L.getLuaFunction("onPause");
             // onStop
-            mOnStop = L.getFunction("onStop");
+            mOnStop = L.getLuaFunction("onStop");
             // onRestart
-            mOnRestarted = L.getFunction("onRestart");
+            mOnRestarted = L.getLuaFunction("onRestart");
             onLuaEvent(mOnCreate);
             Object[] arg = (Object[]) intent.getSerializableExtra(LuaContext.LUA_ARG);
             if (arg != null) runFunc("main", arg);
@@ -461,16 +461,6 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         synchronized (L) {
             final int oldTop = L.getTop();
             try {
-                // 调试日志
-                Log.d("LuaJava", "Calling function: " + funcName);
-                Log.d("LuaJava", "Args count: " + (args == null ? 0 : args.length));
-                if (args != null) {
-                    for (int i = 0; i < args.length; i++) {
-                        Log.d("LuaJava", "  Arg[" + i + "]: " + args[i] +
-                                " (type: " + (args[i] == null ? "null" : args[i].getClass().getName()) + ")");
-                    }
-                }
-
                 L.getGlobal(funcName);
                 if (!L.isFunction(-1)) {
                     Log.e("LuaJava", funcName + " is not a function!");

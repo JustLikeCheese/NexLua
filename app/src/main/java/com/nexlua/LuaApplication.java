@@ -64,11 +64,11 @@ public class LuaApplication extends Application implements LuaContext {
             } else {
                 return;
             }
-            LuaValue mOnCreate = L.getFunction("onCreate");
-            mOnTerminate = L.getFunction("onTerminate");
-            mOnLowMemory = L.getFunction("onLowMemory");
-            mOnTrimMemory = L.getFunction("onTrimMemory");
-            mOnConfigurationChanged = L.getFunction("onConfigurationChanged");
+            LuaValue mOnCreate = L.getLuaFunction("onCreate");
+            mOnTerminate = L.getLuaFunction("onTerminate");
+            mOnLowMemory = L.getLuaFunction("onLowMemory");
+            mOnTrimMemory = L.getLuaFunction("onTrimMemory");
+            mOnConfigurationChanged = L.getLuaFunction("onConfigurationChanged");
             if (mOnCreate != null) mOnCreate.call();
         } catch (Exception e) {
             sendError(e);

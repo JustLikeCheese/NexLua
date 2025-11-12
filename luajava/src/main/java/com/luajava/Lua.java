@@ -47,6 +47,7 @@ import com.luajava.value.LuaProxy;
 import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;
 import com.luajava.value.immutable.LuaBoolean;
+import com.luajava.value.referable.LuaCFunction;
 import com.luajava.value.referable.LuaFunction;
 import com.luajava.value.referable.LuaLightUserdata;
 import com.luajava.value.immutable.LuaNil;
@@ -361,6 +362,15 @@ public class Lua {
         setGlobal(key);
     }
 
+    public void set(String key, Object value, Class<?> clazz) throws LuaException {
+        push(value, clazz, Conversion.NONE);
+        setGlobal(key);
+    }
+
+    public void set(String key, Object value, Class<?> clazz, Conversion degree) throws LuaException {
+        push(value, clazz, degree);
+        setGlobal(key);
+    }
 
     public LuaValue[] getArgs(int length) throws LuaException {
         return getAll(-length);
@@ -480,11 +490,7 @@ public class Lua {
 
     public @Nullable ByteBuffer toDirectBuffer(int index) {
         ByteBuffer buffer = (ByteBuffer) C.luaJ_todirectbuffer(L, index);
-        if (buffer == null) {
-            return null;
-        } else {
-            return buffer.asReadOnlyBuffer();
-        }
+        return (buffer != null) ? buffer.asReadOnlyBuffer() : null;
     }
 
     public @Nullable Object toJavaObject(int index) {
@@ -1116,13 +1122,8 @@ public class Lua {
         return 0;
     }
 
-    public void register(String name, LuaFunction function) throws LuaException {
-        if (function.isCFunction()) {
-            C.lua_register(L, name, function.getPointer());
-        } else {
-            push(function);
-            setGlobal(name);
-        }
+    public void register(String name, LuaCFunction function) throws LuaException {
+        C.lua_register(L, name, function.getPointer());
     }
 
     public int typeError(int nArg, String tname) {
@@ -1152,17 +1153,6 @@ public class Lua {
 
     public void setGlobal(String name) {
         C.lua_setglobal(L, name);
-    }
-
-    public LuaFunction getFunction(String funcName) throws LuaException {
-        getGlobal(funcName);
-        if (isFunction(-1)) {
-            LuaFunction func = new LuaFunction(this);
-            pop(1);
-            return func;
-        }
-        pop(1);
-        return null;
     }
 
     public void getRegistry() {
@@ -1540,6 +1530,198 @@ public class Lua {
             ref = (LuaReference<?>) recyclableReferences.poll();
         }
     }
+
+    // Lua toLNumber ...
+    public LuaNil getLuaNil(int idx) {
+        if (type(idx) == LuaType.NIL) {
+            return fromNull();
+        }
+        return null;
+    }
+
+    public LuaNil getLuaNil() {
+        return getLuaNil(-1);
+    }
+
+    public LuaNil getLuaNil(String globalName) {
+        getGlobal(globalName);
+        LuaNil value = getLuaNil();
+        if (value == null)
+            pop(1);
+        return value;
+    }
+
+    public LuaBoolean getLuaBoolean(int idx) {
+        if (type(idx) == LuaType.BOOLEAN) {
+            return from(toBoolean(idx));
+        }
+        return null;
+    }
+
+    public LuaBoolean getLuaBoolean() {
+        return getLuaBoolean(-1);
+    }
+
+    public LuaBoolean getLuaBoolean(String globalName) {
+        getGlobal(globalName);
+        LuaBoolean value = getLuaBoolean();
+        if (value == null)
+            pop(1);
+        return value;
+    }
+
+    public LuaUserdata getLuaUserdata(int idx) {
+        if (type(idx) == LuaType.USERDATA) {
+            return new LuaUserdata(this, idx);
+        }
+        return null;
+    }
+
+    public LuaUserdata getLuaUserdata() {
+        return getLuaUserdata(-1);
+    }
+
+    public LuaUserdata getLuaUserdata(String globalName) {
+        getGlobal(globalName);
+        LuaUserdata value = getLuaUserdata();
+        if (value == null)
+            pop(1);
+        return value;
+    }
+
+    public LuaNumber getLuaNumber(int idx) {
+        if (type(idx) == LuaType.NUMBER) {
+            return new LuaNumber(this, idx);
+        }
+        return null;
+    }
+
+    public LuaNumber getLuaNumber() {
+        return getLuaNumber(-1);
+    }
+
+    public LuaNumber getLuaNumber(String globalName) {
+        getGlobal(globalName);
+        LuaNumber value = getLuaNumber();
+        if (value == null)
+            pop(1);
+        return value;
+    }
+
+    public LuaString getLuaString(int idx) {
+        if (type(idx) == LuaType.STRING) {
+            return new LuaString(this, idx);
+        }
+        return null;
+    }
+
+    public LuaString getLuaString() {
+        return getLuaString(-1);
+    }
+
+    public LuaString getLuaString(String globalName) {
+        getGlobal(globalName);
+        LuaString value = getLuaString();
+        if (value == null)
+            pop(1);
+        return value;
+    }
+
+    public LuaTable getLuaTable(int idx) {
+        if (type(idx) == LuaType.TABLE) {
+            return new LuaTable(this, idx);
+        }
+        return null;
+    }
+
+    public LuaTable getLuaTable() {
+        return getLuaTable(-1);
+    }
+
+    public LuaTable getLuaTable(String globalName) {
+        getGlobal(globalName);
+        LuaTable value = getLuaTable();
+        if (value == null)
+            pop(1);
+        return value;
+    }
+
+    public LuaFunction getLuaFunction(int idx) {
+        if (type(idx) == LuaType.FUNCTION) {
+            return new LuaFunction(this, idx);
+        }
+        return null;
+    }
+
+    public LuaFunction getLuaFunction() {
+        return getLuaFunction(-1);
+    }
+
+    public LuaFunction getLuaFunction(String globalName) {
+        getGlobal(globalName);
+        LuaFunction value = getLuaFunction();
+        if (value == null)
+            pop(1);
+        return value;
+    }
+
+    public LuaCFunction getLuaCFunction(int idx) {
+        if (isCFunction(idx)) {
+            return new LuaCFunction(this, idx);
+        }
+        return null;
+    }
+
+    public LuaCFunction getLuaCFunction() {
+        return getLuaCFunction(-1);
+    }
+
+    public LuaCFunction getLuaCFunction(String globalName) {
+        getGlobal(globalName);
+        LuaCFunction value = getLuaCFunction();
+        if (value == null)
+            pop(1);
+        return value;
+    }
+
+    public LuaLightUserdata getLuaLightUserdata(int idx) {
+        if (type(idx) == LuaType.LIGHTUSERDATA) {
+            return new LuaLightUserdata(this, idx);
+        }
+        return null;
+    }
+
+    public LuaLightUserdata getLuaLightUserdata() {
+        return getLuaLightUserdata(-1);
+    }
+
+    public LuaLightUserdata getLuaLightUserdata(String globalName) {
+        getGlobal(globalName);
+        LuaLightUserdata value = getLuaLightUserdata();
+        if (value == null)
+            pop(1);
+        return value;
+    }
+
+    public LuaThread getLuaThread(int idx) {
+        if (type(idx) == LuaType.THREAD) {
+            return new LuaThread(this, idx);
+        }
+        return null;
+    }
+
+    public LuaThread getLuaThread() {
+        return getLuaThread(-1);
+    }
+
+    public LuaThread getLuaThread(String globalName) {
+        getGlobal(globalName);
+        LuaThread value = getLuaThread();
+        if (value == null)
+            pop(1);
+        return value;
+    }
+
 
     public enum Conversion {
         /**
