@@ -2,6 +2,7 @@ package com.nexlua;
 
 @SuppressWarnings("unused")
 public class TestClass {
+    // Test Java Class
     public static int STATIC_FIELD = 1;
     public static final int FINAL_STATIC_FIELD = 2;
 
@@ -28,5 +29,10 @@ public class TestClass {
     }
 
     class InnerClass {
+    }
+
+    // Test Java Object
+    public int field = 1;
+    public TestClass() {
     }
 }

@@ -1,4 +1,5 @@
 local TestClass = luajava.bindClass("com.nexlua.TestClass")
+local testClass = TestClass()
 local NO_RESULT = function() end
 local NO_NIL = function() end
 local test = function(name, func, value)
@@ -18,51 +19,55 @@ local test = function(name, func, value)
     end)
 end
 
-print("Java Class Static Method & Field Testing:")
+print("Java Object Instance Method & Field Testing:")
 print("Test Class: " .. TestClass)
-test("Class.STATIC_FIELD", function()
-    return TestClass.STATIC_FIELD
+print("Test Object: " .. testClass)
+
+test("Object STATIC_FIELD", function()
+    return testClass.STATIC_FIELD
 end, 1)
 
-test("Change Class.STATIC_FIELD", function()
-    TestClass.STATIC_FIELD = 2
+test("Change Object STATIC_FIELD", function()
+    testClass.STATIC_FIELD = 2
     return TestClass.STATIC_FIELD
 end, 2)
 pcall(function()
     TestClass.STATIC_FIELD = 1
 end)
 
-test("Class.FINAL_STATIC_FIELD", function()
-    return TestClass.FINAL_STATIC_FIELD
+test("Object Static FINAL_STATIC_FIELD", function()
+    return testClass.FINAL_STATIC_FIELD
 end, 2)
 
-test("Change Class.FINAL_STATIC_FIELD", function()
+test("Change Object Static FINAL_STATIC_FIELD", function()
     -- should be nil or error
-    TestClass.FINAL_STATIC_FIELD = 4
+    testClass.FINAL_STATIC_FIELD = 4
     return TestClass.FINAL_STATIC_FIELD
 end, NO_RESULT)
 
-test("Class getA Getter", function()
-    return TestClass.a
+test("Object Static getA Getter", function()
+    return testClass.a
 end, 4)
 
-test("Class setA Setter", function()
-    TestClass.a = 5
+test("Object Static setA Setter", function()
+    testClass.a = 5
     return TestClass.a
 end, 5)
 pcall(function()
     TestClass.a = 4
 end)
 
-test("Class getB Getter", function()
-    return TestClass.b
+test("Object Static getB Getter", function()
+    return testClass.b
 end, 5)
 
-test("Class setB Setter", function()
+test("Object Static setB Setter", function()
     -- should be nil or error
     TestClass.b = 1
 end, NO_RESULT)
 
-test("Class.InnerClass", function()
-    return TestClass.InnerClass
+test("Object Class InnerClass", function()
+    return testClass.InnerClass
 end, NO_NIL)
+
+print("\nObject Class OK!")
