@@ -78,7 +78,9 @@ public final class JuaAPI {
             if (!method.getName().equals(name)) continue;
             matchedMethod.add(method);
             if (object == null && Modifier.isStatic(method.getModifiers())) continue;
-            if (method.getParameterCount() != values.length) continue;
+            Class<?>[] paramTypes = method.getParameterTypes();
+            if (paramTypes.length != values.length) continue;
+            if (!matchParams(paramTypes, values)) continue;
             return method;
         }
         StringBuilder msg = new StringBuilder("Invalid method call. Invalid Parameters.\n");
