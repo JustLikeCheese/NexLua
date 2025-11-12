@@ -90,8 +90,23 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
+    public boolean containsKey(Object key, Class<?> clazz) {
+        return containsKey(key, clazz, Lua.Conversion.NONE);
+    }
+
+    @Override
+    public boolean containsKey(Object key, Class<?> clazz, Lua.Conversion degree) {
+        push();
+        L.push(key, clazz, degree);
+        L.getTable(-2);
+        boolean result = !L.isNil(-1);
+        L.pop(2);
+        return result;
+    }
+
+    @Override
     public LuaValue get(Object key) {
-        return get(key, Lua.Conversion.SEMI);
+        return get(key, Lua.Conversion.NONE);
     }
 
     @Override
@@ -105,8 +120,23 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
+    public LuaValue get(Object key, Class<?> clazz) {
+        return get(key, clazz, Lua.Conversion.NONE);
+    }
+
+    @Override
+    public LuaValue get(Object key, Class<?> clazz, Lua.Conversion degree) {
+        push();
+        L.push(key, clazz, degree);
+        L.getTable(-2);
+        LuaValue result = L.get();
+        L.pop(1);
+        return result;
+    }
+
+    @Override
     public void set(Object key, Object value) {
-        set(key, value, Lua.Conversion.SEMI);
+        set(key, value, Lua.Conversion.NONE);
     }
 
     @Override
@@ -123,9 +153,34 @@ public abstract class AbstractLuaValue implements LuaValue {
         L.pop(1);
     }
 
+    // Keep Class<?>
+    @Override
+    public void set(Object key, Object value, Class<?> clazz) {
+        set(key, value, clazz, clazz, Lua.Conversion.NONE);
+    }
+
+    @Override
+    public void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2) {
+        set(key, value, clazz1, clazz2, Lua.Conversion.NONE);
+    }
+
+    @Override
+    public void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree) {
+        set(key, value, clazz1, clazz2, degree, degree);
+    }
+
+    @Override
+    public void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree1, Lua.Conversion degree2) {
+        push();
+        L.push(key, clazz1, degree1);
+        L.push(value, clazz2, degree2);
+        L.setTable(-3);
+        L.pop(1);
+    }
+
     @Override
     public LuaValue rawget(Object key) {
-        return rawget(key, Lua.Conversion.SEMI);
+        return rawget(key, Lua.Conversion.NONE);
     }
 
     @Override
@@ -138,10 +193,25 @@ public abstract class AbstractLuaValue implements LuaValue {
         return result;
     }
 
+    @Override
+    public LuaValue rawget(Object key, Class<?> clazz) {
+        return rawget(key, clazz, Lua.Conversion.NONE);
+    }
+
+    @Override
+    public LuaValue rawget(Object key, Class<?> clazz, Lua.Conversion degree) {
+        push();
+        L.push(key, clazz, degree);
+        L.rawGet(-2);
+        LuaValue result = L.get();
+        L.pop(1);
+        return result;
+    }
+
 
     @Override
     public void rawset(Object key, Object value) {
-        rawset(key, value, Lua.Conversion.SEMI);
+        rawset(key, value, Lua.Conversion.NONE);
     }
 
     @Override
@@ -154,6 +224,30 @@ public abstract class AbstractLuaValue implements LuaValue {
         push();
         L.push(key, degree1);
         L.push(value, degree2);
+        L.rawSet(-3);
+        L.pop(1);
+    }
+
+    @Override
+    public void rawset(Object key, Object value, Class<?> clazz) {
+        rawset(key, value, clazz, clazz);
+    }
+
+    @Override
+    public void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2) {
+        rawset(key, value, clazz1, clazz2, Lua.Conversion.NONE);
+    }
+
+    @Override
+    public void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree) {
+        rawset(key, value, clazz1, clazz2, degree, degree);
+    }
+
+    @Override
+    public void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree1, Lua.Conversion degree2) {
+        push();
+        L.push(key, clazz1, degree1);
+        L.push(value, clazz2, degree2);
         L.rawSet(-3);
         L.pop(1);
     }
@@ -247,7 +341,7 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public boolean rawEqual(Object value) {
-        return rawEqual(value, Lua.Conversion.SEMI);
+        return rawEqual(value, Lua.Conversion.NONE);
     }
 
     @Override
@@ -260,8 +354,22 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
+    public boolean rawEqual(Object value, Class<?> clazz) {
+        return rawEqual(value, clazz, Lua.Conversion.NONE);
+    }
+
+    @Override
+    public boolean rawEqual(Object value, Class<?> clazz, Lua.Conversion degree) {
+        push();
+        L.push(value, clazz, degree);
+        boolean result = L.rawEqual(-2, -1);
+        L.pop(2);
+        return result;
+    }
+
+    @Override
     public boolean equal(Object value) {
-        return equal(value, Lua.Conversion.SEMI);
+        return equal(value, Lua.Conversion.NONE);
     }
 
     @Override
@@ -274,8 +382,22 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
+    public boolean equal(Object value, Class<?> clazz) {
+        return equal(value, clazz, Lua.Conversion.NONE);
+    }
+
+    @Override
+    public boolean equal(Object value, Class<?> clazz, Lua.Conversion degree) {
+        push();
+        L.push(value, clazz, degree);
+        boolean result = L.equal(-2, -1);
+        L.pop(2);
+        return result;
+    }
+
+    @Override
     public boolean lessThan(Object value) {
-        return lessThan(value, Lua.Conversion.SEMI);
+        return lessThan(value, Lua.Conversion.NONE);
     }
 
     @Override
@@ -288,8 +410,22 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
+    public boolean lessThan(Object value, Class<?> clazz) {
+        return lessThan(value, clazz, Lua.Conversion.NONE);
+    }
+
+    @Override
+    public boolean lessThan(Object value, Class<?> clazz, Lua.Conversion degree) {
+        push();
+        L.push(value, clazz, degree);
+        boolean result = L.lessThan(-2, -1);
+        L.pop(2);
+        return result;
+    }
+
+    @Override
     public boolean lessThanOrEqual(Object value) {
-        return lessThanOrEqual(value, Lua.Conversion.SEMI);
+        return lessThanOrEqual(value, Lua.Conversion.NONE);
     }
 
     @Override
@@ -302,8 +438,22 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
+    public boolean lessThanOrEqual(Object value, Class<?> clazz) {
+        return lessThanOrEqual(value, clazz, Lua.Conversion.NONE);
+    }
+
+    @Override
+    public boolean lessThanOrEqual(Object value, Class<?> clazz, Lua.Conversion degree) {
+        push();
+        L.push(value, clazz, degree);
+        boolean result = L.lessThanOrEqual(-2, -1);
+        L.pop(2);
+        return result;
+    }
+
+    @Override
     public boolean greaterThan(Object value) {
-        return greaterThan(value, Lua.Conversion.SEMI);
+        return greaterThan(value, Lua.Conversion.NONE);
     }
 
     @Override
@@ -316,14 +466,42 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
+    public boolean greaterThan(Object value, Class<?> clazz) {
+        return greaterThan(value, clazz, Lua.Conversion.NONE);
+    }
+
+    @Override
+    public boolean greaterThan(Object value, Class<?> clazz, Lua.Conversion degree) {
+        push();
+        L.push(value, clazz, degree);
+        boolean result = L.greaterThan(-2, -1);
+        L.pop(2);
+        return result;
+    }
+
+    @Override
     public boolean greaterThanOrEqual(Object value) {
-        return greaterThanOrEqual(value, Lua.Conversion.SEMI);
+        return greaterThanOrEqual(value, Lua.Conversion.NONE);
     }
 
     @Override
     public boolean greaterThanOrEqual(Object value, Lua.Conversion degree) {
         push();
         L.push(value, degree);
+        boolean result = L.greaterThanOrEqual(-2, -1);
+        L.pop(2);
+        return result;
+    }
+
+    @Override
+    public boolean greaterThanOrEqual(Object value, Class<?> clazz) {
+        return greaterThanOrEqual(value, clazz, Lua.Conversion.NONE);
+    }
+
+    @Override
+    public boolean greaterThanOrEqual(Object value, Class<?> clazz, Lua.Conversion degree) {
+        push();
+        L.push(value, clazz, degree);
         boolean result = L.greaterThanOrEqual(-2, -1);
         L.pop(2);
         return result;
@@ -342,7 +520,7 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public LuaValue[] call(Object... args) {
-        return call(Lua.Conversion.SEMI, args);
+        return call(Lua.Conversion.NONE, args);
     }
 
     @Override
@@ -350,6 +528,22 @@ public abstract class AbstractLuaValue implements LuaValue {
         push();
         int oldTop = L.getTop();
         L.call(args, degree, LuaConsts.LUA_MULTRET);
+        int nResult = L.getTop() - oldTop;
+        LuaValue[] result = L.getArgs(nResult);
+        L.pop(nResult);
+        return result;
+    }
+
+    @Override
+    public LuaValue[] call(Class<?> clazz, Object... args) {
+        return call(clazz, Lua.Conversion.NONE, args);
+    }
+
+    @Override
+    public LuaValue[] call(Class<?> clazz, Lua.Conversion degree, Object... args) {
+        push();
+        int oldTop = L.getTop();
+        L.call(args, clazz, degree, LuaConsts.LUA_MULTRET);
         int nResult = L.getTop() - oldTop;
         LuaValue[] result = L.getArgs(nResult);
         L.pop(nResult);
@@ -369,7 +563,7 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public LuaValue[] pCall(Object... args) {
-        return pCall(Lua.Conversion.SEMI, args);
+        return pCall(Lua.Conversion.NONE, args);
     }
 
     @Override
@@ -377,6 +571,22 @@ public abstract class AbstractLuaValue implements LuaValue {
         push();
         int oldTop = L.getTop();
         L.pCall(args, degree, LuaConsts.LUA_MULTRET);
+        int nResult = L.getTop() - oldTop;
+        LuaValue[] result = L.getArgs(nResult);
+        L.pop(nResult);
+        return result;
+    }
+
+    @Override
+    public LuaValue[] pCall(Class<?> clazz, Object... args) {
+        return pCall(clazz, Lua.Conversion.NONE, args);
+    }
+
+    @Override
+    public LuaValue[] pCall(Class<?> clazz, Lua.Conversion degree, Object... args) {
+        push();
+        int oldTop = L.getTop();
+        L.pCall(args, clazz, degree, LuaConsts.LUA_MULTRET);
         int nResult = L.getTop() - oldTop;
         LuaValue[] result = L.getArgs(nResult);
         L.pop(nResult);

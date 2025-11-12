@@ -157,6 +157,16 @@ public abstract class ClassUtils {
         return "L" + c.getName().replace('.', '/') + ";";
     }
 
+    public static Field getPublicField(Class<?> clazz, String fieldName) {
+        try {
+            Field field = clazz.getField(fieldName);
+            field.setAccessible(true);
+            return field;
+        } catch (NoSuchFieldException e) {
+            return null;
+        }
+    }
+
     public static Field getPublicStaticField(Class<?> clazz, String fieldName) {
         try {
             Field field = clazz.getField(fieldName);
@@ -170,39 +180,23 @@ public abstract class ClassUtils {
         }
     }
 
-    public static Method getPublicStaticNoArgsMethod(Class<?> clazz, String methodName) {
-        try {
-            Method method = clazz.getMethod(methodName);
-            if (Modifier.isStatic(method.getModifiers())) {
-                method.setAccessible(true);
-                return method;
-            }
-            return null;
-        } catch (NoSuchMethodException e) {
-            return null;
-        }
-    }
-
-    public static boolean hasPublicStaticMethod(Class<?> clazz, String methodName) {
-        Method[] methods = clazz.getMethods();
-        for (Method method : methods) {
-            if (Modifier.isStatic(method.getModifiers()) &&
-                    methodName.equals(method.getName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public static Object callMethod(Object object, Method method, Object[] params) throws InvocationTargetException, IllegalAccessException {
         if (!Modifier.isPublic(method.getModifiers()))
             method.setAccessible(true);
         return method.invoke(object, params);
     }
 
-    public static Object getField(Field field) throws IllegalAccessException {
+    public static Object getField(Field field) {
+        return getField(null, field);
+    }
+
+    public static Object getField(Object object, Field field) {
         field.setAccessible(true);
-        return field.get(null);
+        try {
+            return field.get(object);
+        } catch (IllegalAccessException e) {
+            return null;
+        }
     }
 
     public static Object getMethodField(Method method) throws InvocationTargetException, IllegalAccessException {

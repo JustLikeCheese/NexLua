@@ -28,8 +28,6 @@ import com.luajava.value.LuaValue;
  * Interface for functions implemented in Java.
  */
 public abstract class JFunction implements CFunction {
-    public JFunction() {
-    }
 
     /**
      * Implements the function body

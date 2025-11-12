@@ -21,6 +21,8 @@ LUALIB_API int luaJ_dobuffer(lua_State *L, unsigned char *buffer, int size, cons
 
 LUALIB_API int luaJ_copy(lua_State *from, lua_State *to, int index);
 
+LUALIB_API int luaJ_xpcall(lua_State *L, int nargs, int nresults);
+
 LUALIB_API const char* luaJ_dumpstack(lua_State *L);
 
 // wrapper function to improve performance

@@ -174,6 +174,12 @@ int luaJ_copy(lua_State *from, lua_State *to, int index) {
     return 0;
 }
 
+int luaJ_xpcall(lua_State *L, int nArgs, int nResults) {
+    int errfunc = -nArgs - 2;
+    lua_insert(L, errfunc);
+    return luaJ_pcall(L, nArgs, nResults, errfunc);
+}
+
 // some functions to improve performance
 int luaJ_compare(lua_State *L, int idx1, int idx2, int opc) {
     switch (opc) {

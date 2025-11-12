@@ -36,7 +36,6 @@ import java.util.*;
 // LuaJava Helper
 public final class JuaAPI {
     public static boolean matchParams(Class<?>[] paramTypes, LuaValue[] values) {
-        if (paramTypes.length != values.length) return false;
         for (int i = 0; i < paramTypes.length; i++) {
             if (!values[i].isJavaObject(paramTypes[i])) {
                 return false;
@@ -61,31 +60,26 @@ public final class JuaAPI {
 
     public static Object callMethod(Object object, Method method, LuaValue[] values) throws LuaException, IllegalArgumentException {
         Class<?>[] paramTypes = method.getParameterTypes();
-        if ((object != null || Modifier.isStatic(method.getModifiers())) && matchParams(paramTypes, values)) {
-            try {
-                return callMethod(object, method, paramTypes, values);
-            } catch (Exception e) {
-                Throwable throwable = e.getCause();
-                Object cause = (throwable == null) ? e : throwable;
-                throw new LuaException("Invalid method call." +
-                        "\n  at " + method +
-                        "\n  -> " + cause +
-                        "\n");
-            }
+        try {
+            return callMethod(object, method, paramTypes, values);
+        } catch (Exception e) {
+            Throwable throwable = e.getCause();
+            Object cause = (throwable == null) ? e : throwable;
+            throw new LuaException("Invalid method call." +
+                    "\n  at " + method +
+                    "\n  -> " + cause +
+                    "\n");
         }
-        throw new IllegalArgumentException("Invalid method call. Invalid Parameters.");
     }
 
-    public static Object callMethod(Object object, Method[] methods, String name, LuaValue[] values) throws LuaException {
+    public static Method matchMethod(Object object, Method[] methods, String name, LuaValue[] values) throws LuaException {
         ArrayList<Method> matchedMethod = new ArrayList<>();
         for (Method method : methods) {
             if (!method.getName().equals(name)) continue;
             matchedMethod.add(method);
+            if (object == null && Modifier.isStatic(method.getModifiers())) continue;
             if (method.getParameterCount() != values.length) continue;
-            try {
-                return JuaAPI.callMethod(object, method, values);
-            } catch (IllegalArgumentException ignored) {
-            }
+            return method;
         }
         StringBuilder msg = new StringBuilder("Invalid method call. Invalid Parameters.\n");
         for (Method method : matchedMethod) {
@@ -102,20 +96,33 @@ public final class JuaAPI {
 
     public static Object callConstructor(Constructor<?> constructor, LuaValue[] values) throws LuaException, IllegalArgumentException {
         Class<?>[] paramTypes = constructor.getParameterTypes();
-        if (matchParams(paramTypes, values)) {
-            try {
-                return callConstructor(constructor, paramTypes, values);
-            } catch (Exception e) {
-                Throwable throwable = e.getCause();
-                Object cause = (throwable == null) ? e : throwable;
-                throw new LuaException("Invalid constructor method call." +
-                        "\n  at " + constructor +
-                        "\n  -> " + cause +
-                        "\n");
-            }
+        try {
+            return callConstructor(constructor, paramTypes, values);
+        } catch (Exception e) {
+            Throwable throwable = e.getCause();
+            Object cause = (throwable == null) ? e : throwable;
+            throw new LuaException("Invalid constructor method call." +
+                    "\n  at " + constructor +
+                    "\n  -> " + cause +
+                    "\n");
         }
-        throw new IllegalArgumentException("Invalid constructor method call. Invalid Parameters.");
     }
+
+    public static Constructor<?> matchConstructor(Constructor<?>[] constructors, LuaValue[] values) throws LuaException, IllegalArgumentException {
+        for (Constructor<?> constructor : constructors) {
+            Class<?>[] paramTypes = constructor.getParameterTypes();
+            if (paramTypes.length != values.length) continue;
+            if (!matchParams(paramTypes, values)) continue;
+            return constructor;
+        }
+        StringBuilder msg = new StringBuilder("Invalid constructor call. Invalid Parameters.\n");
+        for (Constructor<?> constructor : constructors) {
+            msg.append(constructor);
+            msg.append("\n");
+        }
+        throw new LuaException(msg.toString());
+    }
+
 
     // 0=>null, 1=>field, 2=>method, 3=>get method, 4=>get method(first char to upper case), 5=>get method(first char to lower case)
     public static int jclassIndex(long ptr, Class<?> clazz, String name) throws InvocationTargetException, IllegalAccessException {
@@ -123,7 +130,7 @@ public final class JuaAPI {
         Lua L = Jua.get(ptr);
         // Class.STATIC_FIELD
         Field field = ClassUtils.getPublicStaticField(clazz, name);
-        if (field != null) return L.push(ClassUtils.getField(field));
+        if (field != null) return L.push(ClassUtils.getField(field), field.getType());
         // Class.innerClass
         Class<?> innerClass = ClassUtils.getInnerClass(clazz, name);
         if (innerClass != null) return L.push(innerClass);
@@ -158,8 +165,10 @@ public final class JuaAPI {
                 }
             }
         }
-        if (matchMethod1 != null) return L.push(ClassUtils.getMethodField(matchMethod1));
-        else if (matchMethod2 != null) return L.push(ClassUtils.getMethodField(matchMethod2));
+        if (matchMethod1 != null)
+            return L.push(ClassUtils.getMethodField(matchMethod1), matchMethod1.getReturnType());
+        else if (matchMethod2 != null)
+            return L.push(ClassUtils.getMethodField(matchMethod2), matchMethod2.getReturnType());
         throw new LuaException(String.format("%s@%s is not a field or method", clazz.getName(), name));
     }
 
@@ -243,8 +252,11 @@ public final class JuaAPI {
         Lua L = Jua.get(ptr);
         // Class.STATIC_FIELD
         Class<?> clazz = instance.getClass();
-        Field field = ClassUtils.getPublicStaticField(clazz, name);
-        if (field != null) return L.push(ClassUtils.getField(field));
+        Field field = ClassUtils.getPublicField(clazz, name);
+        if (field != null) return L.push(ClassUtils.getField(instance, field), field.getType());
+        // Class.innerClass
+        Class<?> innerClass = ClassUtils.getInnerClass(clazz, name);
+        if (innerClass != null) return L.push(innerClass);
         // Class.staticMethod(XXX)
         Method[] methods = clazz.getMethods();
         char prefix = name.charAt(0);
@@ -252,12 +264,13 @@ public final class JuaAPI {
         boolean isLowerCase = Character.isLowerCase(prefix);
         String methodName1; // get Xxx
         String methodName2; // get xXX
+        final String PREFIX = "get";
         if (isLowerCase) {
-            methodName1 = Character.toUpperCase(prefix) + suffix;
-            methodName2 = prefix + suffix;
+            methodName1 = PREFIX + Character.toUpperCase(prefix) + suffix;
+            methodName2 = PREFIX + prefix + suffix;
         } else {
-            methodName1 = prefix + suffix;
-            methodName2 = Character.toLowerCase(prefix) + suffix;
+            methodName1 = PREFIX + prefix + suffix;
+            methodName2 = PREFIX + Character.toLowerCase(prefix) + suffix;
         }
         Method matchedGetMethod1 = null;
         Method matchedGetMethod2 = null;
@@ -268,37 +281,38 @@ public final class JuaAPI {
         for (Method method : methods) {
             String methodName = method.getName();
             if (!Modifier.isStatic(method.getModifiers())) { // instance method first
-                if (name.equals(method.getName())) {
+                if (name.equals(method.getName())) { // object.methodName
                     L.push(new JMethod(instance, clazz, name));
                     return 1;
-                } else if (matchedGetMethod1 == null) {
+                } else if (matchedGetMethod1 == null) { // object.get Xxx
                     if (methodName1.equals(methodName)) {
                         matchedGetMethod1 = method;
-                    } else if (methodName2.equals(methodName)) {
+                    } else if (methodName2.equals(methodName)) { // object.get xXX
                         matchedGetMethod2 = method;
                     }
                 }
             } else {
-                if (name.equals(method.getName())) {
+                if (name.equals(method.getName())) { // Class.methodName
                     matchedStaticMethod = method;
-                } else if (matchedGetMethod1 == null) {
+                } else if (matchedStaticGetMethod1 == null) { // Class.get Xxx
                     if (methodName1.equals(methodName)) {
                         matchedStaticGetMethod1 = method;
-                    } else if (methodName2.equals(methodName)) {
+                    } else if (methodName2.equals(methodName)) { // Class.get xXX
                         matchedStaticGetMethod2 = method;
                     }
                 }
             }
         }
-        if (matchedStaticMethod != null) return L.push(new JMethod(null, clazz, name));
+        if (matchedStaticMethod != null)
+            return L.push(new JMethod(null, clazz, name));
         else if (matchedGetMethod1 != null)
-            return L.push(ClassUtils.callMethod(instance, matchedGetMethod1, null));
+            return L.push(ClassUtils.callMethod(instance, matchedGetMethod1, null), matchedGetMethod1.getReturnType());
         else if (matchedGetMethod2 != null)
-            return L.push(ClassUtils.callMethod(instance, matchedGetMethod2, null));
+            return L.push(ClassUtils.callMethod(instance, matchedGetMethod2, null), matchedGetMethod2.getReturnType());
         else if (matchedStaticGetMethod1 != null)
-            return L.push(ClassUtils.callMethod(null, matchedStaticGetMethod1, null));
+            return L.push(ClassUtils.callMethod(null, matchedStaticGetMethod1, null), matchedStaticGetMethod1.getReturnType());
         else if (matchedStaticGetMethod2 != null)
-            return L.push(ClassUtils.callMethod(null, matchedStaticGetMethod2, null));
+            return L.push(ClassUtils.callMethod(null, matchedStaticGetMethod2, null), matchedStaticGetMethod2.getReturnType());
         throw new LuaException(String.format("%s@%s is not a field or method", clazz.getName(), name));
     }
 

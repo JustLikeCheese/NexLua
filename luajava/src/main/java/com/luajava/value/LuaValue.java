@@ -54,26 +54,60 @@ public interface LuaValue {
 
     boolean containsKey(Object key, Lua.Conversion degree);
 
+    boolean containsKey(Object key, Class<?> clazz);
+
+    boolean containsKey(Object key, Class<?> clazz, Lua.Conversion degree);
+
     // table
     LuaValue get(Object key);
 
     LuaValue get(Object key, Lua.Conversion degree);
 
+    LuaValue get(Object key, Class<?> clazz);
+
+    LuaValue get(Object key, Class<?> clazz, Lua.Conversion degree);
+
     void set(Object key, Object value);
 
+    // Keep Lua.Conversion
     void set(Object key, Object value, Lua.Conversion degree);
 
     void set(Object key, Object value, Lua.Conversion degree1, Lua.Conversion degree2);
+
+    // Keep Class<?>
+    void set(Object key, Object value, Class<?> clazz);
+
+    void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2);
+
+    // Keep Class<?> & Lua.Conversion
+    void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree);
+
+    void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree1, Lua.Conversion degree2);
 
     LuaValue rawget(Object key);
 
     LuaValue rawget(Object key, Lua.Conversion degree);
 
+    LuaValue rawget(Object key, Class<?> clazz);
+
+    LuaValue rawget(Object key, Class<?> clazz, Lua.Conversion degree);
+
     void rawset(Object key, Object value);
 
+    // Keep Lua.Conversion
     void rawset(Object key, Object value, Lua.Conversion degree);
 
     void rawset(Object key, Object value, Lua.Conversion degree1, Lua.Conversion degree2);
+
+    // Keep Class<?>
+    void rawset(Object key, Object value, Class<?> clazz);
+
+    void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2);
+
+    // Keep Class<?> & Lua.Conversion
+    void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree);
+
+    void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree1, Lua.Conversion degree2);
 
     void pairs(LuaPairsIterator iterator);
 
@@ -99,25 +133,49 @@ public interface LuaValue {
 
     boolean rawEqual(Object value, Lua.Conversion degree);
 
+    boolean rawEqual(Object value, Class<?> clazz);
+
+    boolean rawEqual(Object value, Class<?> clazz, Lua.Conversion degree);
+
     boolean equal(Object value);
 
     boolean equal(Object value, Lua.Conversion degree);
+
+    boolean equal(Object value, Class<?> clazz);
+
+    boolean equal(Object value, Class<?> clazz, Lua.Conversion degree);
 
     boolean lessThan(Object value);
 
     boolean lessThan(Object value, Lua.Conversion degree);
 
+    boolean lessThan(Object value, Class<?> clazz);
+
+    boolean lessThan(Object value, Class<?> clazz, Lua.Conversion degree);
+
     boolean lessThanOrEqual(Object value);
 
     boolean lessThanOrEqual(Object value, Lua.Conversion degree);
+
+    boolean lessThanOrEqual(Object value, Class<?> clazz);
+
+    boolean lessThanOrEqual(Object value, Class<?> clazz, Lua.Conversion degree);
 
     boolean greaterThan(Object value);
 
     boolean greaterThan(Object value, Lua.Conversion degree);
 
+    boolean greaterThan(Object value, Class<?> clazz);
+
+    boolean greaterThan(Object value, Class<?> clazz, Lua.Conversion degree);
+
     boolean greaterThanOrEqual(Object value);
 
     boolean greaterThanOrEqual(Object value, Lua.Conversion degree);
+
+    boolean greaterThanOrEqual(Object value, Class<?> clazz);
+
+    boolean greaterThanOrEqual(Object value, Class<?> clazz, Lua.Conversion degree);
 
     // call
     LuaValue[] call();
@@ -126,11 +184,19 @@ public interface LuaValue {
 
     LuaValue[] call(Lua.Conversion degree, Object... args);
 
+    LuaValue[] call(Class<?> clazz, Object... args);
+
+    LuaValue[] call(Class<?> clazz, Lua.Conversion degree, Object... args);
+
     LuaValue[] pCall();
 
     LuaValue[] pCall(Object... args);
 
     LuaValue[] pCall(Lua.Conversion degree, Object... args);
+
+    LuaValue[] pCall(Class<?> clazz, Object... args);
+
+    LuaValue[] pCall(Class<?> clazz, Lua.Conversion degree, Object... args);
 
     // sugar
     boolean isNone();

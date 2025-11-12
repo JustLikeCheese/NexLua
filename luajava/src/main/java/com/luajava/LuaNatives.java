@@ -96,6 +96,8 @@ public class LuaNatives {
 
     public native int luaJ_copy(long ptr, long ptr1);
 
+    public native int luaJ_xpcall(long ptr, int nargs, int nresults);
+
     public native int luaJ_pcall(long ptr, int nargs, int nresults, int errfunc);
 
     public native int luaJ_dofile(long ptr, String filename);

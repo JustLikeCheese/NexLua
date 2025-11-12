@@ -183,8 +183,7 @@ public class Lua {
         return push(object, Conversion.NONE);
     }
 
-    public int push(@Nullable Object object, Conversion degree) {
-        checkStack(1);
+    public int push(Object object, Conversion degree) {
         switch (degree) {
             case FULL:
                 if (object.getClass().isArray()) {
@@ -217,6 +216,34 @@ public class Lua {
         }
         // fallback or none conversion
         return pushJavaObject(object);
+    }
+
+    public int push(Object object, Class<?> clazz) {
+        return push(object, clazz, Conversion.NONE);
+    }
+
+    public int push(@Nullable Object object, Class<?> clazz, Conversion degree) {
+        if (clazz != null && clazz.isPrimitive()) {
+            if (clazz == boolean.class)
+                return push((boolean) object);
+            else if (clazz == char.class)
+                return push((char) object);
+            else if (clazz == byte.class)
+                return push((byte) object);
+            else if (clazz == short.class)
+                return push((short) object);
+            else if (clazz == int.class)
+                return push((int) object);
+            else if (clazz == long.class)
+                return push((long) object);
+            else if (clazz == float.class)
+                return push((float) object);
+            else if (clazz == double.class)
+                return push((double) object);
+            else if (clazz == void.class)
+                return pushNil();
+        }
+        return push(object, degree);
     }
 
     public int push(Class<?> clazz) {
@@ -255,15 +282,17 @@ public class Lua {
     }
 
     public int pushArray(@NotNull Object array) throws IllegalArgumentException {
-        if (!array.getClass().isArray()) {
+        Class<?> clazz = array.getClass();
+        if (!clazz.isArray()) {
             throw new IllegalArgumentException("Not an array");
         }
         checkStack(2);
-        int len = Array.getLength(array);
-        C.lua_createtable(L, len, 0);
-        for (int i = 0; i != len; ++i) {
-            push(Array.get(array, i), Conversion.FULL);
-            C.lua_rawseti(L, -2, i + 1);
+        Class<?> type = clazz.getComponentType();
+        int length = Array.getLength(array);
+        C.lua_createtable(L, length, 0);
+        for (int index = 0; index < length; ++index) {
+            push(Array.get(array, index), type, Conversion.FULL);
+            C.lua_rawseti(L, -2, index + 1);
         }
         return 1;
     }
@@ -271,11 +300,11 @@ public class Lua {
     public int pushCollection(@NotNull Collection<?> collection) {
         checkStack(2);
         C.lua_createtable(L, collection.size(), 0);
-        int i = 1;
-        for (Object o : collection) {
-            push(o, Conversion.FULL);
-            C.lua_rawseti(L, -2, i);
-            i++;
+        int index = 1;
+        for (Object object : collection) {
+            push(object, Conversion.FULL);
+            C.lua_rawseti(L, -2, index);
+            index++;
         }
         return 1;
     }
@@ -296,10 +325,23 @@ public class Lua {
     }
 
     public int pushAll(Object[] objects, Lua.Conversion degree) {
-        if (objects == null) return 0;
         int length = 0;
+        if (objects == null) return length;
         for (Object object : objects) {
             length = length + push(object, degree);
+        }
+        return length;
+    }
+
+    public int pushAll(Object[] objects, Class<?> clazz) {
+        return pushAll(objects, clazz, Conversion.NONE);
+    }
+
+    public int pushAll(Object[] objects, Class<?> clazz, Lua.Conversion degree) {
+        int length = 0;
+        if (objects == null) return length;
+        for (Object object : objects) {
+            length = length + push(object, clazz, degree);
         }
         return length;
     }
@@ -460,9 +502,9 @@ public class Lua {
             C.lua_pushnil(L);
             Map<Object, Object> map = new HashMap<>();
             while (C.lua_next(L, index) != 0) {
-                Object k = toObject(-2);
-                Object v = toObject(-1);
-                map.put(k, v);
+                Object key = toObject(-2);
+                Object value = toObject(-1);
+                map.put(key, value);
                 pop(1);
             }
             return map;
@@ -839,6 +881,8 @@ public class Lua {
     }
 
     // Function API
+
+    // Keep Object[]
     public void call(Object[] args) {
         call(pushAll(args));
     }
@@ -847,12 +891,31 @@ public class Lua {
         call(pushAll(args), nResults);
     }
 
+    // Keep Lua.Conversion
     public void call(Object[] args, Lua.Conversion degree) {
         call(pushAll(args, degree));
     }
 
     public void call(Object[] args, Lua.Conversion degree, int nResults) {
         call(pushAll(args, degree), nResults);
+    }
+
+    // Keep Class<?>
+    public void call(Object[] args, Class<?> clazz) {
+        call(pushAll(args, clazz));
+    }
+
+    public void call(Object[] args, Class<?> clazz, int nResults) {
+        call(pushAll(args, clazz), nResults);
+    }
+
+    // Keep Class<?> & Lua.Conversion
+    public void call(Object[] args, Class<?> clazz, Lua.Conversion degree) {
+        call(pushAll(args, clazz, degree));
+    }
+
+    public void call(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) {
+        call(pushAll(args, clazz, degree), nResults);
     }
 
     public void call() {
@@ -867,18 +930,20 @@ public class Lua {
         C.lua_call(L, nArgs, nResults);
     }
 
+    // Keep Object[]
     public void pCall(Object[] args) throws LuaException {
-        pCall(args, Lua.Conversion.NONE);
+        pCall(pushAll(args));
     }
 
     public void pCall(Object[] args, int nResults) throws LuaException {
-        pCall(args, Lua.Conversion.NONE, nResults, 0);
+        pCall(pushAll(args), nResults);
     }
 
     public void pCall(Object[] args, int nResults, int errfunc) throws LuaException {
-        pCall(args, Lua.Conversion.NONE, nResults, errfunc);
+        pCall(pushAll(args), nResults, errfunc);
     }
 
+    // Keep Lua.Conversion
     public void pCall(Object[] args, Lua.Conversion degree) throws LuaException {
         pCall(pushAll(args, degree));
     }
@@ -889,6 +954,32 @@ public class Lua {
 
     public void pCall(Object[] args, Lua.Conversion degree, int nResults, int errfunc) throws LuaException {
         pCall(pushAll(args, degree), nResults, errfunc);
+    }
+
+    // Keep Class<?>
+    public void pCall(Object[] args, Class<?> clazz) throws LuaException {
+        pCall(pushAll(args, clazz));
+    }
+
+    public void pCall(Object[] args, Class<?> clazz, int nResults) throws LuaException {
+        pCall(pushAll(args, clazz), nResults);
+    }
+
+    public void pCall(Object[] args, Class<?> clazz, int nResults, int errfunc) throws LuaException {
+        pCall(pushAll(args, clazz), nResults, errfunc);
+    }
+
+    // Keep Class<?> & Lua.Conversion
+    public void pCall(Object[] args, Class<?> clazz, Lua.Conversion degree) {
+        pCall(pushAll(args, clazz, degree));
+    }
+
+    public void pCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) {
+        pCall(pushAll(args, clazz, degree), nResults);
+    }
+
+    public void pCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults, int errfunc) throws LuaException {
+        pCall(pushAll(args, clazz, degree), nResults, errfunc);
     }
 
     public void pCall() throws LuaException {
@@ -908,28 +999,58 @@ public class Lua {
     }
 
     // xpCall
+    // Keep Object[]
+    public void xpCall(Object[] args, CFunction handler) {
+        xpCall(pushAll(args), handler);
+    }
+
+    public void xpCall(Object[] args, int nResults, CFunction handler) {
+        xpCall(pushAll(args), nResults, handler);
+    }
+
+    // Keep Lua.Conversion
+    public void xpCall(Object[] args, Lua.Conversion degree, CFunction handler) {
+        xpCall(pushAll(args, degree), handler);
+    }
+
+    public void xpCall(Object[] args, Lua.Conversion degree, int nResults, CFunction handler) {
+        xpCall(pushAll(args, degree), nResults, handler);
+    }
+
+    // Keep Class<?>
+    public void xpCall(Object[] args, Class<?> clazz, CFunction handler) {
+        xpCall(pushAll(args, clazz), handler);
+    }
+
+    public void xpCall(Object[] args, Class<?> clazz, int nResults, CFunction handler) {
+        xpCall(pushAll(args, clazz), nResults, handler);
+    }
+
+    // Keep Class<?> & Lua.Conversion
+
+    public void xpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, CFunction handler) {
+        xpCall(pushAll(args, clazz, degree), handler);
+    }
+
+    public void xpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults, CFunction handler) {
+        xpCall(pushAll(args, clazz, degree), nResults, handler);
+    }
+
     public void xpCall(CFunction handler) throws LuaException {
-        push(handler);
-        insert(-2);
-        pCall(0, 0, -2);
+        xpCall(0, 0, handler);
     }
 
     public void xpCall(int nArgs, CFunction handler) throws LuaException {
-        push(handler);
-        int errfunc = -nArgs - 2;
-        insert(errfunc);
-        pCall(nArgs, 0, errfunc);
+        xpCall(nArgs, 0, handler);
     }
 
     public void xpCall(int nArgs, int nResults, CFunction handler) throws LuaException {
         push(handler);
-        int errfunc = -nArgs - 2;
-        insert(errfunc);
-        pCall(nArgs, nResults, errfunc);
+        checkError(C.luaJ_xpcall(L, nArgs, nResults), false);
     }
 
-    public void cpCall(LuaFunction cfunc, LuaLightUserdata ud) {
-        LuaFunction func = cfunc.checkCFunction();
+    public void cpCall(LuaFunction func, LuaLightUserdata ud) {
+        func = func.checkCFunction();
         int result = C.lua_cpcall(L, func.getPointer(), ud.getPointer());
         checkError(result, false);
     }
@@ -1301,8 +1422,7 @@ public class Lua {
      * @return the return value
      * @throws Throwable whenever the method call throw exceptions
      */
-    public @Nullable Object invokeSpecial(Object object, Method method, @Nullable Object[] params) throws
-            Throwable {
+    public @Nullable Object invokeSpecial(Object object, Method method, @Nullable Object[] params) throws Throwable {
         if (!ClassUtils.isDefault(method)) {
             throw new IncompatibleClassChangeError("Unable to invoke non-default method");
         }

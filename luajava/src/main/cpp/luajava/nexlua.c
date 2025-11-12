@@ -123,6 +123,10 @@ JNIWRAP(jint, luaJ_1copy, jlong ptr, jlong ptr1, jint index) {
     return luaJ_copy(L, L1, index);
 }
 
+JNIWRAP(jint, luaJ_1xpcall, jlong ptr, jint nargs, jint nresults) {
+    return luaJ_xpcall(L, nargs, nresults);
+}
+
 JNIWRAP(jint, luaJ_1pcall, jlong ptr, int nargs, int nresults, int errfunc) {
     return luaJ_pcall(L, nargs, nresults, errfunc);
 }
