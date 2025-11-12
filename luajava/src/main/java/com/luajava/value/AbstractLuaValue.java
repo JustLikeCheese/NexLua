@@ -59,12 +59,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public void push() {
+    public void push() throws LuaException {
         push(L);
     }
 
     @Override
-    public abstract int push(Lua L);
+    public abstract int push(Lua L) throws LuaException;
 
     public LuaType type() {
         return TYPE;
@@ -75,12 +75,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean containsKey(Object key) {
+    public boolean containsKey(Object key) throws LuaException {
         return containsKey(key, Lua.Conversion.SEMI);
     }
 
     @Override
-    public boolean containsKey(Object key, Lua.Conversion degree) {
+    public boolean containsKey(Object key, Lua.Conversion degree) throws LuaException {
         push();
         L.push(key, degree);
         L.getTable(-2);
@@ -90,12 +90,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean containsKey(Object key, Class<?> clazz) {
+    public boolean containsKey(Object key, Class<?> clazz) throws LuaException {
         return containsKey(key, clazz, Lua.Conversion.NONE);
     }
 
     @Override
-    public boolean containsKey(Object key, Class<?> clazz, Lua.Conversion degree) {
+    public boolean containsKey(Object key, Class<?> clazz, Lua.Conversion degree) throws LuaException {
         push();
         L.push(key, clazz, degree);
         L.getTable(-2);
@@ -105,12 +105,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue get(Object key) {
+    public LuaValue get(Object key) throws LuaException {
         return get(key, Lua.Conversion.NONE);
     }
 
     @Override
-    public LuaValue get(Object key, Lua.Conversion degree) {
+    public LuaValue get(Object key, Lua.Conversion degree) throws LuaException {
         push();
         L.push(key, degree);
         L.getTable(-2);
@@ -120,12 +120,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue get(Object key, Class<?> clazz) {
+    public LuaValue get(Object key, Class<?> clazz) throws LuaException {
         return get(key, clazz, Lua.Conversion.NONE);
     }
 
     @Override
-    public LuaValue get(Object key, Class<?> clazz, Lua.Conversion degree) {
+    public LuaValue get(Object key, Class<?> clazz, Lua.Conversion degree) throws LuaException {
         push();
         L.push(key, clazz, degree);
         L.getTable(-2);
@@ -135,17 +135,17 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public void set(Object key, Object value) {
+    public void set(Object key, Object value) throws LuaException {
         set(key, value, Lua.Conversion.NONE);
     }
 
     @Override
-    public void set(Object key, Object value, Lua.Conversion degree) {
+    public void set(Object key, Object value, Lua.Conversion degree) throws LuaException {
         set(key, value, degree, degree);
     }
 
     @Override
-    public void set(Object key, Object value, Lua.Conversion degree1, Lua.Conversion degree2) {
+    public void set(Object key, Object value, Lua.Conversion degree1, Lua.Conversion degree2) throws LuaException {
         push();
         L.push(key, degree1);
         L.push(value, degree2);
@@ -155,22 +155,22 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     // Keep Class<?>
     @Override
-    public void set(Object key, Object value, Class<?> clazz) {
+    public void set(Object key, Object value, Class<?> clazz) throws LuaException {
         set(key, value, clazz, clazz, Lua.Conversion.NONE);
     }
 
     @Override
-    public void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2) {
+    public void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2) throws LuaException {
         set(key, value, clazz1, clazz2, Lua.Conversion.NONE);
     }
 
     @Override
-    public void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree) {
+    public void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree) throws LuaException {
         set(key, value, clazz1, clazz2, degree, degree);
     }
 
     @Override
-    public void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree1, Lua.Conversion degree2) {
+    public void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree1, Lua.Conversion degree2) throws LuaException {
         push();
         L.push(key, clazz1, degree1);
         L.push(value, clazz2, degree2);
@@ -179,12 +179,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue rawget(Object key) {
+    public LuaValue rawget(Object key) throws LuaException {
         return rawget(key, Lua.Conversion.NONE);
     }
 
     @Override
-    public LuaValue rawget(Object key, Lua.Conversion degree) {
+    public LuaValue rawget(Object key, Lua.Conversion degree) throws LuaException {
         push();
         L.push(key, degree);
         L.rawGet(-2);
@@ -194,12 +194,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue rawget(Object key, Class<?> clazz) {
+    public LuaValue rawget(Object key, Class<?> clazz) throws LuaException {
         return rawget(key, clazz, Lua.Conversion.NONE);
     }
 
     @Override
-    public LuaValue rawget(Object key, Class<?> clazz, Lua.Conversion degree) {
+    public LuaValue rawget(Object key, Class<?> clazz, Lua.Conversion degree) throws LuaException {
         push();
         L.push(key, clazz, degree);
         L.rawGet(-2);
@@ -210,17 +210,17 @@ public abstract class AbstractLuaValue implements LuaValue {
 
 
     @Override
-    public void rawset(Object key, Object value) {
+    public void rawset(Object key, Object value) throws LuaException {
         rawset(key, value, Lua.Conversion.NONE);
     }
 
     @Override
-    public void rawset(Object key, Object value, Lua.Conversion degree) {
+    public void rawset(Object key, Object value, Lua.Conversion degree) throws LuaException {
         rawset(key, value, degree, degree);
     }
 
     @Override
-    public void rawset(Object key, Object value, Lua.Conversion degree1, Lua.Conversion degree2) {
+    public void rawset(Object key, Object value, Lua.Conversion degree1, Lua.Conversion degree2) throws LuaException {
         push();
         L.push(key, degree1);
         L.push(value, degree2);
@@ -229,22 +229,22 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public void rawset(Object key, Object value, Class<?> clazz) {
+    public void rawset(Object key, Object value, Class<?> clazz) throws LuaException {
         rawset(key, value, clazz, clazz);
     }
 
     @Override
-    public void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2) {
+    public void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2) throws LuaException {
         rawset(key, value, clazz1, clazz2, Lua.Conversion.NONE);
     }
 
     @Override
-    public void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree) {
+    public void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree) throws LuaException {
         rawset(key, value, clazz1, clazz2, degree, degree);
     }
 
     @Override
-    public void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree1, Lua.Conversion degree2) {
+    public void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree1, Lua.Conversion degree2) throws LuaException {
         push();
         L.push(key, clazz1, degree1);
         L.push(value, clazz2, degree2);
@@ -253,21 +253,21 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public void pairs(LuaPairsIterator iterator) {
+    public void pairs(LuaPairsIterator iterator) throws LuaException {
         push();
         L.pairs(iterator);
         L.pop(1);
     }
 
     @Override
-    public void ipairs(LuaIpairsIterator iterator) {
+    public void ipairs(LuaIpairsIterator iterator) throws LuaException {
         push();
         L.ipairs(iterator);
         L.pop(1);
     }
 
     @Override
-    public LuaValue[] toArray() {
+    public LuaValue[] toArray() throws LuaException {
         push();
         int length = (int) L.rawLength(-1);
         LuaValue[] array = new LuaValue[length];
@@ -280,7 +280,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public List<LuaValue> toList() {
+    public List<LuaValue> toList() throws LuaException {
         List<LuaValue> list = new ArrayList<>();
         ipairs((index, value) -> {
             list.add(value);
@@ -290,7 +290,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public Map<LuaValue, LuaValue> toMap() {
+    public Map<LuaValue, LuaValue> toMap() throws LuaException {
         Map<LuaValue, LuaValue> map = new LinkedHashMap<>();
         pairs((key, value) -> {
             map.put(key, value);
@@ -300,7 +300,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public long length() {
+    public long length() throws LuaException {
         push();
         long result = L.rawLength(-1);
         L.pop(1);
@@ -308,7 +308,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue getMetatable() {
+    public LuaValue getMetatable() throws LuaException {
         push();
         if (L.getMetatable(-1)) {
             LuaValue result = L.get();
@@ -320,7 +320,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean setMetatable(String tname) {
+    public boolean setMetatable(String tname) throws LuaException {
         push();
         L.setMetatable(tname);
         L.pop(2);
@@ -328,7 +328,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue callMetatable(String method) {
+    public LuaValue callMetatable(String method) throws LuaException {
         push();
         if (L.callMetatable(-1, method)) {
             LuaValue result = L.get();
@@ -340,12 +340,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean rawEqual(Object value) {
+    public boolean rawEqual(Object value) throws LuaException {
         return rawEqual(value, Lua.Conversion.NONE);
     }
 
     @Override
-    public boolean rawEqual(Object value, Lua.Conversion degree) {
+    public boolean rawEqual(Object value, Lua.Conversion degree) throws LuaException {
         push();
         L.push(value, degree);
         boolean result = L.rawEqual(-2, -1);
@@ -354,12 +354,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean rawEqual(Object value, Class<?> clazz) {
+    public boolean rawEqual(Object value, Class<?> clazz) throws LuaException {
         return rawEqual(value, clazz, Lua.Conversion.NONE);
     }
 
     @Override
-    public boolean rawEqual(Object value, Class<?> clazz, Lua.Conversion degree) {
+    public boolean rawEqual(Object value, Class<?> clazz, Lua.Conversion degree) throws LuaException {
         push();
         L.push(value, clazz, degree);
         boolean result = L.rawEqual(-2, -1);
@@ -368,12 +368,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean equal(Object value) {
+    public boolean equal(Object value) throws LuaException {
         return equal(value, Lua.Conversion.NONE);
     }
 
     @Override
-    public boolean equal(Object value, Lua.Conversion degree) {
+    public boolean equal(Object value, Lua.Conversion degree) throws LuaException {
         push();
         L.push(value, degree);
         boolean result = L.equal(-2, -1);
@@ -382,12 +382,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean equal(Object value, Class<?> clazz) {
+    public boolean equal(Object value, Class<?> clazz) throws LuaException {
         return equal(value, clazz, Lua.Conversion.NONE);
     }
 
     @Override
-    public boolean equal(Object value, Class<?> clazz, Lua.Conversion degree) {
+    public boolean equal(Object value, Class<?> clazz, Lua.Conversion degree) throws LuaException {
         push();
         L.push(value, clazz, degree);
         boolean result = L.equal(-2, -1);
@@ -396,12 +396,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean lessThan(Object value) {
+    public boolean lessThan(Object value) throws LuaException {
         return lessThan(value, Lua.Conversion.NONE);
     }
 
     @Override
-    public boolean lessThan(Object value, Lua.Conversion degree) {
+    public boolean lessThan(Object value, Lua.Conversion degree) throws LuaException {
         push();
         L.push(value, degree);
         boolean result = L.lessThan(-2, -1);
@@ -410,12 +410,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean lessThan(Object value, Class<?> clazz) {
+    public boolean lessThan(Object value, Class<?> clazz) throws LuaException {
         return lessThan(value, clazz, Lua.Conversion.NONE);
     }
 
     @Override
-    public boolean lessThan(Object value, Class<?> clazz, Lua.Conversion degree) {
+    public boolean lessThan(Object value, Class<?> clazz, Lua.Conversion degree) throws LuaException {
         push();
         L.push(value, clazz, degree);
         boolean result = L.lessThan(-2, -1);
@@ -424,12 +424,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean lessThanOrEqual(Object value) {
+    public boolean lessThanOrEqual(Object value) throws LuaException {
         return lessThanOrEqual(value, Lua.Conversion.NONE);
     }
 
     @Override
-    public boolean lessThanOrEqual(Object value, Lua.Conversion degree) {
+    public boolean lessThanOrEqual(Object value, Lua.Conversion degree) throws LuaException {
         push();
         L.push(value, degree);
         boolean result = L.lessThanOrEqual(-2, -1);
@@ -438,12 +438,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean lessThanOrEqual(Object value, Class<?> clazz) {
+    public boolean lessThanOrEqual(Object value, Class<?> clazz) throws LuaException {
         return lessThanOrEqual(value, clazz, Lua.Conversion.NONE);
     }
 
     @Override
-    public boolean lessThanOrEqual(Object value, Class<?> clazz, Lua.Conversion degree) {
+    public boolean lessThanOrEqual(Object value, Class<?> clazz, Lua.Conversion degree) throws LuaException {
         push();
         L.push(value, clazz, degree);
         boolean result = L.lessThanOrEqual(-2, -1);
@@ -452,12 +452,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean greaterThan(Object value) {
+    public boolean greaterThan(Object value) throws LuaException {
         return greaterThan(value, Lua.Conversion.NONE);
     }
 
     @Override
-    public boolean greaterThan(Object value, Lua.Conversion degree) {
+    public boolean greaterThan(Object value, Lua.Conversion degree) throws LuaException {
         push();
         L.push(value, degree);
         boolean result = L.greaterThan(-2, -1);
@@ -466,12 +466,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean greaterThan(Object value, Class<?> clazz) {
+    public boolean greaterThan(Object value, Class<?> clazz) throws LuaException {
         return greaterThan(value, clazz, Lua.Conversion.NONE);
     }
 
     @Override
-    public boolean greaterThan(Object value, Class<?> clazz, Lua.Conversion degree) {
+    public boolean greaterThan(Object value, Class<?> clazz, Lua.Conversion degree) throws LuaException {
         push();
         L.push(value, clazz, degree);
         boolean result = L.greaterThan(-2, -1);
@@ -480,12 +480,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean greaterThanOrEqual(Object value) {
+    public boolean greaterThanOrEqual(Object value) throws LuaException {
         return greaterThanOrEqual(value, Lua.Conversion.NONE);
     }
 
     @Override
-    public boolean greaterThanOrEqual(Object value, Lua.Conversion degree) {
+    public boolean greaterThanOrEqual(Object value, Lua.Conversion degree) throws LuaException {
         push();
         L.push(value, degree);
         boolean result = L.greaterThanOrEqual(-2, -1);
@@ -494,12 +494,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean greaterThanOrEqual(Object value, Class<?> clazz) {
+    public boolean greaterThanOrEqual(Object value, Class<?> clazz) throws LuaException {
         return greaterThanOrEqual(value, clazz, Lua.Conversion.NONE);
     }
 
     @Override
-    public boolean greaterThanOrEqual(Object value, Class<?> clazz, Lua.Conversion degree) {
+    public boolean greaterThanOrEqual(Object value, Class<?> clazz, Lua.Conversion degree) throws LuaException {
         push();
         L.push(value, clazz, degree);
         boolean result = L.greaterThanOrEqual(-2, -1);
@@ -508,7 +508,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue[] call() {
+    public LuaValue[] call() throws LuaException {
         push();
         int oldTop = L.getTop();
         L.call(0, LuaConsts.LUA_MULTRET);
@@ -519,12 +519,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue[] call(Object... args) {
+    public LuaValue[] call(Object... args) throws LuaException {
         return call(Lua.Conversion.NONE, args);
     }
 
     @Override
-    public LuaValue[] call(Lua.Conversion degree, Object... args) {
+    public LuaValue[] call(Lua.Conversion degree, Object... args) throws LuaException {
         push();
         int oldTop = L.getTop();
         L.call(args, degree, LuaConsts.LUA_MULTRET);
@@ -535,12 +535,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue[] call(Class<?> clazz, Object... args) {
+    public LuaValue[] call(Class<?> clazz, Object... args) throws LuaException {
         return call(clazz, Lua.Conversion.NONE, args);
     }
 
     @Override
-    public LuaValue[] call(Class<?> clazz, Lua.Conversion degree, Object... args) {
+    public LuaValue[] call(Class<?> clazz, Lua.Conversion degree, Object... args) throws LuaException {
         push();
         int oldTop = L.getTop();
         L.call(args, clazz, degree, LuaConsts.LUA_MULTRET);
@@ -551,7 +551,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue[] pCall() {
+    public LuaValue[] pCall() throws LuaException {
         push();
         int oldTop = L.getTop();
         L.pCall(0, LuaConsts.LUA_MULTRET);
@@ -562,12 +562,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue[] pCall(Object... args) {
+    public LuaValue[] pCall(Object... args) throws LuaException {
         return pCall(Lua.Conversion.NONE, args);
     }
 
     @Override
-    public LuaValue[] pCall(Lua.Conversion degree, Object... args) {
+    public LuaValue[] pCall(Lua.Conversion degree, Object... args) throws LuaException {
         push();
         int oldTop = L.getTop();
         L.pCall(args, degree, LuaConsts.LUA_MULTRET);
@@ -578,12 +578,12 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue[] pCall(Class<?> clazz, Object... args) {
+    public LuaValue[] pCall(Class<?> clazz, Object... args) throws LuaException {
         return pCall(clazz, Lua.Conversion.NONE, args);
     }
 
     @Override
-    public LuaValue[] pCall(Class<?> clazz, Lua.Conversion degree, Object... args) {
+    public LuaValue[] pCall(Class<?> clazz, Lua.Conversion degree, Object... args) throws LuaException {
         push();
         int oldTop = L.getTop();
         L.pCall(args, clazz, degree, LuaConsts.LUA_MULTRET);
@@ -649,7 +649,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean toBoolean() {
+    public boolean toBoolean() throws LuaException {
         push();
         boolean result = L.toBoolean(-1);
         L.pop(1);
@@ -657,7 +657,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public long toInteger() {
+    public long toInteger() throws LuaException {
         push();
         long result = L.toInteger(-1);
         L.pop(1);
@@ -665,7 +665,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public double toNumber() {
+    public double toNumber() throws LuaException {
         push();
         double result = L.toNumber(-1);
         L.pop(1);
@@ -673,16 +673,15 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean isJavaObject() {
-        /*push();
+    public boolean isJavaObject() throws LuaException {
+        push();
         boolean result = L.isJavaObject(-1);
         L.pop(1);
-        return result;*/
-        return false;
+        return result;
     }
 
     @Override
-    public Object toJavaObject() {
+    public Object toJavaObject() throws LuaException {
         push();
         Object result = L.toJavaObject(-1);
         L.pop(1);
@@ -691,14 +690,18 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public String toString() {
-        push();
-        String result = L.toString(-1);
-        L.pop(1);
-        return result;
+        try {
+            push();
+            String result = L.toString(-1);
+            L.pop(1);
+            return result;
+        } catch (LuaException e) {
+            return super.toString();
+        }
     }
 
     @Override
-    public String ltoString() {
+    public String ltoString() throws LuaException {
         push();
         String result = L.ltoString(-1);
         L.pop(1);
@@ -706,7 +709,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public Buffer toBuffer() {
+    public Buffer toBuffer() throws LuaException {
         push();
         Buffer result = L.toBuffer(-1);
         L.pop(1);
@@ -714,7 +717,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public Buffer dump() {
+    public Buffer dump() throws LuaException {
         push();
         Buffer result = L.dump();
         L.pop(1);
@@ -722,7 +725,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public long getPointer() {
+    public long getPointer() throws LuaException {
         push();
         long result = L.getPointer(-1);
         L.pop(1);
@@ -800,32 +803,32 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public Object checkJavaObject() {
+    public Object checkJavaObject() throws LuaException {
         throw new IllegalArgumentException("Not a java object");
     }
 
     @Override
-    public Object toJavaObject(Class<?> clazz) {
+    public Object toJavaObject(Class<?> clazz) throws LuaException {
         throw new LuaException(String.format("Could not convert %s to %s", typeName(), clazz.getName()));
     }
 
     @Override
-    public Object[] toJavaArray() {
+    public Object[] toJavaArray() throws LuaException {
         return (Object[]) toJavaArray(Object.class);
     }
 
     @Override
-    public List<Object> toJavaList() {
+    public List<Object> toJavaList() throws LuaException {
         return toJavaList(Object.class);
     }
 
     @Override
-    public Map<Object, Object> toJavaMap() {
+    public Map<Object, Object> toJavaMap() throws LuaException {
         return toJavaMap(Object.class);
     }
 
     @Override
-    public Object toJavaArray(Class<?> clazz) {
+    public Object toJavaArray(Class<?> clazz) throws LuaException {
         push();
         int length = (int) L.rawLength(-1);
         Object array = Array.newInstance(clazz, length);
@@ -841,7 +844,7 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> List<T> toJavaList(Class<T> clazz) {
+    public <T> List<T> toJavaList(Class<T> clazz) throws LuaException {
         List<T> list = new ArrayList<>();
         ipairs((index, value) -> {
             list.add((T) value.toJavaObject(clazz));
@@ -852,7 +855,7 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <K, V> Map<K, V> toJavaMap(Class<K> keyClazz, Class<V> valueClazz) {
+    public <K, V> Map<K, V> toJavaMap(Class<K> keyClazz, Class<V> valueClazz) throws LuaException {
         Map<K, V> map = new LinkedHashMap<>();
         pairs((key, value) -> {
             map.put(
@@ -865,7 +868,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public <T> Map<T, T> toJavaMap(Class<T> clazz) {
+    public <T> Map<T, T> toJavaMap(Class<T> clazz) throws LuaException {
         return toJavaMap(clazz, clazz);
     }
 }

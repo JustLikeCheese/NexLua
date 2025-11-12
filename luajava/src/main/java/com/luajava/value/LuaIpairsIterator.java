@@ -22,6 +22,8 @@
 
 package com.luajava.value;
 
+import com.luajava.LuaException;
+
 public interface LuaIpairsIterator {
-    boolean iterate(long index, LuaValue value);
+    boolean iterate(long index, LuaValue value) throws LuaException;
 }

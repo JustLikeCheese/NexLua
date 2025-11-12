@@ -121,69 +121,69 @@ public class Lua {
     }
 
     // Push API
-    public int pushNil() {
+    public int pushNil() throws LuaException {
         checkStack(1);
         C.lua_pushnil(L);
         return 1;
     }
 
-    public int push(boolean bool) {
+    public int push(boolean bool) throws LuaException {
         checkStack(1);
         C.lua_pushboolean(L, bool ? 1 : 0);
         return 1;
     }
 
-    public int push(long integer) {
+    public int push(long integer) throws LuaException {
         checkStack(1);
         C.lua_pushinteger(L, integer);
         return 1;
     }
 
-    public int push(int integer) {
+    public int push(int integer) throws LuaException {
         return push((long) integer);
     }
 
-    public int push(short integer) {
+    public int push(short integer) throws LuaException {
         return push((long) integer);
     }
 
-    public int push(byte integer) {
+    public int push(byte integer) throws LuaException {
         return push((long) integer);
     }
 
-    public int push(double number) {
+    public int push(double number) throws LuaException {
         checkStack(1);
         C.lua_pushnumber(L, number);
         return 1;
     }
 
-    public int push(float number) {
+    public int push(float number) throws LuaException {
         checkStack(1);
         C.lua_pushnumber(L, number);
         return 1;
     }
 
-    public int push(char ch) {
+    public int push(char ch) throws LuaException {
         return push((long) ch);
     }
 
-    public int push(@NotNull String string) {
+    public int push(@NotNull String string) throws LuaException {
         checkStack(1);
         C.lua_pushstring(L, string);
         return 1;
     }
 
-    public int push(Buffer buffer) {
+    public int push(Buffer buffer) throws LuaException {
         checkStack(1);
         C.luaJ_pushbuffer(L, buffer, buffer.remaining());
         return 1;
     }
 
-    public int push(Object object) {
+    public int push(Object object) throws LuaException {
         return push(object, Conversion.NONE);
     }
 
-    public int push(Object object, Conversion degree) {
+    public int push(Object object, Conversion degree) throws LuaException {
         switch (degree) {
             case FULL:
                 if (object.getClass().isArray()) {
@@ -218,11 +218,11 @@ public class Lua {
         return pushJavaObject(object);
     }
 
-    public int push(Object object, Class<?> clazz) {
+    public int push(Object object, Class<?> clazz) throws LuaException {
         return push(object, clazz, Conversion.NONE);
     }
 
-    public int push(@Nullable Object object, Class<?> clazz, Conversion degree) {
+    public int push(@Nullable Object object, Class<?> clazz, Conversion degree) throws LuaException {
         if (clazz != null && clazz.isPrimitive()) {
             if (clazz == boolean.class)
                 return push((boolean) object);
@@ -246,24 +246,24 @@ public class Lua {
         return push(object, degree);
     }
 
-    public int push(Class<?> clazz) {
+    public int push(Class<?> clazz) throws LuaException {
         checkStack(1);
         C.luaJ_pushclass(L, clazz);
         return 1;
     }
 
-    public int push(LuaValue value) {
+    public int push(LuaValue value) throws LuaException {
         checkStack(1);
         return value.push(this);
     }
 
-    public int push(CFunction func) {
+    public int push(CFunction func) throws LuaException {
         checkStack(1);
         C.luaJ_pushfunction(L, func);
         return 1;
     }
 
-    public int pushJavaObject(@NotNull Object object) throws IllegalArgumentException {
+    public int pushJavaObject(@NotNull Object object) throws LuaException {
         checkStack(1);
         if (object == null) {
             C.lua_pushnil(L);
@@ -281,7 +281,7 @@ public class Lua {
         return 1;
     }
 
-    public int pushArray(@NotNull Object array) throws IllegalArgumentException {
+    public int pushArray(@NotNull Object array) throws IllegalArgumentException, LuaException {
         Class<?> clazz = array.getClass();
         if (!clazz.isArray()) {
             throw new IllegalArgumentException("Not an array");
@@ -297,7 +297,7 @@ public class Lua {
         return 1;
     }
 
-    public int pushCollection(@NotNull Collection<?> collection) {
+    public int pushCollection(@NotNull Collection<?> collection) throws LuaException {
         checkStack(2);
         C.lua_createtable(L, collection.size(), 0);
         int index = 1;
@@ -309,7 +309,7 @@ public class Lua {
         return 1;
     }
 
-    public int pushMap(@NotNull Map<?, ?> map) {
+    public int pushMap(@NotNull Map<?, ?> map) throws LuaException {
         checkStack(3);
         C.lua_createtable(L, 0, map.size());
         for (Map.Entry<?, ?> entry : map.entrySet()) {
@@ -320,11 +320,11 @@ public class Lua {
         return 1;
     }
 
-    public int pushAll(Object[] objects) {
+    public int pushAll(Object[] objects) throws LuaException {
         return pushAll(objects, Conversion.NONE);
     }
 
-    public int pushAll(Object[] objects, Lua.Conversion degree) {
+    public int pushAll(Object[] objects, Lua.Conversion degree) throws LuaException {
         int length = 0;
         if (objects == null) return length;
         for (Object object : objects) {
@@ -333,11 +333,11 @@ public class Lua {
         return length;
     }
 
-    public int pushAll(Object[] objects, Class<?> clazz) {
+    public int pushAll(Object[] objects, Class<?> clazz) throws LuaException {
         return pushAll(objects, clazz, Conversion.NONE);
     }
 
-    public int pushAll(Object[] objects, Class<?> clazz, Lua.Conversion degree) {
+    public int pushAll(Object[] objects, Class<?> clazz, Lua.Conversion degree) throws LuaException {
         int length = 0;
         if (objects == null) return length;
         for (Object object : objects) {
@@ -347,26 +347,26 @@ public class Lua {
     }
 
     // Get API
-    public LuaValue get(String globalName) {
+    public LuaValue get(String globalName) throws LuaException {
         getGlobal(globalName);
         return get();
     }
 
-    public void set(String key, Object value) {
+    public void set(String key, Object value) throws LuaException {
         set(key, value, Conversion.NONE);
     }
 
-    public void set(String key, Object value, Conversion degree) {
+    public void set(String key, Object value, Conversion degree) throws LuaException {
         push(value, degree);
         setGlobal(key);
     }
 
 
-    public LuaValue[] getArgs(int length) {
+    public LuaValue[] getArgs(int length) throws LuaException {
         return getAll(-length);
     }
 
-    public LuaValue[] getArgs(int startIdx, int length) {
+    public LuaValue[] getArgs(int startIdx, int length) throws LuaException {
         int top = getTop();
         startIdx = getAbsoluteIndex(top, startIdx);
         LuaValue[] values = new LuaValue[length];
@@ -376,7 +376,7 @@ public class Lua {
         return values;
     }
 
-    public LuaValue[] getAll() {
+    public LuaValue[] getAll() throws LuaException {
         int top = getTop();
         LuaValue[] values = new LuaValue[top];
         for (int i = 0; i < top; i++) {
@@ -385,7 +385,7 @@ public class Lua {
         return values;
     }
 
-    public LuaValue[] getAll(int startIdx) {
+    public LuaValue[] getAll(int startIdx) throws LuaException {
         int targetIdx = getTop();
         startIdx = getAbsoluteIndex(targetIdx, startIdx);
         int length = targetIdx - startIdx + 1;
@@ -396,7 +396,7 @@ public class Lua {
         return values;
     }
 
-    public LuaValue[] getAll(int startIdx, int targetIdx) {
+    public LuaValue[] getAll(int startIdx, int targetIdx) throws LuaException {
         int top = getTop();
         startIdx = getAbsoluteIndex(top, startIdx);
         targetIdx = getAbsoluteIndex(top, targetIdx);
@@ -408,11 +408,11 @@ public class Lua {
         return values;
     }
 
-    public LuaValue get() {
+    public LuaValue get() throws LuaException {
         return get(-1);
     }
 
-    public LuaValue get(int index) {
+    public LuaValue get(int index) throws LuaException {
         return get(index, type(index));
     }
 
@@ -491,7 +491,7 @@ public class Lua {
         return C.luaJ_toobject(L, index);
     }
 
-    public @Nullable Map<?, ?> toMap(int index) {
+    public @Nullable Map<?, ?> toMap(int index) throws LuaException {
         Object obj = toJavaObject(index);
         if (obj instanceof Map) {
             return ((Map<?, ?>) obj);
@@ -512,7 +512,7 @@ public class Lua {
         return null;
     }
 
-    public @Nullable List<?> toList(int index) {
+    public @Nullable List<?> toList(int index) throws LuaException {
         Object obj = toJavaObject(index);
         if (obj instanceof List) {
             return ((List<?>) obj);
@@ -553,7 +553,7 @@ public class Lua {
         C.lua_pop(L, n);
     }
 
-    public void pushValue(int index) {
+    public void pushValue(int index) throws LuaException {
         checkStack(1);
         C.lua_pushvalue(L, index);
     }
@@ -587,7 +587,7 @@ public class Lua {
         if (exception != null) throw exception;
     }
 
-    public void xMove(Lua to, int n) {
+    public void xMove(Lua to, int n) throws LuaException {
         to.checkStack(n);
         C.lua_xmove(L, to.L, n);
     }
@@ -602,7 +602,7 @@ public class Lua {
 
     // LuaValue API
     // Type
-    public LuaType type(int index) {
+    public LuaType type(int index) throws LuaException {
         return LuaType.from(C.lua_type(L, index));
     }
 
@@ -678,7 +678,7 @@ public class Lua {
         return argError(arg, String.format("Invalid option '%s'", str));
     }
 
-    public void checkType(int nArg, LuaType type) {
+    public void checkType(int nArg, LuaType type) throws LuaException {
         C.luaL_checktype(L, nArg, type.toInt());
     }
 
@@ -765,7 +765,7 @@ public class Lua {
         return C.lua_strlen(L, index);
     }
 
-    public void concat(int n) {
+    public void concat(int n) throws LuaException {
         if (n == 0) checkStack(1);
         C.lua_concat(L, n);
     }
@@ -775,12 +775,12 @@ public class Lua {
         C.lua_newtable(L);
     }
 
-    public void createTable(int nArr, int nRec) {
+    public void createTable(int nArr, int nRec) throws LuaException {
         checkStack(1);
         C.lua_createtable(L, nArr, nRec);
     }
 
-    public void getTable(int index) {
+    public void getTable(int index) throws LuaException {
         checkStack(1);
         C.lua_gettable(L, index);
     }
@@ -789,7 +789,7 @@ public class Lua {
         C.lua_settable(L, index);
     }
 
-    public void getField(int index, String key) {
+    public void getField(int index, String key) throws LuaException {
         checkStack(1);
         C.lua_getfield(L, index, key);
     }
@@ -798,7 +798,7 @@ public class Lua {
         C.lua_setfield(L, index, key);
     }
 
-    public void rawGet(int index) {
+    public void rawGet(int index) throws LuaException {
         checkStack(1);
         C.lua_rawget(L, index);
     }
@@ -807,7 +807,7 @@ public class Lua {
         C.lua_rawset(L, index);
     }
 
-    public void rawGetI(int index, int n) {
+    public void rawGetI(int index, int n) throws LuaException {
         checkStack(1);
         C.lua_rawgeti(L, index, n);
     }
@@ -816,7 +816,7 @@ public class Lua {
         C.lua_rawseti(L, index, n);
     }
 
-    public void pairs(LuaPairsIterator iterator) {
+    public void pairs(LuaPairsIterator iterator) throws LuaException {
         pushNil();
         while (next(-2)) {
             LuaValue key = get(-2); // key
@@ -830,7 +830,7 @@ public class Lua {
         }
     }
 
-    public void ipairs(LuaIpairsIterator iterator) {
+    public void ipairs(LuaIpairsIterator iterator) throws LuaException {
         long index = 1;
         while (true) {
             push(index);
@@ -858,7 +858,7 @@ public class Lua {
         return null;
     }
 
-    public boolean getMetatable(int index) {
+    public boolean getMetatable(int index) throws LuaException {
         checkStack(1);
         return C.lua_getmetatable(L, index) != 0;
     }
@@ -867,7 +867,7 @@ public class Lua {
         C.lua_setmetatable(L, index);
     }
 
-    public int getMetaField(int index, String field) {
+    public int getMetaField(int index, String field) throws LuaException {
         checkStack(1);
         return C.luaL_getmetafield(L, index, field);
     }
@@ -883,38 +883,38 @@ public class Lua {
     // Function API
 
     // Keep Object[]
-    public void call(Object[] args) {
+    public void call(Object[] args) throws LuaException {
         call(pushAll(args));
     }
 
-    public void call(Object[] args, int nResults) {
+    public void call(Object[] args, int nResults) throws LuaException {
         call(pushAll(args), nResults);
     }
 
     // Keep Lua.Conversion
-    public void call(Object[] args, Lua.Conversion degree) {
+    public void call(Object[] args, Lua.Conversion degree) throws LuaException {
         call(pushAll(args, degree));
     }
 
-    public void call(Object[] args, Lua.Conversion degree, int nResults) {
+    public void call(Object[] args, Lua.Conversion degree, int nResults) throws LuaException {
         call(pushAll(args, degree), nResults);
     }
 
     // Keep Class<?>
-    public void call(Object[] args, Class<?> clazz) {
+    public void call(Object[] args, Class<?> clazz) throws LuaException {
         call(pushAll(args, clazz));
     }
 
-    public void call(Object[] args, Class<?> clazz, int nResults) {
+    public void call(Object[] args, Class<?> clazz, int nResults) throws LuaException {
         call(pushAll(args, clazz), nResults);
     }
 
     // Keep Class<?> & Lua.Conversion
-    public void call(Object[] args, Class<?> clazz, Lua.Conversion degree) {
+    public void call(Object[] args, Class<?> clazz, Lua.Conversion degree) throws LuaException {
         call(pushAll(args, clazz, degree));
     }
 
-    public void call(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) {
+    public void call(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) throws LuaException {
         call(pushAll(args, clazz, degree), nResults);
     }
 
@@ -970,11 +970,11 @@ public class Lua {
     }
 
     // Keep Class<?> & Lua.Conversion
-    public void pCall(Object[] args, Class<?> clazz, Lua.Conversion degree) {
+    public void pCall(Object[] args, Class<?> clazz, Lua.Conversion degree) throws LuaException {
         pCall(pushAll(args, clazz, degree));
     }
 
-    public void pCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) {
+    public void pCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) throws LuaException {
         pCall(pushAll(args, clazz, degree), nResults);
     }
 
@@ -1000,39 +1000,39 @@ public class Lua {
 
     // xpCall
     // Keep Object[]
-    public void xpCall(Object[] args, CFunction handler) {
+    public void xpCall(Object[] args, CFunction handler) throws LuaException {
         xpCall(pushAll(args), handler);
     }
 
-    public void xpCall(Object[] args, int nResults, CFunction handler) {
+    public void xpCall(Object[] args, int nResults, CFunction handler) throws LuaException {
         xpCall(pushAll(args), nResults, handler);
     }
 
     // Keep Lua.Conversion
-    public void xpCall(Object[] args, Lua.Conversion degree, CFunction handler) {
+    public void xpCall(Object[] args, Lua.Conversion degree, CFunction handler) throws LuaException {
         xpCall(pushAll(args, degree), handler);
     }
 
-    public void xpCall(Object[] args, Lua.Conversion degree, int nResults, CFunction handler) {
+    public void xpCall(Object[] args, Lua.Conversion degree, int nResults, CFunction handler) throws LuaException {
         xpCall(pushAll(args, degree), nResults, handler);
     }
 
     // Keep Class<?>
-    public void xpCall(Object[] args, Class<?> clazz, CFunction handler) {
+    public void xpCall(Object[] args, Class<?> clazz, CFunction handler) throws LuaException {
         xpCall(pushAll(args, clazz), handler);
     }
 
-    public void xpCall(Object[] args, Class<?> clazz, int nResults, CFunction handler) {
+    public void xpCall(Object[] args, Class<?> clazz, int nResults, CFunction handler) throws LuaException {
         xpCall(pushAll(args, clazz), nResults, handler);
     }
 
     // Keep Class<?> & Lua.Conversion
 
-    public void xpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, CFunction handler) {
+    public void xpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, CFunction handler) throws LuaException {
         xpCall(pushAll(args, clazz, degree), handler);
     }
 
-    public void xpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults, CFunction handler) {
+    public void xpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults, CFunction handler) throws LuaException {
         xpCall(pushAll(args, clazz, degree), nResults, handler);
     }
 
@@ -1049,14 +1049,14 @@ public class Lua {
         checkError(C.luaJ_xpcall(L, nArgs, nResults), false);
     }
 
-    public void cpCall(LuaFunction func, LuaLightUserdata ud) {
+    public void cpCall(LuaFunction func, LuaLightUserdata ud) throws LuaException {
         func = func.checkCFunction();
         int result = C.lua_cpcall(L, func.getPointer(), ud.getPointer());
         checkError(result, false);
     }
 
     // Function Environment API
-    public void getFenv(int index) {
+    public void getFenv(int index) throws LuaException {
         checkStack(1);
         C.lua_getfenv(L, index);
     }
@@ -1083,7 +1083,7 @@ public class Lua {
         return false;
     }
 
-    public LuaException.LuaError status() {
+    public LuaException.LuaError status() throws LuaException {
         return LuaException.LuaError.from(C.lua_status(L));
     }
 
@@ -1106,17 +1106,17 @@ public class Lua {
         C.lua_error(L);
     }
 
-    public void error(String message) {
+    public void error(String message) throws LuaException {
         push(message);
         C.lua_error(L);
     }
 
-    public int error(@Nullable Throwable e) {
+    public int error(@Nullable Throwable e) throws LuaException {
         error(e.toString());
         return 0;
     }
 
-    public void register(String name, LuaFunction function) {
+    public void register(String name, LuaFunction function) throws LuaException {
         if (function.isCFunction()) {
             C.lua_register(L, name, function.getPointer());
         } else {
@@ -1139,13 +1139,13 @@ public class Lua {
     }
 
     // table pairs
-    public boolean next(int n) {
+    public boolean next(int n) throws LuaException {
         checkStack(1);
         return C.lua_next(L, n) != 0;
     }
 
     // Lua Global API
-    public void getGlobal(String name) {
+    public void getGlobal(String name) throws LuaException {
         checkStack(1);
         C.lua_getglobal(L, name);
     }
@@ -1154,7 +1154,7 @@ public class Lua {
         C.lua_setglobal(L, name);
     }
 
-    public LuaFunction getFunction(String funcName) {
+    public LuaFunction getFunction(String funcName) throws LuaException {
         getGlobal(funcName);
         if (isFunction(-1)) {
             LuaFunction func = new LuaFunction(this);
@@ -1254,7 +1254,7 @@ public class Lua {
     }
 
 
-    public @Nullable Object toObject(int index) {
+    public @Nullable Object toObject(int index) throws LuaException {
         LuaType type = type(index);
         if (type == null) {
             return null;
@@ -1278,7 +1278,7 @@ public class Lua {
     }
 
 
-    public @Nullable Object toObject(int index, Class<?> type) {
+    public @Nullable Object toObject(int index, Class<?> type) throws LuaException {
         Object converted = toObject(index);
         if (converted == null) {
             return null;
@@ -1352,23 +1352,23 @@ public class Lua {
         return (ByteBuffer) C.luaJ_dump(L);
     }
 
-    public void getMetatable(String typeName) {
+    public void getMetatable(String typeName) throws LuaException {
         checkStack(1);
         C.luaL_getmetatable(L, typeName);
     }
 
-    public int newMetatable(String typeName) {
+    public int newMetatable(String typeName) throws LuaException {
         checkStack(1);
         return C.luaL_newmetatable(L, typeName);
     }
 
-    public void openLibraries() {
+    public void openLibraries() throws LuaException {
         checkStack(1);
         C.luaL_openlibs(L);
         C.luaJ_initloader(L);
     }
 
-    public void openLibrary(String name) {
+    public void openLibrary(String name) throws LuaException {
         checkStack(1);
         C.luaJ_openlib(L, name);
         if ("package".equals(name)) {
@@ -1376,13 +1376,13 @@ public class Lua {
         }
     }
 
-    public void openLibrary(String... name) {
+    public void openLibrary(String... name) throws LuaException {
         for (String n : name) {
             openLibrary(n);
         }
     }
 
-    public Object createProxy(int index, Class<?> interfaces, Conversion degree) throws IllegalArgumentException {
+    public Object createProxy(int index, Class<?> interfaces, Conversion degree) throws IllegalArgumentException, LuaException {
         return LuaProxy.newInstance(this, index, interfaces, degree).toProxy();
     }
 
@@ -1483,7 +1483,7 @@ public class Lua {
         return C.luaJ_ref(L);
     }
 
-    public int refGet(int ref) {
+    public int refGet(int ref) throws LuaException {
         checkStack(1);
         C.luaJ_refGet(L, ref);
         return 1;
@@ -1501,7 +1501,7 @@ public class Lua {
         C.luaL_unref(L, index, ref);
     }
 
-    public LuaType typeRef(int ref) {
+    public LuaType typeRef(int ref) throws LuaException {
         return LuaType.from(C.luaJ_typeRef(L, ref));
     }
 

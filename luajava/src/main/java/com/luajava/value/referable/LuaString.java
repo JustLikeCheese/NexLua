@@ -23,6 +23,7 @@
 package com.luajava.value.referable;
 
 import com.luajava.Lua;
+import com.luajava.LuaException;
 import com.luajava.value.AbstractLuaRefValue;
 import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;
@@ -75,7 +76,7 @@ public class LuaString extends AbstractLuaRefValue {
     }
 
     @Override
-    public Buffer toBuffer() {
+    public Buffer toBuffer() throws LuaException {
         if (buffer != null) return buffer;
         if (string != null) return buffer = ByteBuffer.wrap(string.getBytes());
         return buffer = super.toBuffer();
@@ -102,7 +103,7 @@ public class LuaString extends AbstractLuaRefValue {
     }
 
     @Override
-    public Object toJavaObject(Class<?> clazz) throws IllegalArgumentException {
+    public Object toJavaObject(Class<?> clazz) throws LuaException {
         if (clazz == LuaValue.class || clazz == LuaString.class)
             return this;
         else if (clazz == Object.class || CharSequence.class.isAssignableFrom(clazz))

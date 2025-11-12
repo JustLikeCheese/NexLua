@@ -40,7 +40,11 @@ import java.util.ArrayList;
 
 public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnReceiveListener, com.nexlua.LuaContext {
     protected int mWidth, mHeight;
-    private LuaValue mOnKeyDown, mOnKeyUp, mOnKeyLongPress, mOnKeyShortcut, mOnTouchEvent, mOnAccessibilityEvent;
+    private LuaValue mOnKeyDown;
+    private LuaValue mOnKeyUp;
+    private LuaValue mOnKeyLongPress;
+    private LuaValue mOnKeyShortcut;
+    private LuaValue mOnTouchEvent;
     private LuaValue mOnCreateOptionsMenu, mOnCreateContextMenu, mOnOptionsItemSelected, mOnMenuItemSelected, mOnContextItemSelected;
     private LuaValue mOnActivityResult, onRequestPermissionsResult, mOnSaveInstanceState, mOnRestoreInstanceState;
     private LuaValue mOnStart, mOnResume, mOnPause, mOnStop, mOnRestarted;
@@ -122,7 +126,6 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
             // onTouchEvent
             mOnTouchEvent = L.getFunction("onTouchEvent");
             // onAccessibilityEvent
-            mOnAccessibilityEvent = L.getFunction("onAccessibilityEvent");
             // onCreateOptionsMenu
             mOnCreateOptionsMenu = L.getFunction("onCreateOptionsMenu");
             // mOnCreateContextMenu

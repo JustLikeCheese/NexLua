@@ -44,7 +44,7 @@ public abstract class JFunction implements CFunction {
     public abstract LuaValue[] call(Lua L, LuaValue[] args);
 
     @Override
-    public int __call(Lua L) {
+    public int __call(Lua L) throws LuaException {
         LuaValue[] args = new LuaValue[L.getTop()];
         for (int i = 0; i < args.length; i++) {
             args[args.length - i - 1] = L.get();

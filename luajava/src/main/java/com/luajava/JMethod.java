@@ -43,7 +43,7 @@ public class JMethod implements CFunction {
     }
 
     @Override
-    public int __call(Lua L) {
+    public int __call(Lua L) throws LuaException {
         LuaValue[] values = L.getAll();
         if (method == null) {
             method = JuaAPI.matchMethod(object, clazz.getMethods(), name, values);

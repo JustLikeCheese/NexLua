@@ -23,6 +23,7 @@
 package com.luajava.value.referable;
 
 import com.luajava.Lua;
+import com.luajava.LuaException;
 import com.luajava.util.ClassUtils;
 import com.luajava.value.AbstractLuaRefValue;
 import com.luajava.value.LuaType;
@@ -58,12 +59,12 @@ public class LuaUserdata extends AbstractLuaRefValue {
     }
 
     @Override
-    public Object checkJavaObject() {
+    public Object checkJavaObject() throws LuaException {
         return toJavaObject();
     }
 
     @Override
-    public Object toJavaObject() {
+    public Object toJavaObject() throws LuaException {
         if (javaObject == null) {
             Object obj = super.toJavaObject();
             javaObject = (obj != null) ? obj : this;
@@ -72,12 +73,12 @@ public class LuaUserdata extends AbstractLuaRefValue {
     }
 
     @Override
-    public boolean isJavaObject() {
+    public boolean isJavaObject() throws LuaException {
         return toJavaObject() != this;
     }
 
     @Override
-    public boolean isJavaObject(Class<?> clazz) {
+    public boolean isJavaObject(Class<?> clazz) throws LuaException {
         if (clazz == Object.class || clazz == LuaValue.class || clazz == LuaUserdata.class) {
             return true;
         }
@@ -91,7 +92,7 @@ public class LuaUserdata extends AbstractLuaRefValue {
     }
 
     @Override
-    public Object toJavaObject(Class<?> clazz) throws IllegalArgumentException{
+    public Object toJavaObject(Class<?> clazz) throws LuaException {
         if (clazz == LuaValue.class || clazz == LuaUserdata.class) {
             return this;
         }

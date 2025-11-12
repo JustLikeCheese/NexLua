@@ -26,5 +26,5 @@ package com.luajava;
  * Functional alternative to C closures in Lua to allow, for example, lambda grammar
  */
 public interface CFunction {
-    int __call(Lua L);
+    int __call(Lua L) throws LuaException;
 }

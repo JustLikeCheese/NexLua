@@ -23,6 +23,7 @@
 package com.luajava.value.referable;
 
 import com.luajava.Lua;
+import com.luajava.LuaException;
 import com.luajava.value.AbstractLuaRefValue;
 import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;
@@ -65,7 +66,7 @@ public class LuaThread extends AbstractLuaRefValue {
     }
 
     @Override
-    public Object toJavaObject(Class<?> clazz) throws IllegalArgumentException {
+    public Object toJavaObject(Class<?> clazz) throws LuaException {
         if (clazz == LuaValue.class || clazz == LuaThread.class)
             return this;
         else if (clazz == Object.class)

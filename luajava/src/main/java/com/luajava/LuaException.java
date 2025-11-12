@@ -122,7 +122,7 @@ public class LuaException extends RuntimeException {
          */
         JAVA;
 
-        public static LuaError from(int code, boolean runtime) {
+        public static LuaError from(int code, boolean runtime) throws LuaException {
             if (runtime) {
                 if (code == LuaConsts.LUA_OK)
                     return LuaError.OK;
@@ -133,7 +133,7 @@ public class LuaException extends RuntimeException {
             }
         }
 
-        public static LuaError from(int code) {
+        public static LuaError from(int code) throws LuaException {
             switch (code) {
                 case LuaConsts.LUA_OK:
                     return LuaException.LuaError.OK;
@@ -153,7 +153,7 @@ public class LuaException extends RuntimeException {
         }
     }
 
-    public static LuaException from(Lua L, int code, boolean runtime) {
+    public static LuaException from(Lua L, int code, boolean runtime) throws LuaException {
         LuaError error = LuaError.from(code, runtime);
         if (LuaError.OK == error) return null;
         String message;

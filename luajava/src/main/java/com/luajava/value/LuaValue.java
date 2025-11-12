@@ -23,6 +23,7 @@
 package com.luajava.value;
 
 import com.luajava.Lua;
+import com.luajava.LuaException;
 import com.luajava.value.immutable.LuaBoolean;
 import com.luajava.value.immutable.LuaNil;
 import com.luajava.value.immutable.LuaNumber;
@@ -42,161 +43,161 @@ public interface LuaValue {
     // stack
     Lua state();
 
-    void push();
+    void push() throws LuaException;
 
-    int push(Lua L);
+    int push(Lua L) throws LuaException;
 
     LuaType type();
 
     String typeName();
 
-    boolean containsKey(Object key);
+    boolean containsKey(Object key) throws LuaException;
 
-    boolean containsKey(Object key, Lua.Conversion degree);
+    boolean containsKey(Object key, Lua.Conversion degree) throws LuaException;
 
-    boolean containsKey(Object key, Class<?> clazz);
+    boolean containsKey(Object key, Class<?> clazz) throws LuaException;
 
-    boolean containsKey(Object key, Class<?> clazz, Lua.Conversion degree);
+    boolean containsKey(Object key, Class<?> clazz, Lua.Conversion degree) throws LuaException;
 
     // table
-    LuaValue get(Object key);
+    LuaValue get(Object key) throws LuaException;
 
-    LuaValue get(Object key, Lua.Conversion degree);
+    LuaValue get(Object key, Lua.Conversion degree) throws LuaException;
 
-    LuaValue get(Object key, Class<?> clazz);
+    LuaValue get(Object key, Class<?> clazz) throws LuaException;
 
-    LuaValue get(Object key, Class<?> clazz, Lua.Conversion degree);
+    LuaValue get(Object key, Class<?> clazz, Lua.Conversion degree) throws LuaException;
 
-    void set(Object key, Object value);
-
-    // Keep Lua.Conversion
-    void set(Object key, Object value, Lua.Conversion degree);
-
-    void set(Object key, Object value, Lua.Conversion degree1, Lua.Conversion degree2);
-
-    // Keep Class<?>
-    void set(Object key, Object value, Class<?> clazz);
-
-    void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2);
-
-    // Keep Class<?> & Lua.Conversion
-    void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree);
-
-    void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree1, Lua.Conversion degree2);
-
-    LuaValue rawget(Object key);
-
-    LuaValue rawget(Object key, Lua.Conversion degree);
-
-    LuaValue rawget(Object key, Class<?> clazz);
-
-    LuaValue rawget(Object key, Class<?> clazz, Lua.Conversion degree);
-
-    void rawset(Object key, Object value);
+    void set(Object key, Object value) throws LuaException;
 
     // Keep Lua.Conversion
-    void rawset(Object key, Object value, Lua.Conversion degree);
+    void set(Object key, Object value, Lua.Conversion degree) throws LuaException;
 
-    void rawset(Object key, Object value, Lua.Conversion degree1, Lua.Conversion degree2);
+    void set(Object key, Object value, Lua.Conversion degree1, Lua.Conversion degree2) throws LuaException;
 
     // Keep Class<?>
-    void rawset(Object key, Object value, Class<?> clazz);
+    void set(Object key, Object value, Class<?> clazz) throws LuaException;
 
-    void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2);
+    void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2) throws LuaException;
 
     // Keep Class<?> & Lua.Conversion
-    void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree);
+    void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree) throws LuaException;
 
-    void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree1, Lua.Conversion degree2);
+    void set(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree1, Lua.Conversion degree2) throws LuaException;
 
-    void pairs(LuaPairsIterator iterator);
+    LuaValue rawget(Object key) throws LuaException;
 
-    void ipairs(LuaIpairsIterator iterator);
+    LuaValue rawget(Object key, Lua.Conversion degree) throws LuaException;
 
-    LuaValue[] toArray();
+    LuaValue rawget(Object key, Class<?> clazz) throws LuaException;
 
-    List<LuaValue> toList();
+    LuaValue rawget(Object key, Class<?> clazz, Lua.Conversion degree) throws LuaException;
 
-    Map<LuaValue, LuaValue> toMap();
+    void rawset(Object key, Object value) throws LuaException;
 
-    long length();
+    // Keep Lua.Conversion
+    void rawset(Object key, Object value, Lua.Conversion degree) throws LuaException;
+
+    void rawset(Object key, Object value, Lua.Conversion degree1, Lua.Conversion degree2) throws LuaException;
+
+    // Keep Class<?>
+    void rawset(Object key, Object value, Class<?> clazz) throws LuaException;
+
+    void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2) throws LuaException;
+
+    // Keep Class<?> & Lua.Conversion
+    void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree) throws LuaException;
+
+    void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree1, Lua.Conversion degree2) throws LuaException;
+
+    void pairs(LuaPairsIterator iterator) throws LuaException;
+
+    void ipairs(LuaIpairsIterator iterator) throws LuaException;
+
+    LuaValue[] toArray() throws LuaException;
+
+    List<LuaValue> toList() throws LuaException;
+
+    Map<LuaValue, LuaValue> toMap() throws LuaException;
+
+    long length() throws LuaException;
 
     // metatable
-    LuaValue getMetatable();
+    LuaValue getMetatable() throws LuaException;
 
-    boolean setMetatable(String tname);
+    boolean setMetatable(String tname) throws LuaException;
 
-    LuaValue callMetatable(String method);
+    LuaValue callMetatable(String method) throws LuaException;
 
     // compare
-    boolean rawEqual(Object value);
+    boolean rawEqual(Object value) throws LuaException;
 
-    boolean rawEqual(Object value, Lua.Conversion degree);
+    boolean rawEqual(Object value, Lua.Conversion degree) throws LuaException;
 
-    boolean rawEqual(Object value, Class<?> clazz);
+    boolean rawEqual(Object value, Class<?> clazz) throws LuaException;
 
-    boolean rawEqual(Object value, Class<?> clazz, Lua.Conversion degree);
+    boolean rawEqual(Object value, Class<?> clazz, Lua.Conversion degree) throws LuaException;
 
-    boolean equal(Object value);
+    boolean equal(Object value) throws LuaException;
 
-    boolean equal(Object value, Lua.Conversion degree);
+    boolean equal(Object value, Lua.Conversion degree) throws LuaException;
 
-    boolean equal(Object value, Class<?> clazz);
+    boolean equal(Object value, Class<?> clazz) throws LuaException;
 
-    boolean equal(Object value, Class<?> clazz, Lua.Conversion degree);
+    boolean equal(Object value, Class<?> clazz, Lua.Conversion degree) throws LuaException;
 
-    boolean lessThan(Object value);
+    boolean lessThan(Object value) throws LuaException;
 
-    boolean lessThan(Object value, Lua.Conversion degree);
+    boolean lessThan(Object value, Lua.Conversion degree) throws LuaException;
 
-    boolean lessThan(Object value, Class<?> clazz);
+    boolean lessThan(Object value, Class<?> clazz) throws LuaException;
 
-    boolean lessThan(Object value, Class<?> clazz, Lua.Conversion degree);
+    boolean lessThan(Object value, Class<?> clazz, Lua.Conversion degree) throws LuaException;
 
-    boolean lessThanOrEqual(Object value);
+    boolean lessThanOrEqual(Object value) throws LuaException;
 
-    boolean lessThanOrEqual(Object value, Lua.Conversion degree);
+    boolean lessThanOrEqual(Object value, Lua.Conversion degree) throws LuaException;
 
-    boolean lessThanOrEqual(Object value, Class<?> clazz);
+    boolean lessThanOrEqual(Object value, Class<?> clazz) throws LuaException;
 
-    boolean lessThanOrEqual(Object value, Class<?> clazz, Lua.Conversion degree);
+    boolean lessThanOrEqual(Object value, Class<?> clazz, Lua.Conversion degree) throws LuaException;
 
-    boolean greaterThan(Object value);
+    boolean greaterThan(Object value) throws LuaException;
 
-    boolean greaterThan(Object value, Lua.Conversion degree);
+    boolean greaterThan(Object value, Lua.Conversion degree) throws LuaException;
 
-    boolean greaterThan(Object value, Class<?> clazz);
+    boolean greaterThan(Object value, Class<?> clazz) throws LuaException;
 
-    boolean greaterThan(Object value, Class<?> clazz, Lua.Conversion degree);
+    boolean greaterThan(Object value, Class<?> clazz, Lua.Conversion degree) throws LuaException;
 
-    boolean greaterThanOrEqual(Object value);
+    boolean greaterThanOrEqual(Object value) throws LuaException;
 
-    boolean greaterThanOrEqual(Object value, Lua.Conversion degree);
+    boolean greaterThanOrEqual(Object value, Lua.Conversion degree) throws LuaException;
 
-    boolean greaterThanOrEqual(Object value, Class<?> clazz);
+    boolean greaterThanOrEqual(Object value, Class<?> clazz) throws LuaException;
 
-    boolean greaterThanOrEqual(Object value, Class<?> clazz, Lua.Conversion degree);
+    boolean greaterThanOrEqual(Object value, Class<?> clazz, Lua.Conversion degree) throws LuaException;
 
     // call
-    LuaValue[] call();
+    LuaValue[] call() throws LuaException;
 
-    LuaValue[] call(Object... args);
+    LuaValue[] call(Object... args) throws LuaException;
 
-    LuaValue[] call(Lua.Conversion degree, Object... args);
+    LuaValue[] call(Lua.Conversion degree, Object... args) throws LuaException;
 
-    LuaValue[] call(Class<?> clazz, Object... args);
+    LuaValue[] call(Class<?> clazz, Object... args) throws LuaException;
 
-    LuaValue[] call(Class<?> clazz, Lua.Conversion degree, Object... args);
+    LuaValue[] call(Class<?> clazz, Lua.Conversion degree, Object... args) throws LuaException;
 
-    LuaValue[] pCall();
+    LuaValue[] pCall() throws LuaException;
 
-    LuaValue[] pCall(Object... args);
+    LuaValue[] pCall(Object... args) throws LuaException;
 
-    LuaValue[] pCall(Lua.Conversion degree, Object... args);
+    LuaValue[] pCall(Lua.Conversion degree, Object... args) throws LuaException;
 
-    LuaValue[] pCall(Class<?> clazz, Object... args);
+    LuaValue[] pCall(Class<?> clazz, Object... args) throws LuaException;
 
-    LuaValue[] pCall(Class<?> clazz, Lua.Conversion degree, Object... args);
+    LuaValue[] pCall(Class<?> clazz, Lua.Conversion degree, Object... args) throws LuaException;
 
     // sugar
     boolean isNone();
@@ -222,25 +223,25 @@ public interface LuaValue {
     boolean isThread();
 
     // to object
-    boolean toBoolean();
+    boolean toBoolean() throws LuaException;
 
-    double toNumber();
+    double toNumber() throws LuaException;
 
     String toString();
 
-    String ltoString();
+    String ltoString() throws LuaException;
 
-    long toInteger();
+    long toInteger() throws LuaException;
 
-    boolean isJavaObject();
+    boolean isJavaObject() throws LuaException;
 
-    Object toJavaObject();
+    Object toJavaObject() throws LuaException;
 
-    Buffer toBuffer();
+    Buffer toBuffer() throws LuaException;
 
-    Buffer dump();
+    Buffer dump() throws LuaException;
 
-    long getPointer();
+    long getPointer() throws LuaException;
 
     boolean isRef();
 
@@ -270,23 +271,23 @@ public interface LuaValue {
 
     LuaUnknown checkUnknown();
 
-    Object checkJavaObject();
+    Object checkJavaObject() throws LuaException;
 
-    boolean isJavaObject(Class<?> clazz);
+    boolean isJavaObject(Class<?> clazz) throws LuaException;
 
-    Object toJavaObject(Class<?> clazz) throws IllegalArgumentException;
+    Object toJavaObject(Class<?> clazz) throws IllegalArgumentException, LuaException;
 
-    Object[] toJavaArray();
+    Object[] toJavaArray() throws LuaException;
 
-    List<Object> toJavaList();
+    List<Object> toJavaList() throws LuaException;
 
-    Map<Object, Object> toJavaMap();
+    Map<Object, Object> toJavaMap() throws LuaException;
 
-    Object toJavaArray(Class<?> clazz);
+    Object toJavaArray(Class<?> clazz) throws LuaException;
 
-    <T> List<T> toJavaList(Class<T> clazz);
+    <T> List<T> toJavaList(Class<T> clazz) throws LuaException;
 
-    <K, V> Map<K, V> toJavaMap(Class<K> keyClazz, Class<V> valueClazz);
+    <K, V> Map<K, V> toJavaMap(Class<K> keyClazz, Class<V> valueClazz) throws LuaException;
 
-    <T> Map<T, T> toJavaMap(Class<T> clazz);
+    <T> Map<T, T> toJavaMap(Class<T> clazz) throws LuaException;
 }

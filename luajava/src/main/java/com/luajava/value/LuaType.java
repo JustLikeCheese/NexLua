@@ -40,7 +40,7 @@ public enum LuaType {
     USERDATA,
     THREAD;
 
-    public static LuaType from(int code) {
+    public static LuaType from(int code) throws LuaException {
         switch (code) {
             case LuaConsts.LUA_TNONE:
                 return NONE;
@@ -67,7 +67,7 @@ public enum LuaType {
         }
     }
 
-    public int toInt() {
+    public int toInt() throws LuaException {
         switch (this) {
             case NONE:
                 return LuaConsts.LUA_TNONE;

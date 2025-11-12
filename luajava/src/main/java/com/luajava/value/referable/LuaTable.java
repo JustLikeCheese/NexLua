@@ -23,6 +23,7 @@
 package com.luajava.value.referable;
 
 import com.luajava.Lua;
+import com.luajava.LuaException;
 import com.luajava.value.AbstractLuaRefValue;
 import com.luajava.value.LuaProxy;
 import com.luajava.value.LuaType;
@@ -61,7 +62,7 @@ public class LuaTable extends AbstractLuaRefValue {
     }
 
     @Override
-    public Object toJavaObject() {
+    public Object toJavaObject() throws LuaException {
         return toJavaMap();
     }
 
@@ -73,7 +74,7 @@ public class LuaTable extends AbstractLuaRefValue {
     }
 
     @Override
-    public Object toJavaObject(Class<?> clazz) throws IllegalArgumentException {
+    public Object toJavaObject(Class<?> clazz) throws LuaException {
         if (clazz == LuaValue.class || clazz == LuaTable.class)
             return this;
         else if (clazz.isArray())

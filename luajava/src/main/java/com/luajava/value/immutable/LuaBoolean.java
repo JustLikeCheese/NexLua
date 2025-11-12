@@ -1,6 +1,7 @@
 package com.luajava.value.immutable;
 
 import com.luajava.Lua;
+import com.luajava.LuaException;
 import com.luajava.value.AbstractLuaValue;
 import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;
@@ -28,7 +29,7 @@ public class LuaBoolean extends AbstractLuaValue {
     }
 
     @Override
-    public int push(Lua L) {
+    public int push(Lua L) throws LuaException {
         return L.push(value);
     }
 
@@ -81,7 +82,7 @@ public class LuaBoolean extends AbstractLuaValue {
     }
 
     @Override
-    public Object toJavaObject(Class<?> clazz) throws IllegalArgumentException {
+    public Object toJavaObject(Class<?> clazz) throws LuaException {
         if (clazz == LuaValue.class || clazz == LuaBoolean.class)
             return this;
         else if (clazz == Object.class || clazz == Boolean.class || clazz == boolean.class)

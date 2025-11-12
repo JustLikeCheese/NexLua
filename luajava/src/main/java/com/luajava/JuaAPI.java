@@ -35,7 +35,7 @@ import java.util.*;
 
 // LuaJava Helper
 public final class JuaAPI {
-    public static boolean matchParams(Class<?>[] paramTypes, LuaValue[] values) {
+    public static boolean matchParams(Class<?>[] paramTypes, LuaValue[] values) throws LuaException {
         for (int i = 0; i < paramTypes.length; i++) {
             if (!values[i].isJavaObject(paramTypes[i])) {
                 return false;
@@ -44,7 +44,7 @@ public final class JuaAPI {
         return true;
     }
 
-    public static Object[] convertParams(Class<?>[] paramTypes, LuaValue[] values) {
+    public static Object[] convertParams(Class<?>[] paramTypes, LuaValue[] values) throws LuaException {
         int length = values.length;
         Object[] objects = new Object[length];
         for (int i = 0; i < length; i++) {
@@ -53,7 +53,7 @@ public final class JuaAPI {
         return objects;
     }
 
-    public static Object callMethod(Object object, Method method, Class<?>[] paramTypes, LuaValue[] values) throws InvocationTargetException, IllegalAccessException {
+    public static Object callMethod(Object object, Method method, Class<?>[] paramTypes, LuaValue[] values) throws InvocationTargetException, IllegalAccessException, LuaException {
         Object[] objects = convertParams(paramTypes, values);
         return ClassUtils.callMethod(object, method, objects);
     }
@@ -91,7 +91,7 @@ public final class JuaAPI {
         throw new LuaException(msg.toString());
     }
 
-    public static Object callConstructor(Constructor<?> constructor, Class<?>[] paramTypes, LuaValue[] values) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+    public static Object callConstructor(Constructor<?> constructor, Class<?>[] paramTypes, LuaValue[] values) throws InvocationTargetException, IllegalAccessException, InstantiationException, LuaException {
         Object[] objects = convertParams(paramTypes, values);
         return constructor.newInstance(objects);
     }
@@ -127,7 +127,7 @@ public final class JuaAPI {
 
 
     // 0=>null, 1=>field, 2=>method, 3=>get method, 4=>get method(first char to upper case), 5=>get method(first char to lower case)
-    public static int jclassIndex(long ptr, Class<?> clazz, String name) throws InvocationTargetException, IllegalAccessException {
+    public static int jclassIndex(long ptr, Class<?> clazz, String name) throws InvocationTargetException, IllegalAccessException, LuaException {
         // Get lua instance
         Lua L = Jua.get(ptr);
         // Class.STATIC_FIELD
@@ -174,7 +174,7 @@ public final class JuaAPI {
         throw new LuaException(String.format("%s@%s is not a field or method", clazz.getName(), name));
     }
 
-    public static int jclassNewIndex(long ptr, Class<?> clazz, String name) throws InvocationTargetException, IllegalAccessException {
+    public static int jclassNewIndex(long ptr, Class<?> clazz, String name) throws InvocationTargetException, IllegalAccessException, LuaException {
         // Get lua instance
         Lua L = Jua.get(ptr);
         // Class.STATIC_FIELD = value
@@ -250,7 +250,7 @@ public final class JuaAPI {
     }
 
     /* Java Object */
-    public static int jobjectIndex(long ptr, Object instance, String name) throws IllegalAccessException, InvocationTargetException {
+    public static int jobjectIndex(long ptr, Object instance, String name) throws IllegalAccessException, InvocationTargetException, LuaException {
         Lua L = Jua.get(ptr);
         // Class.STATIC_FIELD
         Class<?> clazz = instance.getClass();
@@ -317,7 +317,7 @@ public final class JuaAPI {
         throw new LuaException(String.format("%s@%s is not a field or method", clazz.getName(), name));
     }
 
-    public static int jobjectNewIndex(long ptr, Object object, String name) throws InvocationTargetException, IllegalAccessException {
+    public static int jobjectNewIndex(long ptr, Object object, String name) throws InvocationTargetException, IllegalAccessException, LuaException {
         // Get lua instance
         Lua L = Jua.get(ptr);
         Class<?> clazz = object.getClass();
@@ -383,7 +383,7 @@ public final class JuaAPI {
 
     private final static String[] LENGTH_DEFAULT_METHOD_NAME = new String[]{"length", "size"};
 
-    public static int jobjectLength(long ptr, Object instance) {
+    public static int jobjectLength(long ptr, Object instance) throws LuaException {
         Lua L = Jua.get(ptr);
         Class<?> clazz = instance.getClass();
         for (String name : LENGTH_DEFAULT_METHOD_NAME) {
@@ -393,7 +393,7 @@ public final class JuaAPI {
         throw new LuaException(String.format("%s has no default method to get length", clazz.getName()));
     }
 
-    public static int jarrayIndex(long ptr, Object array) {
+    public static int jarrayIndex(long ptr, Object array) throws LuaException {
         Lua L = Jua.get(ptr);
         int index = (int) L.get(2).toJavaObject(int.class);
         Class<?> type = array.getClass().getComponentType();
@@ -401,7 +401,7 @@ public final class JuaAPI {
         return L.push(object, type);
     }
 
-    public static int jarrayNewIndex(long ptr, Object array) {
+    public static int jarrayNewIndex(long ptr, Object array) throws LuaException {
         Lua L = Jua.get(ptr);
         Class<?> type = array.getClass().getComponentType();
         int index = (int) L.get(2).toJavaObject(int.class);
@@ -410,7 +410,7 @@ public final class JuaAPI {
         return 0;
     }
 
-    public static int jarrayIpairsIterator(long ptr, Object array) {
+    public static int jarrayIpairsIterator(long ptr, Object array) throws LuaException {
         Lua L = Jua.get(ptr);
         int index = (int) L.get(2).toJavaObject(int.class);
         int nextIndex = index + 1;
@@ -422,7 +422,7 @@ public final class JuaAPI {
         return 2;
     }
 
-    public static int bindClass(long ptr, String name) throws ClassNotFoundException {
+    public static int bindClass(long ptr, String name) throws ClassNotFoundException, LuaException {
         Lua L = Jua.get(ptr);
         L.push(ClassUtils.forName(name));
         return 1;
@@ -457,7 +457,7 @@ public final class JuaAPI {
      * @return -1 on failure, 1 if successfully pushed
      */
     @SuppressWarnings("unused")
-    public static int unwrap(long id, Object obj) {
+    public static int unwrap(long id, Object obj) throws LuaException {
         Lua L = Jua.get(id);
         try {
             InvocationHandler handler = Proxy.getInvocationHandler(obj);
@@ -485,7 +485,7 @@ public final class JuaAPI {
      * @param module the module name
      * @return always 1
      */
-    public static int jmoduleLoad(long id, String module) {
+    public static int jmoduleLoad(long id, String module) throws LuaException {
         Lua L = Jua.get(id);
         return L.loadExternal(module);
     }
@@ -498,7 +498,7 @@ public final class JuaAPI {
      * @param methodName the method name
      * @return the number of elements pushed onto the stack
      */
-    public static int loadLib(long id, String className, String methodName) {
+    public static int loadLib(long id, String className, String methodName) throws LuaException {
         Lua L = Jua.get(id);
         try {
             Class<?> clazz = Class.forName(className);
@@ -507,7 +507,7 @@ public final class JuaAPI {
                 //noinspection Convert2Lambda
                 return L.push(new CFunction() {
                     @Override
-                    public int __call(Lua l) {
+                    public int __call(Lua l) throws LuaException {
                         try {
                             return (Integer) method.invoke(null, l);
                         } catch (IllegalAccessException e) {
@@ -536,7 +536,7 @@ public final class JuaAPI {
      * @param obj   the {@link CFunction} object
      * @return the number result pushed on stack
      */
-    public static int jfunctionCall(long index, Object obj) {
+    public static int jfunctionCall(long index, Object obj) throws LuaException {
         Lua L = Jua.get(index);
         if (obj instanceof CFunction) {
             return ((CFunction) obj).__call(L);
@@ -555,7 +555,7 @@ public final class JuaAPI {
      * @return the number of values pushed onto the stack
      */
     @SuppressWarnings("unused")
-    public static int arrayIndex(long index, Object obj, int i) {
+    public static int arrayIndex(long index, Object obj, int i) throws LuaException {
         Lua L = Jua.get(index);
         try {
             Object e = Array.get(obj, i - 1);
@@ -574,7 +574,7 @@ public final class JuaAPI {
      * @param i     the index (lua index, starting from 1)
      * @return the number of values pushed onto the stack
      */
-    public static int arrayNewIndex(long index, Object obj, int i) {
+    public static int arrayNewIndex(long index, Object obj, int i) throws LuaException {
         Lua L = Jua.get(index);
         try {
             Array.set(obj, i - 1, L.toObject(L.getTop(), obj.getClass().getComponentType()));
@@ -607,7 +607,7 @@ public final class JuaAPI {
      */
     @Nullable
     public static Object convertFromLua(Lua L, Class<?> clazz, int index)
-            throws IllegalArgumentException {
+            throws IllegalArgumentException, LuaException {
         LuaType type = L.type(index);
         if (type == LuaType.NIL) {
             if (clazz.isPrimitive()) {

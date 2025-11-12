@@ -66,7 +66,7 @@ public final class LuaProxy implements InvocationHandler {
         this.name = null;
     }
 
-    public static LuaProxy newInstance(Lua L, int idx, Class<?> interfaces, Lua.Conversion degree) {
+    public static LuaProxy newInstance(Lua L, int idx, Class<?> interfaces, Lua.Conversion degree) throws LuaException {
         LuaType type = L.type(idx);
         switch (type) {
             case FUNCTION:
@@ -169,7 +169,7 @@ public final class LuaProxy implements InvocationHandler {
         return callObjectDefault(o, method, objects);
     }
 
-    private Object callObjectDefault(Object o, Method method, Object[] objects) {
+    private Object callObjectDefault(Object o, Method method, Object[] objects) throws LuaException {
         if (methodEquals(method, int.class, "hashCode")) {
             return hashCode();
         }
@@ -189,7 +189,7 @@ public final class LuaProxy implements InvocationHandler {
                 && Arrays.equals(method.getParameterTypes(), parameters);
     }
 
-    public int unwrap() {
+    public int unwrap() throws LuaException {
         return L.refGet(value.getRef());
     }
 
