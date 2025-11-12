@@ -29,7 +29,8 @@ public class TestActivity extends Activity {
     static {
         LUA_TESTS = new String[]{
                 "Test Java Class", "test-class.lua",
-                "Test Java Object", "test-object.lua"
+                "Test Java Object", "test-object.lua",
+                "Test Java Array", "test-array.lua"
         };
     }
 
