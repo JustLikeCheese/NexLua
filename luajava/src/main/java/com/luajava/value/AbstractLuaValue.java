@@ -28,6 +28,7 @@ import com.luajava.LuaException;
 import com.luajava.value.immutable.LuaBoolean;
 import com.luajava.value.immutable.LuaNil;
 import com.luajava.value.immutable.LuaNumber;
+import com.luajava.value.referable.LuaCFunction;
 import com.luajava.value.referable.LuaFunction;
 import com.luajava.value.referable.LuaLightUserdata;
 import com.luajava.value.referable.LuaString;
@@ -778,7 +779,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaFunction checkCFunction() {
+    public LuaCFunction checkCFunction() {
         throw new IllegalArgumentException("Not a C function");
     }
 

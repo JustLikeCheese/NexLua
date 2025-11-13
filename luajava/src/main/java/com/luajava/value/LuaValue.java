@@ -27,6 +27,7 @@ import com.luajava.LuaException;
 import com.luajava.value.immutable.LuaBoolean;
 import com.luajava.value.immutable.LuaNil;
 import com.luajava.value.immutable.LuaNumber;
+import com.luajava.value.referable.LuaCFunction;
 import com.luajava.value.referable.LuaFunction;
 import com.luajava.value.referable.LuaLightUserdata;
 import com.luajava.value.referable.LuaString;
@@ -261,7 +262,7 @@ public interface LuaValue {
 
     LuaFunction checkFunction();
 
-    LuaFunction checkCFunction();
+    LuaCFunction checkCFunction();
 
     LuaLightUserdata checkLightUserdata();
 

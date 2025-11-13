@@ -41,7 +41,7 @@ public class LuaCFunction extends LuaFunction {
     }
 
     @Override
-    public LuaFunction checkCFunction() {
+    public LuaCFunction checkCFunction() {
         return this;
     }
 
