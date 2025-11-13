@@ -67,7 +67,7 @@ public class LuaUserdata extends AbstractLuaRefValue {
     public Object toJavaObject() throws LuaException {
         if (javaObject == null) {
             Object obj = super.toJavaObject();
-            javaObject = (obj != null) ? obj : this;
+            javaObject = (obj != null) ? obj : NONE;
         }
         return javaObject;
     }
@@ -83,7 +83,7 @@ public class LuaUserdata extends AbstractLuaRefValue {
             return true;
         }
         Object object = toJavaObject();
-        if (object != this) {
+        if (object != NONE) {
             Class<?> wrapperClass = ClassUtils.getWrapperType(clazz);
             Class<?> objectClass = ClassUtils.getWrapperType(object.getClass());
             return wrapperClass.isAssignableFrom(objectClass);
