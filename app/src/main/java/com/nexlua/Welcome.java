@@ -56,7 +56,8 @@ public class Welcome extends Activity {
 
     public void startActivity() {
         Intent intent = new Intent(Welcome.this, Main.class);
-        intent.putExtra(LuaContext.LUA_PATH, new File(getFilesDir(), LuaConfig.LUA_ENTRY).getPath());
+        LuaIntent luaIntent = new LuaIntent(LuaConfig.APP_THEME, new File(getFilesDir(), LuaConfig.LUA_ENTRY).getPath());
+        intent.putExtra(LuaIntent.NAME, luaIntent);
         if (isVersionChanged) {
             intent.putExtra("isVersionChanged", true);
             intent.putExtra("newVersionName", newVersionName);
@@ -93,7 +94,7 @@ public class Welcome extends Activity {
             String oldVersionName = info.getString("versionName", "");
             long oldUpdateTime = info.getLong("lastUpdateTime", 0);
             // 如果软件安装的时间与历史更新时间不同 / 版本名称不同, 触发更新
-            if (oldUpdateTime == 0 || oldUpdateTime != lastUpdateTime || !versionName.equals(oldVersionName)) {
+            if (oldUpdateTime == 0 || oldUpdateTime != lastUpdateTime || (versionName != null && !versionName.equals(oldVersionName))) {
                 SharedPreferences.Editor edit = info.edit();
                 edit.putLong("lastUpdateTime", lastUpdateTime);
                 edit.putString("versionName", versionName);

@@ -1,6 +1,4 @@
 package com.nexlua;
-
-
 import android.content.Context;
 import android.widget.Toast;
 
@@ -13,11 +11,6 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 
 public interface LuaContext {
-    String LUA_PATH = "path";
-    String LUA_ARG = "arg";
-    String LUA_NEW_ACTIVITY_NAME = "name";
-    String LUA_NEW_ACTIVITY_DATA = "data";
-
     ArrayList<ClassLoader> getClassLoaders();
 
     Lua getLua();

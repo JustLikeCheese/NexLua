@@ -14,8 +14,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.os.StrictMode;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -24,7 +22,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -32,92 +29,71 @@ import android.widget.TextView;
 
 import com.luajava.Lua;
 import com.luajava.LuaException;
-import com.luajava.LuaHandler;
 import com.luajava.value.LuaValue;
+import com.luajava.value.referable.LuaFunction;
 
 import java.io.File;
 import java.util.ArrayList;
 
 public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnReceiveListener, com.nexlua.LuaContext {
-    protected int mWidth, mHeight;
-    private LuaValue mOnKeyDown;
-    private LuaValue mOnKeyUp;
-    private LuaValue mOnKeyLongPress;
-    private LuaValue mOnKeyShortcut;
-    private LuaValue mOnTouchEvent;
-    private LuaValue mOnCreateOptionsMenu, mOnCreateContextMenu, mOnOptionsItemSelected, mOnMenuItemSelected, mOnContextItemSelected;
-    private LuaValue mOnActivityResult, onRequestPermissionsResult, mOnSaveInstanceState, mOnRestoreInstanceState;
-    private LuaValue mOnStart, mOnResume, mOnPause, mOnStop, mOnRestarted;
-    private LuaValue mOnConfigurationChanged;
-    private LuaValue mOnError, mOnReceive, mOnNewIntent, mOnResult;
+    private LuaFunction mOnKeyDown;
+    private LuaFunction mOnKeyUp;
+    private LuaFunction mOnKeyLongPress;
+    private LuaFunction mOnKeyShortcut;
+    private LuaFunction mOnTouchEvent;
+    private LuaFunction mOnCreateOptionsMenu, mOnCreateContextMenu, mOnOptionsItemSelected, mOnMenuItemSelected, mOnContextItemSelected;
+    private LuaFunction mOnActivityResult, onRequestPermissionsResult, mOnSaveInstanceState, mOnRestoreInstanceState;
+    private LuaFunction mOnStart, mOnResume, mOnPause, mOnStop, mOnRestarted;
+    private LuaFunction mOnConfigurationChanged;
+    private LuaFunction mOnError, mOnReceive, mOnNewIntent, mOnResult, mOnDestroy;
     private LuaBroadcastReceiver mReceiver;
     protected File luaDir, luaFile;
     protected String luaPath, luaLpath, luaCpath;
-    protected final Lua L = new Lua();
-    public LuaPrint print;
-    protected LuaApplication app;
-    private Menu optionsMenu;
+    protected final Lua L = new Lua(this::sendError);
+    protected final LuaPrint print = new LuaPrint(this);
+    protected final LuaApplication app = LuaApplication.getInstance();
+    protected LuaIntent intent;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // 设置主题
-        if (LuaConfig.APP_THEME != 0) setTheme(LuaConfig.APP_THEME);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
+        intent = getIntent().getSerializableExtra(LuaIntent.NAME, LuaIntent.class);
+        if (intent != null) {
+            setTheme(intent.theme);
+            luaPath = intent.name;
+            luaFile = new File(luaPath);
+            luaDir = luaFile.getParentFile();
+        }
         super.onCreate(null);
-        // 获取屏幕大小
-        WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        wm.getDefaultDisplay().getMetrics(outMetrics);
-        mWidth = outMetrics.widthPixels;
-        mHeight = outMetrics.heightPixels;
-        // 获取传入 path 参数, 定义 luaDir
-        app = LuaApplication.getInstance();
-        Intent intent = getIntent();
-        luaFile = new File(intent.getStringExtra(LuaContext.LUA_PATH));
-        luaDir = luaFile.getParentFile();
-        luaPath = luaFile.getAbsolutePath();
-        luaCpath = app.getLuaCpath();
-        luaLpath = app.getLuaLpath();
-        // 初始化 Lua 环境
         try {
-            L.setHandler(e -> {
-                Lua.logError(e.toString());
-                sendError(e);
-            });
             L.openLibraries();
             L.setExternalLoader(new LuaModuleLoader(this));
+            luaCpath = app.getLuaCpath();
+            luaLpath = app.getLuaLpath();
             if (!luaDir.equals(app.getLuaDir())) {
                 luaCpath = luaCpath + luaDir + "/lib?.so;";
                 luaLpath = luaLpath + luaDir + "/?.lua;" + luaDir + "/lua/?.lua;" + luaDir + "/?/init.lua;";
             }
             // package.path 和 cpath
             L.getGlobal("package");
-            if (L.isTable(-1)) {
-                L.push(luaLpath);
-                L.setField(-2, "path");
-                L.push(luaCpath);
-                L.setField(-2, "cpath");
+            if (L.isTable(1)) {
+                L.setField(1, "path", luaLpath);
+                L.setField(1, "cpath", luaCpath);
+                L.pop(1);
             }
-            L.pop(1); // pop package 或 nil
             // 插入 LuaActivity
             L.pushJavaObject(this);
-            L.pushValue(-1);
+            L.pushValue(1);
             L.setGlobal("activity");
             L.setGlobal("this");
             // 插入 LuaPrint
-            L.pushNil();
-            L.setGlobal("print");
-            LuaPrint print = new LuaPrint(this);
             L.pushJavaObject(print);
             L.setGlobal("print");
-            this.print = print;
             // 插入 LuaApplication
             L.pushJavaObject(app);
             L.setGlobal("application");
             loadLua();
-            // onCreate
-            LuaValue mOnCreate = L.getLuaFunction("onCreate");
             // onKeyEvent
             mOnKeyShortcut = L.getLuaFunction("onKeyShortcut");
             mOnKeyDown = L.getLuaFunction("onKeyDown");
@@ -164,9 +140,11 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
             mOnStop = L.getLuaFunction("onStop");
             // onRestart
             mOnRestarted = L.getLuaFunction("onRestart");
-            onLuaEvent(mOnCreate);
-            Object[] arg = (Object[]) intent.getSerializableExtra(LuaContext.LUA_ARG);
-            if (arg != null) runFunc("main", arg);
+            // onDestroy
+            mOnDestroy = L.getLuaFunction("onDestroy");
+            // onCreate
+            runFunc("onCreate", savedInstanceState);
+            runFunc("main", intent.args);
         } catch (Exception e) {
             sendError(e);
         }
@@ -244,11 +222,33 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         isViewInflated = false;
     }
 
-    private boolean onLuaEvent(LuaValue event, Object... args) {
+    protected boolean onLuaEvent(LuaValue event, Object... args) {
         if (event != null) {
             try {
-                LuaValue[] ret = event.call(args);
-                return ret != null && ret.length > 0 && ret[0].toBoolean();
+                L.push(event);
+                if (L.isFunction(-1)) {
+                    L.pCall(args, Lua.Conversion.SEMI, 1);
+                    Object object = L.get().toJavaObject();
+                    return object != Boolean.FALSE && object != null;
+                }
+                return false;
+            } catch (LuaException e) {
+                sendError(e);
+            }
+        }
+        return false;
+    }
+
+    protected boolean runFunc(String funcName, Object... args) {
+        if (funcName != null) {
+            try {
+                L.getGlobal(funcName);
+                if (L.isFunction(-1)) {
+                    L.pCall(args, Lua.Conversion.SEMI, 1);
+                    Object object = L.get().toJavaObject();
+                    return object != Boolean.FALSE && object != null;
+                }
+                return false;
             } catch (LuaException e) {
                 sendError(e);
             }
@@ -282,7 +282,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (mOnReceive != null) mOnReceive.call(context, intent);
+        onLuaEvent(mOnReceive, context, intent);
     }
 
     @Override
@@ -294,67 +294,65 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     @Override
     protected void onStart() {
         super.onStart();
-        if (mOnStart != null) mOnStart.call();
+        onLuaEvent(mOnStart);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (mOnResume != null) mOnResume.call();
+        onLuaEvent(mOnResume);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (mOnPause != null) mOnPause.call();
+        onLuaEvent(mOnPause);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if (mOnStop != null) mOnStop.call();
+        onLuaEvent(mOnStop);
     }
 
     @Override
     protected void onDestroy() {
         if (mReceiver != null) unregisterReceiver(mReceiver);
-        runFunc("onDestroy");
-        super.onDestroy();
+        onLuaEvent(mOnDestroy);
         System.gc();
         L.gc();
         L.close();
+        super.onDestroy();
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        if (mOnRestarted != null) mOnRestarted.call();
+        onLuaEvent(mOnRestarted);
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (mOnSaveInstanceState != null) mOnSaveInstanceState.call(outState);
+        onLuaEvent(mOnSaveInstanceState, outState);
     }
 
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState, PersistableBundle persistentState) {
         super.onRestoreInstanceState(savedInstanceState, persistentState);
-        if (mOnRestoreInstanceState != null)
-            mOnRestoreInstanceState.call(savedInstanceState, persistentState);
+        onLuaEvent(mOnRestoreInstanceState, savedInstanceState, persistentState);
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
-        if (mOnNewIntent != null) mOnNewIntent.call(intent);
         super.onNewIntent(intent);
+        onLuaEvent(mOnNewIntent, intent);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (onRequestPermissionsResult != null)
-            onRequestPermissionsResult.call(requestCode, permissions, grantResults);
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        onLuaEvent(onRequestPermissionsResult, requestCode, permissions, grantResults);
     }
 
     @Override
@@ -394,10 +392,6 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
                 : onLuaEvent(mOnOptionsItemSelected, item);
     }
 
-    public Menu getOptionsMenu() {
-        return optionsMenu;
-    }
-
     @Override
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         if (!isViewInflated && mOnOptionsItemSelected == null && item.getItemId() == android.R.id.home) {
@@ -411,7 +405,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo info) {
-        if (mOnCreateContextMenu != null) mOnCreateContextMenu.call(menu, view, info);
+        onLuaEvent(mOnCreateContextMenu, menu, view, info);
     }
 
     @Override
@@ -422,24 +416,12 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        mWidth = outMetrics.widthPixels;
-        mHeight = outMetrics.heightPixels;
-        if (mOnConfigurationChanged != null) mOnConfigurationChanged.call(newConfig);
-    }
-
-
-    public int getWidth() {
-        return mWidth;
-    }
-
-    public int getHeight() {
-        return mHeight;
+        onLuaEvent(mOnConfigurationChanged, newConfig);
     }
 
     @SuppressLint("ObsoleteSdkInt")
     public void finish(boolean finishTask) {
-        if (finishTask && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (finishTask && Build.VERSION.SDK_INT >= 21) {
             Intent intent = getIntent();
             if (intent != null && (intent.getFlags() & Intent.FLAG_ACTIVITY_NEW_DOCUMENT) != 0)
                 finishAndRemoveTask();
@@ -451,51 +433,16 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     @Override
     public void setTitle(CharSequence title) {
         super.setTitle(title);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+        if (Build.VERSION.SDK_INT >= 21)
             setTaskDescription(new ActivityManager.TaskDescription(title.toString()));
-    }
-
-
-    //运行lua函数
-    public Object runFunc(String funcName, Object... args) {
-        synchronized (L) {
-            final int oldTop = L.getTop();
-            try {
-                L.getGlobal(funcName);
-                if (!L.isFunction(-1)) {
-                    Log.e("LuaJava", funcName + " is not a function!");
-                    return null;
-                }
-
-                L.pCall(args, Lua.Conversion.SEMI, 1);
-                Object result = L.toObject(-1);
-                return result;
-
-            } catch (LuaException e) {
-                sendError(e);
-                return null;
-            } finally {
-                L.setTop(oldTop);
-            }
-        }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if (intent != null) {
-            String name = intent.getStringExtra(LuaContext.LUA_NEW_ACTIVITY_NAME);
-            if (name != null) {
-                Object[] res = (Object[]) intent.getSerializableExtra(LuaContext.LUA_NEW_ACTIVITY_DATA);
-                boolean ret;
-                if (res == null) {
-                    ret = onLuaEvent(mOnResult, name);
-                } else {
-                    Object[] arg = new Object[res.length + 1];
-                    arg[0] = name;
-                    System.arraycopy(res, 0, arg, 1, res.length);
-                    ret = onLuaEvent(mOnResult, arg);
-                }
-                if (ret) return;
+            LuaIntent result = LuaIntent.from(intent);
+            if (onLuaEvent(mOnResult, result.args)) {
+                return;
             }
         }
         onLuaEvent(mOnActivityResult, requestCode, resultCode, intent);
@@ -503,15 +450,14 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     }
 
     public void newActivity(String name) {
-        newActivity(name, new Object[]{});
+        newActivity(name, null);
     }
 
-    public void newActivity(String name, Object... args) {
+    public void newActivity(String name, Object[] args) {
         File file = new File(name);
         if (!file.exists()) file = new File(luaDir, name);
         Intent intent = new Intent(this, LuaActivity.class);
-        intent.putExtra(LuaContext.LUA_PATH, file.getPath());
-        intent.putExtra(LuaContext.LUA_ARG, args);
+        intent.putExtra(LuaIntent.NAME, new LuaIntent(file.getPath(), args));
         startActivity(intent);
     }
 
@@ -519,17 +465,14 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         File file = new File(name);
         if (!file.exists()) file = new File(luaDir, name);
         Intent intent = new Intent(this, LuaActivity.class);
-        intent.putExtra(LuaContext.LUA_NEW_ACTIVITY_NAME, file.getPath());
-        intent.putExtra(LuaContext.LUA_PATH, file.getPath());
-        intent.putExtra(LuaContext.LUA_ARG, args);
+        intent.putExtra(LuaIntent.NAME, new LuaIntent(file.getPath(), args));
         startActivityForResult(intent, requestCode);
     }
 
-    public void setActivityResult(Object[] data) {
-        Intent res = new Intent();
-        res.putExtra(LuaContext.LUA_NEW_ACTIVITY_NAME, getIntent().getStringExtra(LuaContext.LUA_NEW_ACTIVITY_NAME));
-        res.putExtra(LuaContext.LUA_NEW_ACTIVITY_DATA, data);
-        setResult(0, res);
+    public void setActivityResult(int resultCode, Object[] data) {
+        Intent intent = new Intent();
+        intent.putExtra(LuaIntent.NAME, new LuaIntent(this.intent.name, this.intent.args));
+        setResult(resultCode, intent);
         finish();
     }
 

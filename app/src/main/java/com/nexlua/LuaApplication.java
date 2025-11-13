@@ -5,22 +5,18 @@ import android.app.Application;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Build;
-import android.preference.PreferenceManager;
 import android.widget.Toast;
 
 import com.luajava.Lua;
+import com.luajava.LuaException;
 import com.luajava.value.LuaValue;
-import com.luajava.value.referable.LuaTable;
+import com.luajava.value.referable.LuaFunction;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import io.github.justlikecheese.nextoast.NexToast;
 
@@ -28,11 +24,10 @@ public class LuaApplication extends Application implements LuaContext {
     private static LuaApplication mApplication;
     private static final HashMap<String, Object> data = new HashMap<>();
     private static final String LUA_APPLICATION_ENTRY = "app.lua";
-    private SharedPreferences mSharedPreferences;
     private File luaDir, luaFile;
     private String luaLpath, luaCpath;
     private Lua L;
-    private LuaValue mOnTerminate, mOnLowMemory, mOnTrimMemory, mOnConfigurationChanged;
+    private LuaFunction mOnTerminate, mOnLowMemory, mOnTrimMemory, mOnConfigurationChanged;
     private NexToast mToast;
     private StringBuilder mToastBuilder = new StringBuilder();
     private long mToastTime;
@@ -41,7 +36,6 @@ public class LuaApplication extends Application implements LuaContext {
     public void onCreate() {
         super.onCreate();
         mApplication = this;
-        mSharedPreferences = getSharedPreferences(this);
         // 初始化 LuaUtil, CrashHandler
         LuaUtil.init(this);
         CrashHandler.getInstance().init(this);
@@ -64,121 +58,76 @@ public class LuaApplication extends Application implements LuaContext {
             } else {
                 return;
             }
-            LuaValue mOnCreate = L.getLuaFunction("onCreate");
             mOnTerminate = L.getLuaFunction("onTerminate");
             mOnLowMemory = L.getLuaFunction("onLowMemory");
             mOnTrimMemory = L.getLuaFunction("onTrimMemory");
             mOnConfigurationChanged = L.getLuaFunction("onConfigurationChanged");
-            if (mOnCreate != null) mOnCreate.call();
+            runFunc("onCreate");
         } catch (Exception e) {
             sendError(e);
         }
     }
 
+    protected boolean onLuaEvent(LuaValue event, Object... args) {
+        if (event != null) {
+            try {
+                L.push(event);
+                if (L.isFunction(-1)) {
+                    L.pCall(args, Lua.Conversion.SEMI, 1);
+                    Object object = L.get().toJavaObject();
+                    return object != Boolean.FALSE && object != null;
+                }
+                return false;
+            } catch (LuaException e) {
+                sendError(e);
+            }
+        }
+        return false;
+    }
+
+    protected boolean runFunc(String funcName, Object... args) {
+        if (funcName != null) {
+            try {
+                L.getGlobal(funcName);
+                if (L.isFunction(-1)) {
+                    L.pCall(args, Lua.Conversion.SEMI, 1);
+                    Object object = L.get().toJavaObject();
+                    return object != Boolean.FALSE && object != null;
+                }
+                return false;
+            } catch (LuaException e) {
+                sendError(e);
+            }
+        }
+        return false;
+    }
+
     @Override
     public void onTerminate() {
         super.onTerminate();
-        if (mOnTerminate != null) mOnTerminate.call();
+        onLuaEvent(mOnTerminate);
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        if (mOnLowMemory != null) mOnLowMemory.call();
+        onLuaEvent(mOnLowMemory);
     }
 
     @Override
     public void onTrimMemory(int level) {
         super.onTrimMemory(level);
-        if (mOnTrimMemory != null) mOnTrimMemory.call(level);
+        onLuaEvent(mOnTrimMemory);
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if (mOnConfigurationChanged != null) mOnConfigurationChanged.call(newConfig);
+        onLuaEvent(mOnConfigurationChanged, newConfig);
     }
 
     public static LuaApplication getInstance() {
         return mApplication;
-    }
-
-    private static SharedPreferences getSharedPreferences(Context context) {
-        // Android 7 及以上
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            Context deContext = context.createDeviceProtectedStorageContext();
-            if (deContext != null)
-                return PreferenceManager.getDefaultSharedPreferences(deContext);
-            else
-                return PreferenceManager.getDefaultSharedPreferences(context);
-        }
-        return PreferenceManager.getDefaultSharedPreferences(context);
-    }
-
-    public HashMap<String, Object> getGlobalData() {
-        return data;
-    }
-
-    public Object getGlobalData(String key) {
-        return data.get(key);
-    }
-
-    public Object getGlobalData(String key, Object def) {
-        Object ret = data.get(key);
-        if (ret == null)
-            return def;
-        return ret;
-    }
-
-    public void setGlobalData(String key, Object value) {
-        data.put(key, value);
-    }
-
-    public Object getSharedData() {
-        return mSharedPreferences.getAll();
-    }
-
-    public Object getSharedData(String key) {
-        return mSharedPreferences.getAll().get(key);
-    }
-
-    public Object getSharedData(String key, Object def) {
-        Object ret = mSharedPreferences.getAll().get(key);
-        if (ret == null)
-            return def;
-        return ret;
-    }
-
-    public boolean setSharedData(String key, Object value) {
-        SharedPreferences.Editor edit = mSharedPreferences.edit();
-        if (value == null)
-            edit.remove(key);
-        else if (value instanceof String)
-            edit.putString(key, value.toString());
-        else if (value instanceof Long)
-            edit.putLong(key, (Long) value);
-        else if (value instanceof Integer)
-            edit.putInt(key, (Integer) value);
-        else if (value instanceof Float)
-            edit.putFloat(key, (Float) value);
-        else if (value instanceof Set)
-            edit.putStringSet(key, (Set<String>) value);
-        else if (value instanceof LuaTable) {
-            LuaTable table = (LuaTable) value;
-            HashSet<String> stringSet = new HashSet<>();
-            for (Map.Entry<LuaValue, LuaValue> entry : table.toMap().entrySet()) {
-                LuaValue val = entry.getValue();
-                if (val != null) {
-                    stringSet.add((String) val.toJavaObject());
-                }
-            }
-            edit.putStringSet(key, stringSet);
-        } else if (value instanceof Boolean)
-            edit.putBoolean(key, (Boolean) value);
-        else
-            return false;
-        edit.apply();
-        return true;
     }
 
     @Override
