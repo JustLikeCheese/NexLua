@@ -22,6 +22,7 @@
 
 package com.luajava.value;
 
+import com.luajava.CFunction;
 import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.value.immutable.LuaBoolean;
@@ -181,26 +182,159 @@ public interface LuaValue {
 
     boolean greaterThanOrEqual(Object value, Class<?> clazz, Lua.Conversion degree) throws LuaException;
 
-    // call
-    LuaValue[] call() throws LuaException;
+    // Keep Object[]
+    int call(Object[] args) throws LuaException;
 
-    LuaValue[] call(Object... args) throws LuaException;
+    int call(Object[] args, int nResults) throws LuaException;
 
-    LuaValue[] call(Lua.Conversion degree, Object... args) throws LuaException;
+    // Keep Lua.Conversion
+    int call(Object[] args, Lua.Conversion degree) throws LuaException;
 
-    LuaValue[] call(Class<?> clazz, Object... args) throws LuaException;
+    int call(Object[] args, Lua.Conversion degree, int nResults) throws LuaException;
 
-    LuaValue[] call(Class<?> clazz, Lua.Conversion degree, Object... args) throws LuaException;
+    // Keep Class<?>
+    int call(Object[] args, Class<?> clazz) throws LuaException;
 
-    LuaValue[] pCall() throws LuaException;
+    int call(Object[] args, Class<?> clazz, int nResults) throws LuaException;
 
-    LuaValue[] pCall(Object... args) throws LuaException;
+    // Keep Class<?> & Lua.Conversion
+    int call(Object[] args, Class<?> clazz, Lua.Conversion degree) throws LuaException;
 
-    LuaValue[] pCall(Lua.Conversion degree, Object... args) throws LuaException;
+    int call(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) throws LuaException;
 
-    LuaValue[] pCall(Class<?> clazz, Object... args) throws LuaException;
+    int call();
 
-    LuaValue[] pCall(Class<?> clazz, Lua.Conversion degree, Object... args) throws LuaException;
+    int call(int nArgs);
+
+    int call(int nArgs, int nResults);
+
+    // Keep Object[]
+    int pCall(Object[] args) throws LuaException;
+
+    int pCall(Object[] args, int nResults) throws LuaException;
+
+    int pCall(Object[] args, int nResults, int errfunc) throws LuaException;
+
+    // Keep Lua.Conversion
+    int pCall(Object[] args, Lua.Conversion degree) throws LuaException;
+
+    int pCall(Object[] args, Lua.Conversion degree, int nResults) throws LuaException;
+
+    int pCall(Object[] args, Lua.Conversion degree, int nResults, int errfunc) throws LuaException;
+
+    // Keep Class<?>
+    int pCall(Object[] args, Class<?> clazz) throws LuaException;
+
+    int pCall(Object[] args, Class<?> clazz, int nResults) throws LuaException;
+
+    int pCall(Object[] args, Class<?> clazz, int nResults, int errfunc) throws LuaException;
+
+    // Keep Class<?> & Lua.Conversion
+    int pCall(Object[] args, Class<?> clazz, Lua.Conversion degree) throws LuaException;
+
+    int pCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) throws LuaException;
+
+    int pCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults, int errfunc) throws LuaException;
+
+    int pCall() throws LuaException;
+
+    int pCall(int nArgs) throws LuaException;
+
+    int pCall(int nArgs, int nResults) throws LuaException;
+
+    int pCall(int nArgs, int nResults, int errfunc) throws LuaException;
+
+    // Keep Object[]
+    int xpCall(Object[] args, CFunction handler) throws LuaException;
+
+    int xpCall(Object[] args, int nResults, CFunction handler) throws LuaException;
+
+    // Keep Lua.Conversion
+    int xpCall(Object[] args, Lua.Conversion degree, CFunction handler) throws LuaException;
+
+    int xpCall(Object[] args, Lua.Conversion degree, int nResults, CFunction handler) throws LuaException;
+
+    // Keep Class<?>
+    int xpCall(Object[] args, Class<?> clazz, CFunction handler) throws LuaException;
+
+    int xpCall(Object[] args, Class<?> clazz, int nResults, CFunction handler) throws LuaException;
+
+    // Keep Class<?> & Lua.Conversion
+    int xpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, CFunction handler) throws LuaException;
+
+    int xpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults, CFunction handler) throws LuaException;
+
+    int xpCall(CFunction handler) throws LuaException;
+
+    int xpCall(int nArgs, CFunction handler) throws LuaException;
+
+    int xpCall(int nArgs, int nResults, CFunction handler) throws LuaException;
+
+    // Value Function Call
+    // Keep Object[]
+    LuaValue[] vCall(Object[] args) throws LuaException;
+    LuaValue[] vCall(Object[] args, int nResults) throws LuaException;
+
+    // Keep Lua.Conversion
+    LuaValue[] vCall(Object[] args, Lua.Conversion degree) throws LuaException;
+    LuaValue[] vCall(Object[] args, Lua.Conversion degree, int nResults) throws LuaException;
+
+    // Keep Class<?>
+    LuaValue[] vCall(Object[] args, Class<?> clazz) throws LuaException;
+    LuaValue[] vCall(Object[] args, Class<?> clazz, int nResults) throws LuaException;
+
+    // Keep Class<?> & Lua.Conversion
+    LuaValue[] vCall(Object[] args, Class<?> clazz, Lua.Conversion degree) throws LuaException;
+    LuaValue[] vCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) throws LuaException;
+
+    LuaValue[] vCall();
+    LuaValue[] vCall(int nArgs);
+    LuaValue[] vCall(int nArgs, int nResults);
+
+    // Keep Object[]
+    LuaValue[] vpCall(Object[] args) throws LuaException;
+    LuaValue[] vpCall(Object[] args, int nResults) throws LuaException;
+    LuaValue[] vpCall(Object[] args, int nResults, int errfunc) throws LuaException;
+
+    // Keep Lua.Conversion
+    LuaValue[] vpCall(Object[] args, Lua.Conversion degree) throws LuaException;
+    LuaValue[] vpCall(Object[] args, Lua.Conversion degree, int nResults) throws LuaException;
+    LuaValue[] vpCall(Object[] args, Lua.Conversion degree, int nResults, int errfunc) throws LuaException;
+
+    // Keep Class<?>
+    LuaValue[] vpCall(Object[] args, Class<?> clazz) throws LuaException;
+    LuaValue[] vpCall(Object[] args, Class<?> clazz, int nResults) throws LuaException;
+    LuaValue[] vpCall(Object[] args, Class<?> clazz, int nResults, int errfunc) throws LuaException;
+
+    // Keep Class<?> & Lua.Conversion
+    LuaValue[] vpCall(Object[] args, Class<?> clazz, Lua.Conversion degree) throws LuaException;
+    LuaValue[] vpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) throws LuaException;
+    LuaValue[] vpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults, int errfunc) throws LuaException;
+
+    LuaValue[] vpCall() throws LuaException;
+    LuaValue[] vpCall(int nArgs) throws LuaException;
+    LuaValue[] vpCall(int nArgs, int nResults) throws LuaException;
+    LuaValue[] vpCall(int nArgs, int nResults, int errfunc) throws LuaException;
+
+    // Keep Object[]
+    LuaValue[] vxpCall(Object[] args, CFunction handler) throws LuaException;
+    LuaValue[] vxpCall(Object[] args, int nResults, CFunction handler) throws LuaException;
+
+    // Keep Lua.Conversion
+    LuaValue[] vxpCall(Object[] args, Lua.Conversion degree, CFunction handler) throws LuaException;
+    LuaValue[] vxpCall(Object[] args, Lua.Conversion degree, int nResults, CFunction handler) throws LuaException;
+
+    // Keep Class<?>
+    LuaValue[] vxpCall(Object[] args, Class<?> clazz, CFunction handler) throws LuaException;
+    LuaValue[] vxpCall(Object[] args, Class<?> clazz, int nResults, CFunction handler) throws LuaException;
+
+    // Keep Class<?> & Lua.Conversion
+    LuaValue[] vxpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, CFunction handler) throws LuaException;
+    LuaValue[] vxpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults, CFunction handler) throws LuaException;
+
+    LuaValue[] vxpCall(CFunction handler) throws LuaException;
+    LuaValue[] vxpCall(int nArgs, CFunction handler) throws LuaException;
+    LuaValue[] vxpCall(int nArgs, int nResults, CFunction handler) throws LuaException;
 
     // sugar
     boolean isNone();
