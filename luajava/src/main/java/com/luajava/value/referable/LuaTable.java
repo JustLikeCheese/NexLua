@@ -29,6 +29,7 @@ import com.luajava.value.LuaProxy;
 import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -79,7 +80,7 @@ public class LuaTable extends AbstractLuaRefValue {
             return this;
         else if (clazz.isArray())
             return toJavaArray();
-        else if (clazz.isAssignableFrom(List.class))
+        else if (clazz.isAssignableFrom(Collection.class))
             return toJavaList();
         else if (clazz == Object.class || Map.class.isAssignableFrom(clazz))
             return toJavaMap();

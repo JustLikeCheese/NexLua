@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 
 public interface LuaValue {
+    public static final Object NONE = Lua.NONE;
+
     // stack
     Lua state();
 

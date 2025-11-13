@@ -68,6 +68,7 @@ public class Lua {
     protected final ConcurrentHashMap<Integer, LuaReference<?>> recordedReferences;
     public final LuaNil NIL;
     public final LuaBoolean TRUE, FALSE;
+    public static final Object NONE = new Object();
     public static LuaNatives C;
     protected final long L;
     protected static final String TAG = "LuaJava";
@@ -494,51 +495,6 @@ public class Lua {
         return (buffer != null) ? buffer.asReadOnlyBuffer() : null;
     }
 
-    public @Nullable Object toJavaObject(int index) {
-        return C.luaJ_toobject(L, index);
-    }
-
-    public @Nullable Map<?, ?> toMap(int index) throws LuaException {
-        Object obj = toJavaObject(index);
-        if (obj instanceof Map) {
-            return ((Map<?, ?>) obj);
-        }
-        checkStack(2);
-        index = getAbsoluteIndex(index);
-        if (C.lua_istable(L, index) == 1) {
-            C.lua_pushnil(L);
-            Map<Object, Object> map = new HashMap<>();
-            while (C.lua_next(L, index) != 0) {
-                Object key = toObject(-2);
-                Object value = toObject(-1);
-                map.put(key, value);
-                pop(1);
-            }
-            return map;
-        }
-        return null;
-    }
-
-    public @Nullable List<?> toList(int index) throws LuaException {
-        Object obj = toJavaObject(index);
-        if (obj instanceof List) {
-            return ((List<?>) obj);
-        }
-        checkStack(1);
-        if (C.lua_istable(L, index) == 1) {
-            long length = rawLength(index);
-            ArrayList<Object> list = new ArrayList<>();
-            list.ensureCapacity((int) length);
-            for (int i = 1; i <= length; i++) {
-                C.lua_rawgeti(L, index, i);
-                list.add(toObject(-1));
-                pop(1);
-            }
-            return list;
-        }
-        return null;
-    }
-
     // LuaState
     public void close() {
         C.lua_close(L);
@@ -670,10 +626,6 @@ public class Lua {
         return C.lua_isthread(L, index) != 0;
     }
 
-    public boolean isJavaObject(int index) {
-        return C.luaJ_isobject(L, index) != 0;
-    }
-
     // Check API
     public int checkOption(int arg, String def, String[] options) {
         String str = (isString(arg)) ? toString(arg) : def;
@@ -796,13 +748,18 @@ public class Lua {
         C.lua_settable(L, index);
     }
 
-    public void getField(int index, String key) throws LuaException {
+    public void getField(int index, String value) throws LuaException {
         checkStack(1);
-        C.lua_getfield(L, index, key);
+        C.lua_getfield(L, index, value);
     }
 
-    public void setField(int index, String key) {
-        C.lua_setfield(L, index, key);
+    public void setField(int index, String value) {
+        C.lua_setfield(L, index, value);
+    }
+
+    public void setField(int index, String key, String value) {
+        push(key);
+        setField(getAbsoluteIndex(index), value);
     }
 
     public void rawGet(int index) throws LuaException {
@@ -1244,61 +1201,13 @@ public class Lua {
         return top + 1 + index;
     }
 
-
-    public @Nullable Object toObject(int index) throws LuaException {
-        LuaType type = type(index);
-        if (type == null) {
-            return null;
-        }
-        switch (type) {
-            case NIL:
-            case NONE:
-                return null;
-            case BOOLEAN:
-                return toBoolean(index);
-            case NUMBER:
-                return toNumber(index);
-            case STRING:
-                return toString(index);
-            case TABLE:
-                return toMap(index);
-            case USERDATA:
-                return toJavaObject(index);
-        }
-        return get();
+    public boolean isJavaObject(int index) {
+        return C.luaJ_isobject(L, index) != 0;
     }
 
-
-    public @Nullable Object toObject(int index, Class<?> type) throws LuaException {
-        Object converted = toObject(index);
-        if (converted == null) {
-            return null;
-        } else if (type.isAssignableFrom(converted.getClass())) {
-            return converted;
-        } else if (Number.class.isAssignableFrom(converted.getClass())) {
-            Number number = ((Number) converted);
-            if (type == byte.class || type == Byte.class) {
-                return number.byteValue();
-            }
-            if (type == short.class || type == Short.class) {
-                return number.shortValue();
-            }
-            if (type == int.class || type == Integer.class) {
-                return number.intValue();
-            }
-            if (type == long.class || type == Long.class) {
-                return number.longValue();
-            }
-            if (type == float.class || type == Float.class) {
-                return number.floatValue();
-            }
-            if (type == double.class || type == Double.class) {
-                return number.doubleValue();
-            }
-        }
-        return null;
+    public Object toJavaObject(int index) {
+        return C.luaJ_toobject(L, index);
     }
-
 
     public void loadString(String script) throws LuaException {
         checkStack(1);
@@ -1842,8 +1751,6 @@ public class Lua {
     public LuaThread checkLuaThread(String globalName) throws LuaException {
         return getLuaThread(globalName).checkThread();
     }
-
-
 
 
     public enum Conversion {
