@@ -61,6 +61,7 @@ import com.luajava.value.referable.LuaUserdata;
 /**
  * An implementation that relies on {@link LuaNatives} for most of the features independent of Lua versions
  */
+@SuppressWarnings("unused")
 public class Lua {
     protected volatile ExternalLoader loader;
     protected final ReferenceQueue<LuaReferable> recyclableReferences;
@@ -1410,9 +1411,8 @@ public class Lua {
      * @param method the method
      * @param params the parameters
      * @return the return value
-     * @throws Throwable whenever the method call throw exceptions
      */
-    public @Nullable Object invokeSpecial(Object object, Method method, @Nullable Object[] params) throws Throwable {
+    public @Nullable Object invokeSpecial(Object object, Method method, @Nullable Object[] params) throws RuntimeException {
         if (!ClassUtils.isDefault(method)) {
             throw new IncompatibleClassChangeError("Unable to invoke non-default method");
         }
