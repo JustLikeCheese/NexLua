@@ -48,14 +48,12 @@ public final class LuaProxy implements InvocationHandler {
     private final LuaValue value;
     private final Lua.Conversion degree;
     private final Class<?> interfaces;
-    private final String name;
 
-    private LuaProxy(Lua L, LuaFunction value, Lua.Conversion degree, Class<?> interfaces, String name) {
+    private LuaProxy(Lua L, LuaFunction value, Lua.Conversion degree, Class<?> interfaces) {
         this.L = L;
         this.value = value;
         this.degree = degree;
         this.interfaces = interfaces;
-        this.name = name;
     }
 
     private LuaProxy(Lua L, LuaTable value, Lua.Conversion degree, Class<?> interfaces) {
@@ -63,7 +61,6 @@ public final class LuaProxy implements InvocationHandler {
         this.value = value;
         this.degree = degree;
         this.interfaces = interfaces;
-        this.name = null;
     }
 
     public static LuaProxy newInstance(Lua L, int idx, Class<?> interfaces, Lua.Conversion degree) throws LuaException {
@@ -73,7 +70,7 @@ public final class LuaProxy implements InvocationHandler {
                 String name = ClassUtils.getSingleInterfaceMethodName(interfaces);
                 if (name == null)
                     throw new IllegalArgumentException("Unable to merge interfaces into a functional one");
-                return new LuaProxy(L, new LuaFunction(L, idx), degree, interfaces, name);
+                return new LuaProxy(L, new LuaFunction(L, idx), degree, interfaces);
             case TABLE:
                 return new LuaProxy(L, new LuaTable(L, idx), degree, interfaces);
             default:
@@ -85,7 +82,7 @@ public final class LuaProxy implements InvocationHandler {
         String name = ClassUtils.getSingleInterfaceMethodName(interfaces);
         if (name == null)
             throw new IllegalArgumentException("Unable to merge interfaces into a functional one");
-        return new LuaProxy(value.L, value, degree, interfaces, name);
+        return new LuaProxy(value.L, value, degree, interfaces);
     }
 
     public static LuaProxy newInstance(LuaTable value, Class<?> interfaces, Lua.Conversion degree) {
@@ -100,66 +97,35 @@ public final class LuaProxy implements InvocationHandler {
     }
 
     private Object syncInvoke(Object object, Method method, Object[] objects) throws Throwable {
-        if (value.isFunction()) {
-            int top = L.getTop();
-            try {
-                LuaFunction func = (LuaFunction) value;
-                L.push(func);
-                L.pCall(objects, 1);
-                Object result = L.get().toJavaObject(Object.class);
-                L.pop(1);
-                return result;
-            } catch (final Exception e) {
-                L.sendError(e);
-                Class<?> returnType = method.getReturnType();
-                if (returnType.isPrimitive()) {
-                    if (returnType == boolean.class) {
-                        return false;
-                    }
-                    if (returnType == char.class) {
-                        return '\0';
-                    }
-                    return 0;
-                } else {
-                    return null;
-                }
-            } finally {
-                L.setTop(top);
-            }
-        }
         int top = L.getTop();
-        L.push(value);
-        L.getField(-1, method.getName());
-        if (L.isNil(-1)) {
-            L.setTop(top);
-            return callDefaultMethod(object, method, objects);
-        }
-        L.pushJavaObject(object);
-
-        int nResults = method.getReturnType() == Void.TYPE ? 0 : 1;
-
-        if (objects == null) {
-            L.pCall(1, nResults);
-        } else {
-            for (Object o : objects) {
-                L.push(o, degree);
-            }
-            L.pCall(objects.length + 1, nResults);
-        }
-
+        Class<?> type = method.getReturnType();
         try {
-            if (method.getReturnType() == Void.TYPE) {
-                L.setTop(top);
-                return null;
-            } else {
-                Object o = JuaAPI.convertFromLua(L, method.getReturnType(), -1);
-                L.setTop(top);
-                return o;
+            L.push(value);
+            int nResults = (type == Void.TYPE || type == Void.class) ? 0 : 1;
+            if (value.isTable()) {
+                L.getField(-1, method.getName());
+                if (L.isNil(-1)) {
+                    L.setTop(top);
+                    return callDefaultMethod(object, method, objects);
+                }
             }
-        } catch (IllegalArgumentException e) {
+            L.pCall(objects, degree, nResults);
+            return L.get().toJavaObject(type);
+        } catch (Exception e) {
+            L.sendError(e);
+        } finally {
             L.setTop(top);
-            throw e;
         }
+        if (type.isPrimitive()) {
+            if (type == void.class) {
+                return null;
+            } else if (type == boolean.class) {
+                return false;
+            } else {
+                return 0;
+            }
+        }
+        return null;
     }
 
     private Object callDefaultMethod(Object o, Method method, Object[] objects) throws Throwable {
