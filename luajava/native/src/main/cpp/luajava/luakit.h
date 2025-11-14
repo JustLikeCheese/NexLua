@@ -5,11 +5,6 @@
 #include "lauxlib.h"
 #include "lualib.h"
 #include "luajit.h"
-
-#define CFunction(body) \
-({ \
-    static int _func(lua_State *L) body \
-    _func; \
-})
+#include "lualibrary.h"
 
 #endif // LUAKIT_H

@@ -1,10 +1,11 @@
 plugins {
     alias(libs.plugins.android.library)
+    id "com.vanniktech.maven.publish" version "0.34.0"
 }
 
 android {
     namespace 'com.luajava'
-    compileSdkVersion 28
+    compileSdkVersion 36
 
     defaultConfig {
         minSdk 21
@@ -12,14 +13,6 @@ android {
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
         }
     }
-
-    externalNativeBuild {
-        cmake {
-            version '3.22.1'
-            path file('src/main/cpp/CMakeLists.txt')
-        }
-    }
-    ndkVersion '27.0.12077973'
 
     buildTypes {
         release {
@@ -34,4 +27,38 @@ android {
 }
 
 dependencies {
+    implementation project(":luajava:core")
+    implementation project(":luajava:native")
+}
+
+mavenPublishing {
+    coordinates("io.github.justlikecheese.nexlua", "LuaJava", "1.0.0")
+    publishToMavenCentral()
+    signAllPublications()
+
+    pom {
+        name = "LuaJava"
+        description = "A high-performance LuaJIT framework for Android"
+        inceptionYear = "2025"
+        url = "https://github.com/JustLikeCheese/NexLua/"
+        licenses {
+            license {
+                name = "MIT License"
+                url = "https://opensource.org/licenses/MIT"
+                distribution = "repo"
+            }
+        }
+        developers {
+            developer {
+                id = "JustLikeCheese"
+                name = "JustLikeCheese"
+                url = "https://github.com/JustLikeCheese/"
+            }
+        }
+        scm {
+            url = "https://github.com/JustLikeCheese/NexLua"
+            connection = "scm:git://github.com/JustLikeCheese/NexLua.git"
+            developerConnection = "scm:git:ssh://git@github.com/JustLikeCheese/NexLua.git"
+        }
+    }
 }

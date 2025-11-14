@@ -1,22 +1,20 @@
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
 }
 
 android {
-    namespace 'com.nexlua'
-    compileSdkVersion 36
+    namespace 'com.luajava'
+    compileSdk {
+        version = release(36)
+    }
 
     defaultConfig {
-        applicationId "com.nexlua"
         minSdk 21
-        targetSdk 36
-        versionCode 1
-        versionName "1.0"
     }
+
     buildTypes {
         release {
             minifyEnabled false
-            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -27,5 +25,4 @@ android {
 }
 
 dependencies {
-    implementation project(':nexlua')
 }

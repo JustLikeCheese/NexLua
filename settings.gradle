@@ -22,3 +22,6 @@ dependencyResolutionManagement {
 rootProject.name = "NexLua"
 include ':luajava'
 include ':app'
+include ':nexlua'
+include ':luajava:core'
+include ':luajava:native'

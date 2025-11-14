@@ -58,7 +58,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     public void onCreate(Bundle savedInstanceState) {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-        intent = getIntent().getSerializableExtra(LuaIntent.NAME, LuaIntent.class);
+        intent = (LuaIntent) getIntent().getSerializableExtra(LuaIntent.NAME);
         if (intent != null) {
             setTheme(intent.theme);
             luaPath = intent.name;

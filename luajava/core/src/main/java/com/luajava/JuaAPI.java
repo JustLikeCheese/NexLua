@@ -24,7 +24,6 @@ package com.luajava;
 
 import com.luajava.util.ClassUtils;
 import com.luajava.value.LuaProxy;
-import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;
 
 import java.io.PrintWriter;

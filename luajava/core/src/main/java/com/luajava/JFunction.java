@@ -33,7 +33,7 @@ public abstract class JFunction implements CFunction {
      * Implements the function body
      *
      * <p>
-     * Unlike {@link com.luajava.CFunction#__call(Lua)}, before actually calling this function,
+     * Unlike {@link CFunction#__call(Lua)}, before actually calling this function,
      * the library converts all the arguments to {@link LuaValue LuaValues} and pops them off the stack.
      * </p>
      *

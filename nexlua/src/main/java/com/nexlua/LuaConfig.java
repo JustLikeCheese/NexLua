@@ -1,7 +1,6 @@
 package com.nexlua;
 
 import android.Manifest;
-import android.util.Log;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,9 +11,9 @@ public final class LuaConfig {
     public static final int WELCOME_THEME = android.R.style.Theme_Material_Light;
     // 在 Welcome 启动时申请的权限
     public static final String[] REQUIRED_PERMISSIONS_IN_WELCOME = new String[]{
-            Manifest.permission.INTERNET,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
+            // Manifest.permission.INTERNET,
+            // Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            // Manifest.permission.READ_EXTERNAL_STORAGE,
     };
     // 在 Main 启动时申请的权限
     public static final String[] REQUIRED_PERMISSIONS = new String[]{
@@ -37,7 +36,6 @@ public final class LuaConfig {
 
     static {
         Map<String, Class<?>> map = new HashMap<>();
-        map.put("main2.lua", Main2.class);
         LUA_DEX_MAP = Collections.unmodifiableMap(map);
     }
 }

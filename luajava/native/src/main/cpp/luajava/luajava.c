@@ -14,7 +14,7 @@
 #include "luajava.h"
 
 /* Modules and functions */
-static int bindClass(lua_State *L) {
+int luajava_bindClass(lua_State *L) {
     const char *name = luaL_checkstring(L, 1);
     JNIEnv *env = getJNIEnv(L);
     jstring string = ToString(name);
@@ -25,7 +25,7 @@ static int bindClass(lua_State *L) {
 }
 
 static const luaL_Reg javalib[] = {
-        {"bindClass", bindClass},
+        {"bindClass", luajava_bindClass},
         {NULL, NULL}
 };
 

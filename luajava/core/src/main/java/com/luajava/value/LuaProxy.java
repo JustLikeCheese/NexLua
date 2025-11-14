@@ -22,7 +22,6 @@
 
 package com.luajava.value;
 
-import com.luajava.JuaAPI;
 import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.util.ClassUtils;
