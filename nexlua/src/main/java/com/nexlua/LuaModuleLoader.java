@@ -4,8 +4,10 @@ import com.luajava.ExternalLoader;
 import com.luajava.Lua;
 import com.luajava.LuaException;
 
+import java.io.File;
+
 public class LuaModuleLoader implements ExternalLoader {
-    private LuaContext luaContext;
+    private final LuaContext luaContext;
 
     public LuaModuleLoader(LuaContext luaContext) {
         this.luaContext = luaContext;
@@ -13,19 +15,13 @@ public class LuaModuleLoader implements ExternalLoader {
 
     @Override
     public int load(Lua L, String moduleName) throws LuaException {
-        Class<?> clazz = LuaConfig.LUA_DEX_MAP.get(moduleName);
-        if (clazz == null) {
-            String luaDir = luaContext.getLuaDir().getAbsolutePath(); // /data/data/xxx/files
-            if (moduleName.startsWith(luaDir)) // maybe /data/data/xxx/files/test.lua, but test.lua has bean moved to lua dex map
-                clazz = LuaConfig.LUA_DEX_MAP.get(moduleName.substring(luaDir.length() + 1));
-        }
-        if (clazz != null) {
-            try {
-                LuaModule module = (LuaModule) clazz.newInstance();
+        try {
+            LuaModule module = LuaConfig.getModule(new File(luaContext.getLuaDir(), moduleName));
+            if (module != null) {
                 return module.load(L, luaContext);
-            } catch (Exception e) {
-                luaContext.sendError(e);
             }
+        } catch (Exception e) {
+            luaContext.sendError(e);
         }
         return 0;
     }

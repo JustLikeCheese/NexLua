@@ -1,7 +1,8 @@
 package com.nexlua;
 
-import android.Manifest;
+import android.content.Context;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,12 +31,31 @@ public final class LuaConfig {
             // "res/gradle.tar.xz"
     };
     // Lua 入口文件
-    public static final String LUA_ENTRY = "main.lua";
     // 抽离到 Dex 的 Lua 的映射表
-    public static final Map<String, Class<?>> LUA_DEX_MAP;
+    public static Map<File, Class<?>> LUA_DEX_MAP;
+    public static File LUA_ENTRY;
+    public static File LUA_ROOT_DIR;
+    public static File FILES_DIR;
 
-    static {
-        Map<String, Class<?>> map = new HashMap<>();
+    public static void onConfig(Context context) {
+        if (FILES_DIR != null) return;
+        FILES_DIR = context.getFilesDir();
+        // Lua Root Dir
+        LUA_ROOT_DIR = FILES_DIR;
+        LUA_ENTRY = new File(LUA_ROOT_DIR, "main.lua");
+        // Lua Module: Put your modules here
+        Map<File, Class<?>> map = new HashMap<>();
         LUA_DEX_MAP = Collections.unmodifiableMap(map);
+    }
+
+    public static LuaModule getModule(File file) {
+        Class<?> module = LUA_DEX_MAP.get(file);
+        if (module != null) {
+            try {
+                return (LuaModule) module.newInstance();
+            } catch (IllegalAccessException | InstantiationException ignored) {
+            }
+        }
+        return null;
     }
 }

@@ -56,7 +56,7 @@ public class Welcome extends Activity {
 
     public void startActivity() {
         Intent intent = new Intent(Welcome.this, Main.class);
-        LuaIntent luaIntent = new LuaIntent(LuaConfig.APP_THEME, new File(getFilesDir(), LuaConfig.LUA_ENTRY).getPath());
+        LuaIntent luaIntent = new LuaIntent(LuaConfig.APP_THEME, LuaConfig.LUA_ENTRY);
         intent.putExtra(LuaIntent.NAME, luaIntent);
         if (isVersionChanged) {
             intent.putExtra("isVersionChanged", true);

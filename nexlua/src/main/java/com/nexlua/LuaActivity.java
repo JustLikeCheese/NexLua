@@ -58,11 +58,11 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     public void onCreate(Bundle savedInstanceState) {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-        intent = (LuaIntent) getIntent().getSerializableExtra(LuaIntent.NAME);
+        this.intent = LuaIntent.from(getIntent());
         if (intent != null) {
             setTheme(intent.theme);
-            luaPath = intent.name;
-            luaFile = new File(luaPath);
+            luaFile = intent.file;
+            luaPath = luaFile.getAbsolutePath();
             luaDir = luaFile.getParentFile();
         }
         super.onCreate(null);
@@ -151,18 +151,11 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     }
 
     public void loadLua() throws Exception {
-        String filesPath = getFilesDir().getAbsolutePath() + "/";
-        if (luaPath.startsWith(filesPath)) {
-            String temp = luaPath.substring(filesPath.length());
-            Class<?> clazz = LuaConfig.LUA_DEX_MAP.get(temp);
-            synchronized (L) {
-                if (clazz != null) {
-                    LuaModule module = (LuaModule) clazz.newInstance();
-                    module.load(L, this);
-                } else {
-                    L.doFile(getLuaFile().getPath());
-                }
-            }
+        LuaModule module = LuaConfig.getModule(luaFile);
+        if (module != null) {
+            module.load(L, this);
+        } else {
+            L.doFile(getLuaFile().getPath());
         }
     }
 
@@ -457,7 +450,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         File file = new File(name);
         if (!file.exists()) file = new File(luaDir, name);
         Intent intent = new Intent(this, LuaActivity.class);
-        intent.putExtra(LuaIntent.NAME, new LuaIntent(file.getPath(), args));
+        intent.putExtra(LuaIntent.NAME, new LuaIntent(file, args));
         startActivity(intent);
     }
 
@@ -465,13 +458,13 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         File file = new File(name);
         if (!file.exists()) file = new File(luaDir, name);
         Intent intent = new Intent(this, LuaActivity.class);
-        intent.putExtra(LuaIntent.NAME, new LuaIntent(file.getPath(), args));
+        intent.putExtra(LuaIntent.NAME, new LuaIntent(file, args));
         startActivityForResult(intent, requestCode);
     }
 
     public void setActivityResult(int resultCode, Object[] data) {
         Intent intent = new Intent();
-        intent.putExtra(LuaIntent.NAME, new LuaIntent(this.intent.name, this.intent.args));
+        intent.putExtra(LuaIntent.NAME, new LuaIntent(this.intent.file, this.intent.args));
         setResult(resultCode, intent);
         finish();
     }

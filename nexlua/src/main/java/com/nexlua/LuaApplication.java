@@ -38,9 +38,10 @@ public class LuaApplication extends Application implements LuaContext {
         mApplication = this;
         // 初始化 LuaUtil, CrashHandler
         LuaUtil.init(this);
+        LuaConfig.onConfig(this);
         CrashHandler.getInstance().init(this);
         // 获取 luaDir, luaFile, luaCpath, luaLpath
-        luaDir = getFilesDir();
+        luaDir = LuaConfig.LUA_ROOT_DIR;
         luaFile = new File(luaDir, LUA_APPLICATION_ENTRY);
         File luaLibDir = getDir("lua", Context.MODE_PRIVATE);
         File libDir = getDir("lib", Context.MODE_PRIVATE);
