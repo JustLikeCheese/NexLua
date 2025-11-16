@@ -30,7 +30,8 @@ public class TestActivity extends Activity {
         LUA_TESTS = new String[]{
                 "Test Java Class", "test-class.lua",
                 "Test Java Object", "test-object.lua",
-                "Test Java Array", "test-array.lua"
+                "Test Java Array", "test-array.lua",
+                "Fix Issues 1", "issues-1.lua"
         };
     }
 
@@ -59,6 +60,8 @@ public class TestActivity extends Activity {
             }
         });
         L.setGlobal("print");
+        L.push(this);
+        L.setGlobal("activity");
         LinearLayout layout = new LinearLayout(this);
         layout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         layout.setOrientation(LinearLayout.VERTICAL);
