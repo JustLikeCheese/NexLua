@@ -94,54 +94,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
             L.pushJavaObject(app);
             L.setGlobal("application");
             loadLua();
-            // onKeyEvent
-            mOnKeyShortcut = L.getLuaFunction("onKeyShortcut");
-            mOnKeyDown = L.getLuaFunction("onKeyDown");
-            mOnKeyUp = L.getLuaFunction("onKeyUp");
-            mOnKeyLongPress = L.getLuaFunction("onKeyLongPress");
-            // onTouchEvent
-            mOnTouchEvent = L.getLuaFunction("onTouchEvent");
-            // onAccessibilityEvent
-            // onCreateOptionsMenu
-            mOnCreateOptionsMenu = L.getLuaFunction("onCreateOptionsMenu");
-            // mOnCreateContextMenu
-            mOnCreateContextMenu = L.getLuaFunction("onCreateContextMenu");
-            // onOptionsItemSelected
-            mOnOptionsItemSelected = L.getLuaFunction("onOptionsItemSelected");
-            // onMenuItemSelected
-            mOnMenuItemSelected = L.getLuaFunction("onMenuItemSelected");
-            // onContextItemSelected
-            mOnContextItemSelected = L.getLuaFunction("onContextItemSelected");
-            // onActivityResult
-            mOnActivityResult = L.getLuaFunction("onActivityResult");
-            // onRequestPermissionsResult
-            onRequestPermissionsResult = L.getLuaFunction("onRequestPermissionsResult");
-            // onConfigurationChanged
-            mOnConfigurationChanged = L.getLuaFunction("onConfigurationChanged");
-            // onReceive
-            mOnReceive = L.getLuaFunction("onReceive");
-            // onError
-            mOnError = L.getLuaFunction("onError");
-            // onNewIntent
-            mOnNewIntent = L.getLuaFunction("onNewIntent");
-            // onResult
-            mOnResult = L.getLuaFunction("onResult");
-            // onSaveInstanceState
-            mOnSaveInstanceState = L.getLuaFunction("onSaveInstanceState");
-            // onRestoreInstanceState
-            mOnRestoreInstanceState = L.getLuaFunction("onRestoreInstanceState");
-            // onStart
-            mOnStart = L.getLuaFunction("onStart");
-            // onResume
-            mOnResume = L.getLuaFunction("onResume");
-            // onPause
-            mOnPause = L.getLuaFunction("onPause");
-            // onStop
-            mOnStop = L.getLuaFunction("onStop");
-            // onRestart
-            mOnRestarted = L.getLuaFunction("onRestart");
-            // onDestroy
-            mOnDestroy = L.getLuaFunction("onDestroy");
+            loadEvent();
             // onCreate
             runFunc("onCreate", savedInstanceState);
             runFunc("main", intent.args);
@@ -151,12 +104,58 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     }
 
     public void loadLua() throws Exception {
-        LuaModule module = LuaConfig.getModule(luaFile);
-        if (module != null) {
-            module.load(L, this);
-        } else {
-            L.doFile(getLuaFile().getPath());
-        }
+        L.loadExternal(luaPath);
+    }
+
+    public void loadEvent() {
+        // onKeyEvent
+        mOnKeyShortcut = L.getLuaFunction("onKeyShortcut");
+        mOnKeyDown = L.getLuaFunction("onKeyDown");
+        mOnKeyUp = L.getLuaFunction("onKeyUp");
+        mOnKeyLongPress = L.getLuaFunction("onKeyLongPress");
+        // onTouchEvent
+        mOnTouchEvent = L.getLuaFunction("onTouchEvent");
+        // onAccessibilityEvent
+        // onCreateOptionsMenu
+        mOnCreateOptionsMenu = L.getLuaFunction("onCreateOptionsMenu");
+        // mOnCreateContextMenu
+        mOnCreateContextMenu = L.getLuaFunction("onCreateContextMenu");
+        // onOptionsItemSelected
+        mOnOptionsItemSelected = L.getLuaFunction("onOptionsItemSelected");
+        // onMenuItemSelected
+        mOnMenuItemSelected = L.getLuaFunction("onMenuItemSelected");
+        // onContextItemSelected
+        mOnContextItemSelected = L.getLuaFunction("onContextItemSelected");
+        // onActivityResult
+        mOnActivityResult = L.getLuaFunction("onActivityResult");
+        // onRequestPermissionsResult
+        onRequestPermissionsResult = L.getLuaFunction("onRequestPermissionsResult");
+        // onConfigurationChanged
+        mOnConfigurationChanged = L.getLuaFunction("onConfigurationChanged");
+        // onReceive
+        mOnReceive = L.getLuaFunction("onReceive");
+        // onError
+        mOnError = L.getLuaFunction("onError");
+        // onNewIntent
+        mOnNewIntent = L.getLuaFunction("onNewIntent");
+        // onResult
+        mOnResult = L.getLuaFunction("onResult");
+        // onSaveInstanceState
+        mOnSaveInstanceState = L.getLuaFunction("onSaveInstanceState");
+        // onRestoreInstanceState
+        mOnRestoreInstanceState = L.getLuaFunction("onRestoreInstanceState");
+        // onStart
+        mOnStart = L.getLuaFunction("onStart");
+        // onResume
+        mOnResume = L.getLuaFunction("onResume");
+        // onPause
+        mOnPause = L.getLuaFunction("onPause");
+        // onStop
+        mOnStop = L.getLuaFunction("onStop");
+        // onRestart
+        mOnRestarted = L.getLuaFunction("onRestart");
+        // onDestroy
+        mOnDestroy = L.getLuaFunction("onDestroy");
     }
 
     private boolean isViewInflated = false;
@@ -467,18 +466,6 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         intent.putExtra(LuaIntent.NAME, new LuaIntent(this.intent.file, this.intent.args));
         setResult(resultCode, intent);
         finish();
-    }
-
-    public static void setClipboardText(String text) {
-        LuaApplication.setClipboardText(text);
-    }
-
-    public static void setClipboardText(String label, String text) {
-        LuaApplication.setClipboardText(label, text);
-    }
-
-    public static String getClipboardText() {
-        return LuaApplication.getClipboardText();
     }
 
     @Override
