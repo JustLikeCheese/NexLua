@@ -40,6 +40,11 @@ set(LUAJAVA_SRC
 )
 add_library(luajava SHARED ${LUAJAVA_SRC})
 
+# link options
+target_link_options(luajava PRIVATE
+        "-Wl,-z,max-page-size=16384"
+)
+
 # link library
 find_library(log-lib log)
 target_link_libraries(
