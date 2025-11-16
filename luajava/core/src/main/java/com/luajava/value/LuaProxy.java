@@ -100,7 +100,6 @@ public final class LuaProxy implements InvocationHandler {
         Class<?> type = method.getReturnType();
         try {
             L.push(value);
-            int nResults = (type == Void.TYPE || type == Void.class) ? 0 : 1;
             if (value.isTable()) {
                 L.getField(-1, method.getName());
                 if (L.isNil(-1)) {
@@ -108,7 +107,7 @@ public final class LuaProxy implements InvocationHandler {
                     return callDefaultMethod(object, method, objects);
                 }
             }
-            L.pCall(objects, degree, nResults);
+            L.pCall(objects, degree, 1);
             return L.get().toJavaObject(type);
         } catch (Exception e) {
             L.sendError(e);

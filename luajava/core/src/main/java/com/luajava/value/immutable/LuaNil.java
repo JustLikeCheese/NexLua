@@ -79,6 +79,8 @@ public class LuaNil extends AbstractLuaValue {
             return this;
         else if (clazz == Object.class)
             return null;
+        else if (clazz == Boolean.class || clazz == boolean.class)
+            return false;
         return super.toJavaObject(clazz);
     }
 }

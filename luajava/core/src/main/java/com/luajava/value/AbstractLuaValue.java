@@ -1357,6 +1357,10 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public Object toJavaObject(Class<?> clazz) throws LuaException {
+        if (clazz == Void.class || clazz == void.class)
+            return null;
+        else if (clazz == boolean.class || clazz == Boolean.class)
+            return true;
         throw new LuaException(String.format("Could not convert %s to %s", typeName(), clazz.getName()));
     }
 
