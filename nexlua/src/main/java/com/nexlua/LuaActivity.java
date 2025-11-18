@@ -36,17 +36,17 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnReceiveListener, com.nexlua.LuaContext {
-    private LuaFunction mOnKeyDown;
-    private LuaFunction mOnKeyUp;
-    private LuaFunction mOnKeyLongPress;
-    private LuaFunction mOnKeyShortcut;
-    private LuaFunction mOnTouchEvent;
-    private LuaFunction mOnCreateOptionsMenu, mOnCreateContextMenu, mOnOptionsItemSelected, mOnMenuItemSelected, mOnContextItemSelected;
-    private LuaFunction mOnActivityResult, onRequestPermissionsResult, mOnSaveInstanceState, mOnRestoreInstanceState;
-    private LuaFunction mOnStart, mOnResume, mOnPause, mOnStop, mOnRestarted;
-    private LuaFunction mOnConfigurationChanged;
-    private LuaFunction mOnError, mOnReceive, mOnNewIntent, mOnResult, mOnDestroy;
-    private LuaBroadcastReceiver mReceiver;
+    protected LuaFunction mOnKeyDown;
+    protected LuaFunction mOnKeyUp;
+    protected LuaFunction mOnKeyLongPress;
+    protected LuaFunction mOnKeyShortcut;
+    protected LuaFunction mOnTouchEvent;
+    protected LuaFunction mOnCreateOptionsMenu, mOnCreateContextMenu, mOnOptionsItemSelected, mOnMenuItemSelected, mOnContextItemSelected;
+    protected LuaFunction mOnActivityResult, onRequestPermissionsResult, mOnSaveInstanceState, mOnRestoreInstanceState;
+    protected LuaFunction mOnStart, mOnResume, mOnPause, mOnStop, mOnRestarted;
+    protected LuaFunction mOnConfigurationChanged;
+    protected LuaFunction mOnError, mOnReceive, mOnNewIntent, mOnResult, mOnDestroy;
+    protected LuaBroadcastReceiver mReceiver;
     protected File luaDir, luaFile;
     protected String luaPath, luaLpath, luaCpath;
     protected final Lua L = new Lua(this::sendError);
@@ -92,7 +92,9 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
             L.setGlobal("print");
             // 插入 LuaApplication
             L.pushJavaObject(app);
+            L.pushValue(1);
             L.setGlobal("application");
+            L.setGlobal("app");
             loadLua();
             loadEvent();
             // onCreate
