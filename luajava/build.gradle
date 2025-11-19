@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
-    id "com.vanniktech.maven.publish" version "0.35.0"
+    alias(libs.plugins.vanniktech.maven.publish)
+    id 'com.kezong.fat-aar'
 }
 
 android {
@@ -27,8 +28,8 @@ android {
 }
 
 dependencies {
-    implementation project(":luajava:core")
-    implementation project(":luajava:native")
+    embed project(path: ':luajava:core', configuration: 'default')
+    embed project(path: ':luajava:native', configuration: 'default')
 }
 
 mavenPublishing {
@@ -59,6 +60,14 @@ mavenPublishing {
             url = "https://github.com/JustLikeCheese/NexLua"
             connection = "scm:git://github.com/JustLikeCheese/NexLua.git"
             developerConnection = "scm:git:ssh://git@github.com/JustLikeCheese/NexLua.git"
+        }
+
+        withXml {
+            asNode().dependencies.'*'.findAll {
+                it.groupId.text().startsWith('NexLua.')
+            }.each {
+                it.parent().remove(it)
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 [versions]
 agp = "8.13.1"
 nextoast = "1.2.1"
+vanniktech-maven-publish = "0.35.0"
 
 [libraries]
 nextoast = { module = "io.github.justlikecheese.nextoast:NexToast", version.ref = "nextoast" }
@@ -8,3 +9,4 @@ nextoast = { module = "io.github.justlikecheese.nextoast:NexToast", version.ref 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+vanniktech-maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-maven-publish" }
