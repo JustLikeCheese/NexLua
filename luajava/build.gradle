@@ -33,7 +33,7 @@ dependencies {
 }
 
 mavenPublishing {
-    coordinates("io.github.justlikecheese.nexlua", "LuaJava", "1.1.0")
+    coordinates("io.github.justlikecheese.nexlua", "LuaJava", "1.1.2")
     publishToMavenCentral()
     signAllPublications()
 
