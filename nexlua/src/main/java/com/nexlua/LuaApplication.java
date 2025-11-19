@@ -58,10 +58,7 @@ public class LuaApplication extends Application implements LuaContext {
                 L.push(getLuaCpath());
                 L.setField(-2, "cpath");
             }
-            L.pushJavaObject(this);
-            L.pushValue(-1);
-            L.setGlobal("application");
-            L.setGlobal("this");
+            L.pushGlobal(this, "application", "app", "this");
             L.loadExternal(LUA_APPLICATION_ENTRY);
             mOnTerminate = L.getLuaFunction("onTerminate");
             mOnLowMemory = L.getLuaFunction("onLowMemory");

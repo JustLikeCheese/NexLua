@@ -346,6 +346,45 @@ public class Lua {
         return length;
     }
 
+    // Push Global API
+    public int pushGlobal(Object object, Class<?> clazz, Conversion degree, String... names) throws LuaException {
+        int length = names.length;
+        if (length < 1) {
+            throw new LuaException("Invalid number of arguments");
+        }
+        length--;
+        push(object, clazz, degree);
+        for (int i = 0; i < length; i++) {
+            pushValue(-1);
+            setGlobal(names[i]);
+        }
+        setGlobal(names[length]);
+        return 0;
+    }
+
+    public int pushGlobal(Object object, Class<?> clazz, String... names) throws LuaException {
+        return pushGlobal(object, clazz, Conversion.NONE, names);
+    }
+
+    public int pushGlobal(Object object, Conversion degree, String... names) throws LuaException {
+        int length = names.length;
+        if (length < 1) {
+            throw new LuaException("Invalid number of arguments");
+        }
+        length--;
+        push(object, degree);
+        for (int i = 0; i < length; i++) {
+            pushValue(-1);
+            setGlobal(names[i]);
+        }
+        setGlobal(names[length]);
+        return 0;
+    }
+
+    public int pushGlobal(Object object, String... names) throws LuaException {
+        return pushGlobal(object, null, Conversion.NONE, names);
+    }
+
     // Get API
     public LuaValue get(String globalName) throws LuaException {
         getGlobal(globalName);
@@ -372,6 +411,7 @@ public class Lua {
     }
 
     private static final LuaValue[] EMPTY_LUA_VALUES = new LuaValue[0];
+
     public LuaValue[] getArgs(int length) throws LuaException {
         if (length == 0) {
             return EMPTY_LUA_VALUES;

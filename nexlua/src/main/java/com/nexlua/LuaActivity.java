@@ -83,18 +83,9 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
                 L.pop(1);
             }
             // 插入 LuaActivity
-            L.pushJavaObject(this);
-            L.pushValue(1);
-            L.setGlobal("activity");
-            L.setGlobal("this");
-            // 插入 LuaPrint
-            L.pushJavaObject(print);
-            L.setGlobal("print");
-            // 插入 LuaApplication
-            L.pushJavaObject(app);
-            L.pushValue(1);
-            L.setGlobal("application");
-            L.setGlobal("app");
+            L.pushGlobal(this, "activity", "this");
+            L.pushGlobal(app, "application", "app");
+            L.pushGlobal(print, "print");
             loadLua();
             loadEvent();
             // onCreate
