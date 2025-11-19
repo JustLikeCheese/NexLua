@@ -6,18 +6,15 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
@@ -31,101 +28,130 @@ public final class LuaUtil {
     private LuaUtil() {
     }
 
-    private static Context contextx;
+    private static Context context;
     private static AssetManager assetManager;
+    private static final String FAILED_TO_CREATE_DEST_DIR = "Failed to create destination directory: ";
 
-    public static void init(Context context) {
-        LuaUtil.contextx = context.getApplicationContext();
-        LuaUtil.assetManager = context.getAssets();
+    public static void init(Context ctx) {
+        context = ctx.getApplicationContext();
+        assetManager = ctx.getAssets();
     }
 
     public static Context getContext() {
-        return contextx;
+        return context;
     }
 
     public static AssetManager getAssetManager() {
         return assetManager;
     }
 
-    private static final String ERR_EXCEEDS_SIZE_LIMIT = "File %s size exceeds 2GB limit";
-    private static final String ERR_COULD_NOT_READ_FILE = "Could not completely read file: %s";
-    private static final String ERR_FILE_IS_NOT_DIRECTORY = "File %s is not a directory";
-
-    public static ByteBuffer wrap(String input) {
-        byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
-        ByteBuffer directBuffer = ByteBuffer.allocateDirect(bytes.length);
-        directBuffer.put(bytes);
-        directBuffer.flip();
-        return directBuffer;
+    public static ByteBuffer wrap(byte[] bytes) {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(bytes.length);
+        buffer.put(bytes);
+        buffer.flip();
+        return buffer;
     }
 
-    // FileUtil
-    public static ByteBuffer readFileBuffer(File file) throws IOException {
-        try (FileInputStream fis = new FileInputStream(file);
-             FileChannel channel = fis.getChannel()) {
-            long size = channel.size();
-            if (size > Integer.MAX_VALUE) {
-                throw new IOException(String.format(ERR_EXCEEDS_SIZE_LIMIT, file.getPath()));
-            }
-            ByteBuffer buffer = ByteBuffer.allocateDirect((int) size);
-            channel.read(buffer);
-            buffer.flip();
-            return buffer;
+    // Stream Utils
+    public static byte[] readStreamBytes(InputStream in) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream(8192);
+        byte[] temp = new byte[8192];
+        int n;
+        while ((n = in.read(temp)) != -1) {
+            buffer.write(temp, 0, n);
         }
+        return buffer.toByteArray();
+    }
+
+    public static ByteBuffer readStreamBuffer(InputStream in, int knownSize) throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(knownSize);
+        byte[] temp = new byte[8192];
+        int n;
+        while ((n = in.read(temp)) != -1) {
+            if (buffer.remaining() < n) {
+                throw new IOException("InputStream size exceeds allocated buffer size: " + knownSize);
+            }
+            buffer.put(temp, 0, n);
+        }
+        buffer.flip();
+        return buffer;
+    }
+
+    public static void copyStream(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[8192];
+        int n;
+        while ((n = in.read(buffer)) != -1) {
+            out.write(buffer, 0, n);
+        }
+    }
+
+    // Stream Utils
+    public static byte[] readStreamBytesWithAutoClose(InputStream in) throws IOException {
+        try {
+            return readStreamBytes(in);
+        } finally {
+            closeQuietly(in);
+        }
+    }
+
+    public static ByteBuffer readStreamBufferWithAutoClose(InputStream in, int knownSize) throws IOException {
+        try {
+            return readStreamBuffer(in, knownSize);
+        } finally {
+            closeQuietly(in);
+        }
+    }
+
+    public static void copyStreamWithAutoClose(InputStream in, OutputStream out) throws IOException {
+        try {
+            copyStream(in, out);
+        } finally {
+            closeQuietly(out);
+            closeQuietly(in);
+        }
+    }
+
+    public static ByteBuffer readFileBuffer(File file) throws IOException {
+        return readStreamBufferWithAutoClose(Files.newInputStream(file.toPath()), (int) file.length());
     }
 
     public static byte[] readFileBytes(File file) throws IOException {
-        long fileSize = file.length();
-        if (fileSize > Integer.MAX_VALUE) {
-            throw new IOException(String.format(ERR_EXCEEDS_SIZE_LIMIT, file.getPath()));
-        }
-        byte[] buffer = new byte[(int) fileSize];
-        try (FileInputStream fis = new FileInputStream(file)) {
-            int offset = 0;
-            int numRead;
-            while (offset < buffer.length && (numRead = fis.read(buffer, offset, buffer.length - offset)) >= 0)
-                offset += numRead;
-            if (offset != buffer.length) {
-                throw new IOException(String.format(ERR_COULD_NOT_READ_FILE, file.getPath()));
-            }
-        }
-        return buffer;
+        return readStreamBytesWithAutoClose(Files.newInputStream(file.toPath()));
     }
 
     public static String readFile(File file) throws IOException {
         return new String(readFileBytes(file), StandardCharsets.UTF_8);
     }
 
-    public static void rmDir(File file) {
-        if (file == null || !file.exists())
-            return;
+    public static boolean rmFile(File file) {
+        return file.delete();
+    }
+
+    public static boolean rmDir(File file) {
         if (file.isDirectory()) {
             File[] children = file.listFiles();
             if (children != null) {
                 for (File child : children) {
-                    rmDir(child);
+                    if (child.isDirectory()) {
+                        if (!rmDir(child)) return false;
+                    } else {
+                        if (!rmFile(child)) return false;
+                    }
                 }
             }
+            return rmFile(file);
         }
-        file.delete();
+        return false;
     }
 
-    public static void copyFile(File srcFile, File destFile) throws IOException {
-        File parentDir = destFile.getParentFile();
-        if (parentDir != null && !parentDir.exists()) {
-            parentDir.mkdirs();
-        }
-        try (InputStream in = new FileInputStream(srcFile);
-             OutputStream out = new FileOutputStream(destFile)) {
-            copyStream(in, out);
-        }
+    public static void copyFile(File src, File dest) throws IOException {
+        copyStreamWithAutoClose(Files.newInputStream(src.toPath()), Files.newOutputStream(dest.toPath()));
     }
 
     public static void copyDir(File srcDir, File destDir) throws IOException {
-        if (!srcDir.isDirectory())
-            throw new IOException(String.format(ERR_FILE_IS_NOT_DIRECTORY, srcDir.getPath()));
-        if (!destDir.exists())
-            destDir.mkdirs();
+        if (!destDir.exists() && !destDir.mkdirs()) {
+            throw new IOException(FAILED_TO_CREATE_DEST_DIR + destDir);
+        }
         File[] children = srcDir.listFiles();
         if (children == null) return;
         for (File child : children) {
@@ -139,149 +165,126 @@ public final class LuaUtil {
     }
 
     // Assets Utils
-    public static String[] listAssets(Context context, String assetPath) throws IOException {
-        return context.getAssets().list(assetPath);
+    public static String[] listAssets(String assetPath) throws IOException {
+        return assetManager.list(assetPath);
     }
 
-    public static boolean isAssetExists(Context context, String assetPath) {
-        try (InputStream ignored = context.getAssets().open(assetPath)) {
+    public static boolean isAssetExists(String assetPath) {
+        InputStream in = null;
+        try {
+            in = assetManager.open(assetPath);
             return true;
         } catch (IOException e) {
             return false;
+        } finally {
+            closeQuietly(in);
         }
     }
 
     public static ByteBuffer readAssetBuffer(String assetPath) throws IOException {
-        AssetManager assetManager = getAssetManager();
-        try (AssetFileDescriptor afd = assetManager.openFd(assetPath);
-             FileInputStream fis = afd.createInputStream();
-             FileChannel channel = fis.getChannel()) {
-            long size = afd.getLength();
-            if (size > Integer.MAX_VALUE)
-                throw new IOException(String.format(ERR_EXCEEDS_SIZE_LIMIT, assetPath));
-            ByteBuffer buffer = ByteBuffer.allocateDirect((int) size);
-            channel.read(buffer);
-            buffer.flip();
-            return buffer;
+        try {
+            AssetFileDescriptor fileDescriptor = assetManager.openFd(assetPath);
+            try {
+                return readStreamBufferWithAutoClose(fileDescriptor.createInputStream(), (int) fileDescriptor.getLength());
+            } finally {
+                closeQuietly(fileDescriptor);
+            }
+        } catch (IOException e) {
+            return wrap(readAssetBytes(assetPath));
         }
     }
 
     public static byte[] readAssetBytes(String assetPath) throws IOException {
-        try (InputStream in = getAssetManager().open(assetPath);
-             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            copyStream(in, out);
-            return out.toByteArray();
-        }
+        return readStreamBytesWithAutoClose(assetManager.open(assetPath));
     }
 
     public static String readAsset(String assetPath) throws IOException {
         return new String(readAssetBytes(assetPath), StandardCharsets.UTF_8);
     }
 
+    public static void copyAssetsFile(String assetPath, File destFile) throws IOException {
+        copyStreamWithAutoClose(assetManager.open(assetPath), Files.newOutputStream(destFile.toPath()));
+    }
+
     public static void copyAssetsDir(String assetPath, File destDir) throws IOException {
-        AssetManager assetManager = getAssetManager();
-        String[] assets = assetManager.list(assetPath);
-        if (!destDir.exists()) {
-            destDir.mkdirs();
+        if (!destDir.exists() && !destDir.mkdirs()) {
+            throw new IOException(FAILED_TO_CREATE_DEST_DIR + destDir);
         }
+        String[] assets = assetManager.list(assetPath);
+        if (assets == null) return;
         for (String asset : assets) {
-            String newAssetPath = assetPath.isEmpty() ? asset : assetPath + File.separator + asset;
+            String newAssetPath = assetPath.isEmpty() ? asset : assetPath + "/" + asset;
             File newDestFile = new File(destDir, asset);
             String[] subAssets = assetManager.list(newAssetPath);
-            if (subAssets.length == 0) {
-                copyAssetsFile(newAssetPath, newDestFile);
-            } else {
+            if (subAssets != null && subAssets.length > 0) {
                 copyAssetsDir(newAssetPath, newDestFile);
+            } else {
+                copyAssetsFile(newAssetPath, newDestFile);
             }
-        }
-    }
-
-    public static void copyAssetsFile(String assetPath, File destFile) throws IOException {
-        File parentDir = destFile.getParentFile();
-        if (parentDir != null && !parentDir.exists()) {
-            parentDir.mkdirs();
-        }
-        try (InputStream in = getAssetManager().open(assetPath);
-             OutputStream out = new FileOutputStream(destFile)) {
-            copyStream(in, out);
-        }
-    }
-
-    // Stream Utils
-    public static void copyStream(InputStream in, OutputStream out) throws IOException {
-        byte[] buffer = new byte[8192];
-        int bytesRead;
-        while ((bytesRead = in.read(buffer)) != -1) {
-            out.write(buffer, 0, bytesRead);
         }
     }
 
     // Zip Utils
     public static void zip(File srcFile, File zipFile) throws IOException {
-        try (FileOutputStream fos = new FileOutputStream(zipFile);
-             ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos))) {
-            zip(zos, srcFile, "");
+        ZipOutputStream zipOutputStream = null;
+        try {
+            zipOutputStream = new ZipOutputStream(Files.newOutputStream(zipFile.toPath()));
+            zipInternal(zipOutputStream, srcFile, "");
+        } finally {
+            closeQuietly(zipOutputStream);
         }
     }
 
-    private static void zip(ZipOutputStream zos, File file, String baseName) throws IOException {
-        if (file.isDirectory()) {
-            String entryName = baseName + file.getName() + "/";
-            zos.putNextEntry(new ZipEntry(entryName));
+    public static void zipInternal(ZipOutputStream zipOutputStream, File file, String baseName) throws IOException {
+        boolean isDir = file.isDirectory();
+        String entryName = baseName + file.getName() + (isDir ? "/" : "");
+        zipOutputStream.putNextEntry(new ZipEntry(entryName));
+        if (isDir) {
+            zipOutputStream.closeEntry();
             File[] children = file.listFiles();
             if (children != null) {
                 for (File child : children) {
-                    zip(zos, child, entryName);
+                    zipInternal(zipOutputStream, child, entryName);
                 }
             }
         } else {
-            zos.putNextEntry(new ZipEntry(baseName + file.getName()));
-            try (FileInputStream fis = new FileInputStream(file)) {
-                copyStream(fis, zos);
-            }
+            copyStreamWithAutoClose(Files.newInputStream(file.toPath()), zipOutputStream);
+            zipOutputStream.closeEntry();
         }
     }
 
     public static void unzip(File zipFile, File destDir) throws IOException {
-        if (!destDir.exists()) {
-            destDir.mkdirs();
-        }
-        String destDirPath = destDir.getCanonicalPath();
-        try (ZipFile zip = new ZipFile(zipFile)) {
+        if (!destDir.exists() && !destDir.mkdirs())
+            throw new IOException(FAILED_TO_CREATE_DEST_DIR + destDir);
+        String destPath = destDir.getCanonicalPath() + File.separator;
+        ZipFile zip = null;
+        try {
+            zip = new ZipFile(zipFile);
             Enumeration<? extends ZipEntry> entries = zip.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 File entryFile = new File(destDir, entry.getName());
-                if (!entryFile.getCanonicalPath().startsWith(destDirPath + File.separator)) {
-                    throw new IOException("Zip entry is trying to escape destination directory: " + entry.getName());
-                }
+                if (!entryFile.getCanonicalPath().startsWith(destPath))
+                    throw new IOException("Zip entry escapes");
                 if (entry.isDirectory()) {
                     entryFile.mkdirs();
                 } else {
-                    File parent = entryFile.getParentFile();
-                    if (parent != null && !parent.exists()) {
-                        parent.mkdirs();
-                    }
-                    try (InputStream in = zip.getInputStream(entry);
-                         OutputStream out = new FileOutputStream(entryFile)) {
-                        copyStream(in, out);
-                    }
+                    entryFile.getParentFile().mkdirs();
+                    copyStreamWithAutoClose(zip.getInputStream(entry), Files.newOutputStream(entryFile.toPath()));
                 }
             }
+        } finally {
+            closeQuietly(zip);
         }
     }
-    // endregion
 
-    // Secure Utils
+    // Digest Utils
     private static String bytesToHex(byte[] bytes) {
-        BigInteger bigInt = new BigInteger(1, bytes);
-        String hex = bigInt.toString(16);
-        int paddingLength = (bytes.length * 2) - hex.length();
-        if (paddingLength > 0) {
-            return String.format("%0" + paddingLength + "d", 0) + hex;
-        } else {
-            return hex;
+        StringBuilder hex = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) {
+            hex.append(String.format("%02x", b));
         }
+        return hex.toString();
     }
 
     public static String getMessageDigest(String message, String algorithm) throws NoSuchAlgorithmException {
@@ -290,8 +293,7 @@ public final class LuaUtil {
 
     public static String getMessageDigest(byte[] bytes, String algorithm) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance(algorithm);
-        md.update(bytes);
-        return bytesToHex(md.digest());
+        return bytesToHex(md.digest(bytes));
     }
 
     public static String getMessageDigest(ByteBuffer buffer, String algorithm) throws NoSuchAlgorithmException {
@@ -301,25 +303,37 @@ public final class LuaUtil {
     }
 
     public static String getFileDigest(File file, String algorithm) throws IOException, NoSuchAlgorithmException {
-        try (InputStream fis = new FileInputStream(file)) {
-            return getStreamDigest(fis, algorithm);
-        }
+        return getStreamDigestWithAutoClose(new BufferedInputStream(Files.newInputStream(file.toPath())), algorithm);
     }
 
-    public static String getAssetDigest(Context context, String assetPath, String algorithm) throws IOException, NoSuchAlgorithmException {
-        try (InputStream is = context.getAssets().open(assetPath)) {
-            return getStreamDigest(is, algorithm);
-        }
+    public static String getAssetDigest(String assetPath, String algorithm) throws IOException, NoSuchAlgorithmException {
+        return getStreamDigestWithAutoClose(new BufferedInputStream(assetManager.open(assetPath)), algorithm);
     }
 
     public static String getStreamDigest(InputStream in, String algorithm) throws IOException, NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance(algorithm);
-        try (InputStream bis = new BufferedInputStream(in)) {
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-            while ((bytesRead = bis.read(buffer)) != -1)
-                md.update(buffer, 0, bytesRead);
+        byte[] buffer = new byte[8192];
+        int n;
+        while ((n = in.read(buffer)) != -1) {
+            md.update(buffer, 0, n);
         }
         return bytesToHex(md.digest());
+    }
+
+    public static String getStreamDigestWithAutoClose(InputStream in, String algorithm) throws IOException, NoSuchAlgorithmException {
+        try {
+            return getStreamDigest(in, algorithm);
+        } finally {
+            closeQuietly(in);
+        }
+    }
+
+    private static void closeQuietly(Closeable closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (IOException ignored) {
+            }
+        }
     }
 }
