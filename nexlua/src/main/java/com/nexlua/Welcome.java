@@ -1,14 +1,11 @@
 package com.nexlua;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.Gravity;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -16,36 +13,35 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 
-public class Welcome extends Activity {
+public class Welcome extends LuaActivity implements LuaContext {
     public static String oldVersionName, newVersionName;
     public static long oldUpdateTime, newUpdateTime;
     public static boolean isVersionChanged;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        if (LuaConfig.WELCOME_THEME != 0) setTheme(LuaConfig.WELCOME_THEME);
+        Intent intent = getIntent();
+        intent.putExtra(LuaIntent.NAME, new LuaIntent(LuaConfig.LUA_WELCOME));
+        try {
+            LuaUtil.copyAssetsFile("welcome.lua", new File(app.getLuaDir(), "welcome.lua"));
+        } catch (IOException e) {
+            sendError(e);
+        }
         super.onCreate(savedInstanceState);
-        TextView view = new TextView(this);
-        view.setText(new String(new char[]{'P', 'o', 'w', 'e', 'r', 'e', 'd', ' ', 'b', 'y', ' ', 'C', 'h', 'e', 'e', 's', 'e'}));
-        view.setTextColor(0xff888888);
-        view.setGravity(Gravity.TOP);
-        setContentView(view);
         isVersionChanged = checkVersionChanged();
-        if (isVersionChanged) {
-            // 版本更新、触发权限申请
-            final String[] REQUIRED_PERMISSIONS = LuaConfig.REQUIRED_PERMISSIONS;
-            if (Build.VERSION.SDK_INT >= 23 && REQUIRED_PERMISSIONS != null) {
-                ArrayList<String> permissions = new ArrayList<String>();
-                for (String requiredPermission : REQUIRED_PERMISSIONS)
-                    if (checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED)
-                        permissions.add(requiredPermission);
-                if (!permissions.isEmpty()) {
-                    requestPermissions(permissions.toArray(new String[0]), 0);
-                    return;
-                }
+    }
+
+    public void checkPermissions(String... requiredPermissions) {
+        if (Build.VERSION.SDK_INT >= 23 && requiredPermissions != null) {
+            ArrayList<String> permissions = new ArrayList<String>();
+            for (String requiredPermission : requiredPermissions)
+                if (checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED)
+                    permissions.add(requiredPermission);
+            if (!permissions.isEmpty()) {
+                requestPermissions(permissions.toArray(new String[0]), 0);
+                return;
             }
         }
-        startActivity();
     }
 
     @Override

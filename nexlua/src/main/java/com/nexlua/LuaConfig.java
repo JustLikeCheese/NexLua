@@ -35,6 +35,7 @@ public final class LuaConfig {
     // Lua 入口文件
     // 抽离到 Dex 的 Lua 的映射表
     public static Map<String, Class<?>> LUA_DEX_MAP;
+    public static File LUA_WELCOME;
     public static File LUA_ENTRY;
     public static File LUA_ROOT_DIR;
     public static File FILES_DIR;
@@ -44,6 +45,7 @@ public final class LuaConfig {
         FILES_DIR = context.getFilesDir();
         // Lua Root Dir
         LUA_ROOT_DIR = FILES_DIR;
+        LUA_WELCOME = new File(LUA_ROOT_DIR, "welcome.lua");
         LUA_ENTRY = new File(LUA_ROOT_DIR, "main.lua");
         // Lua Module: Put your modules here
         Map<String, Class<?>> map = new HashMap<>();
@@ -51,7 +53,6 @@ public final class LuaConfig {
     }
 
     public static LuaModule getModule(String path) {
-        Lua.log("我操你妈xxxb" + LUA_DEX_MAP);
         Class<?> module = LUA_DEX_MAP.get(path);
         if (module != null) {
             try {
