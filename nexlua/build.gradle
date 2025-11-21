@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.vanniktech.maven.publish)
-    id 'com.kezong.fat-aar'
 }
 
 android {
@@ -38,12 +37,12 @@ android {
 }
 
 dependencies {
-    embed project(path: ':luajava:core', configuration: 'default')
-    implementation libs.nextoast
+    api project(":luajava:core")
+    api libs.nextoast
 }
 
 mavenPublishing {
-    coordinates("io.github.justlikecheese.nexlua", "NexLua", "1.1.2")
+    coordinates("io.github.justlikecheese.nexlua", "NexLua", "1.1.3")
     publishToMavenCentral()
     signAllPublications()
 

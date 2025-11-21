@@ -1,19 +1,11 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.vanniktech.maven.publish)
-    id 'com.kezong.fat-aar'
 }
 
 android {
     namespace 'com.luajava'
     compileSdkVersion 36
-
-    defaultConfig {
-        minSdk 21
-        ndk {
-            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
-        }
-    }
 
     buildTypes {
         release {
@@ -28,12 +20,12 @@ android {
 }
 
 dependencies {
-    embed project(path: ':luajava:core', configuration: 'default')
-    embed project(path: ':luajava:native', configuration: 'default')
+    api project(":luajava:core")
+    api project(":luajava:native")
 }
 
 mavenPublishing {
-    coordinates("io.github.justlikecheese.nexlua", "LuaJava", "1.1.2")
+    coordinates("io.github.justlikecheese.nexlua", "LuaJava", "1.1.3")
     publishToMavenCentral()
     signAllPublications()
 
@@ -60,14 +52,6 @@ mavenPublishing {
             url = "https://github.com/JustLikeCheese/NexLua"
             connection = "scm:git://github.com/JustLikeCheese/NexLua.git"
             developerConnection = "scm:git:ssh://git@github.com/JustLikeCheese/NexLua.git"
-        }
-
-        withXml {
-            asNode().dependencies.'*'.findAll {
-                it.groupId.text().startsWith('NexLua.')
-            }.each {
-                it.parent().remove(it)
-            }
         }
     }
 }
