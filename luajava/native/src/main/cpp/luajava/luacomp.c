@@ -61,7 +61,7 @@ int luaJ_dumptobuffer(lua_State *L, DumpBuffer *buffer) {
     return 0;
 }
 
-const char* luaJ_dumpstack(lua_State *L) {
+const char *luaJ_dumpstack(lua_State *L) {
     int top = lua_gettop(L);
     luaL_Buffer b;
     luaL_buffinit(L, &b);
@@ -69,13 +69,13 @@ const char* luaJ_dumpstack(lua_State *L) {
     luaL_addvalue(&b);
 
     for (int idx = 1; idx <= top; idx++) {
-        const char* str = luaJ_tostring(L, idx);
+        const char *str = luaJ_tostring(L, idx);
         lua_pushfstring(L, "  [%d]: (%s) %s\n", idx, luaL_typename(L, idx), str);
         lua_remove(L, -2);  // remove the string pushed by luaJ_tostring
         luaL_addvalue(&b);
     }
     luaL_pushresult(&b);
-    const char* msg = lua_tostring(L, -1);
+    const char *msg = lua_tostring(L, -1);
     lua_pop(L, 1);
     return msg;
 }
@@ -106,26 +106,18 @@ int luaJ_copy(lua_State *from, lua_State *to, int index) {
             lua_newtable(to);
             lua_pushnil(from);
             while (lua_next(from, index)) {
-                if (luaJ_copy(from, to, lua_gettop(from) - 1) != 0) {
+                if (luaJ_copy(from, to, -2) != 0) {
                     lua_pop(from, 2);
-                    lua_pop(to, 2);
+                    lua_pop(to, 1);
                     return -1;
                 }
-                if (luaJ_copy(from, to, lua_gettop(from)) != 0) {
+                if (luaJ_copy(from, to, -1) != 0) {
                     lua_pop(from, 2);
                     lua_pop(to, 3);
                     return -1;
                 }
 
                 lua_settable(to, -3);
-                lua_pop(from, 1);
-            }
-            if (lua_getmetatable(from, index)) {
-                if (luaJ_copy(from, to, lua_gettop(from)) == 0) {
-                    lua_setmetatable(to, -2);
-                } else {
-                    lua_pop(to, 1);
-                }
                 lua_pop(from, 1);
             }
             break;
@@ -160,7 +152,7 @@ int luaJ_copy(lua_State *from, lua_State *to, int index) {
             void *dst_userdata = lua_newuserdata(to, size);
             memcpy(dst_userdata, src_userdata, size);
             if (lua_getmetatable(from, index)) {
-                if (luaJ_copy(from, to, lua_gettop(from)) == 0) {
+                if (luaJ_copy(from, to, -1) == 0) {
                     lua_setmetatable(to, -2);
                 } else {
                     lua_pop(to, 1);
