@@ -205,7 +205,8 @@ public final class JuaAPI {
         // Method matchMethod1 = null;
         Method matchMethod2 = null;
         for (Method method : methods) {
-            if (Modifier.isStatic(method.getModifiers()) && method.getParameterCount() == values.length) {
+            Class<?>[] paramTypes = method.getParameterTypes();
+            if (Modifier.isStatic(method.getModifiers()) && paramTypes.length == values.length && matchParams(paramTypes, values)) {
                 String methodName = method.getName();
                 if (methodName1.equals(methodName)) {
                     callMethod(null, method, method.getParameterTypes(), values);
@@ -350,7 +351,8 @@ public final class JuaAPI {
         Method matchStaticMethod2 = null;
         Method matchMethod2 = null;
         for (Method method : methods) {
-            if (method.getParameterCount() == values.length) {
+            Class<?>[] paramTypes = method.getParameterTypes();
+            if (paramTypes.length == values.length && matchParams(paramTypes, values)) {
                 String methodName = method.getName();
                 if (!Modifier.isStatic(method.getModifiers())) { // instance method first
                     if (methodName1.equals(methodName)) {
