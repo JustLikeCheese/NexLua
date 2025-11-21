@@ -102,7 +102,7 @@ public class Lua {
 
     public void sendError(Exception e) {
         if (handler != null) {
-            handler.onError(e);
+            handler.sendError(e);
         } else {
             Log.i(TAG, e.getMessage());
         }

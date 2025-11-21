@@ -4,13 +4,16 @@ import android.widget.Toast;
 
 import com.luajava.Lua;
 import com.luajava.LuaException;
+import com.luajava.LuaHandler;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 
-public interface LuaContext {
+import io.github.justlikecheese.nextoast.NexToast;
+
+public interface LuaContext extends LuaHandler {
     ArrayList<ClassLoader> getClassLoaders();
 
     Lua getLua();
@@ -19,14 +22,18 @@ public interface LuaContext {
 
     File getLuaDir();
 
+    String getLuaPath();
+
     String getLuaLpath();
 
     String getLuaCpath();
 
     Context getContext();
 
+    void initialize(Lua L);
+
     default void showToast(String message) {
-        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        NexToast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     default void sendMessage(String message) {
@@ -37,6 +44,7 @@ public interface LuaContext {
         showToast(error);
     }
 
+    @Override
     default void sendError(Exception e) {
         if (e instanceof LuaException) {
             LuaException luaException = (LuaException) e;

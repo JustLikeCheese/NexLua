@@ -29,13 +29,14 @@ import android.widget.TextView;
 
 import com.luajava.Lua;
 import com.luajava.LuaException;
+import com.luajava.LuaHandler;
 import com.luajava.value.LuaValue;
 import com.luajava.value.referable.LuaFunction;
 
 import java.io.File;
 import java.util.ArrayList;
 
-public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnReceiveListener, com.nexlua.LuaContext {
+public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnReceiveListener, LuaContext, LuaHandler {
     protected LuaFunction mOnKeyDown;
     protected LuaFunction mOnKeyUp;
     protected LuaFunction mOnKeyLongPress;
@@ -47,11 +48,11 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     protected LuaFunction mOnConfigurationChanged;
     protected LuaFunction mOnError, mOnReceive, mOnNewIntent, mOnResult, mOnDestroy;
     protected LuaBroadcastReceiver mReceiver;
+    protected final LuaApplication app = LuaApplication.getInstance();
+    protected final Lua L = new Lua(this);
+    protected final LuaPrint print = new LuaPrint(this);
     protected File luaDir, luaFile;
     protected String luaPath, luaLpath, luaCpath;
-    protected final Lua L = new Lua(this::sendError);
-    protected final LuaPrint print = new LuaPrint(this);
-    protected final LuaApplication app = LuaApplication.getInstance();
     protected LuaIntent intent;
 
     @Override
@@ -67,25 +68,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         }
         super.onCreate(null);
         try {
-            L.openLibraries();
-            L.setExternalLoader(new LuaModuleLoader(this));
-            luaCpath = app.getLuaCpath();
-            luaLpath = app.getLuaLpath();
-            if (!luaDir.equals(app.getLuaDir())) {
-                luaCpath = luaCpath + luaDir + "/lib?.so;";
-                luaLpath = luaLpath + luaDir + "/?.lua;" + luaDir + "/lua/?.lua;" + luaDir + "/?/init.lua;";
-            }
-            // package.path 和 cpath
-            L.getGlobal("package");
-            if (L.isTable(1)) {
-                L.setField(1, "path", luaLpath);
-                L.setField(1, "cpath", luaCpath);
-                L.pop(1);
-            }
-            // 插入 LuaActivity
-            L.pushGlobal(this, "activity", "this");
-            L.pushGlobal(app, "application", "app");
-            L.pushGlobal(print, "print");
+            initialize(L);
             loadLua();
             loadEvent();
             // onCreate
@@ -504,14 +487,58 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         showToast(message);
     }
 
-    // @formatter:off
-    public ArrayList<ClassLoader> getClassLoaders() { return null; }
-    public Lua getLua() { return L; }
-    public File getLuaFile() { return luaFile; }
-    public File getLuaDir() { return luaDir; }
-    public String getLuaPath() { return luaPath; }
-    public String getLuaLpath() { return luaLpath; }
-    public String getLuaCpath() { return luaCpath; }
-    public Context getContext() { return this; }
-    // @formatter:on
+    public ArrayList<ClassLoader> getClassLoaders() {
+        return null;
+    }
+
+    public Lua getLua() {
+        return L;
+    }
+
+    public File getLuaFile() {
+        return luaFile;
+    }
+
+    public File getLuaDir() {
+        return luaDir;
+    }
+
+    public String getLuaPath() {
+        return luaPath;
+    }
+
+    public String getLuaLpath() {
+        return luaLpath;
+    }
+
+    public String getLuaCpath() {
+        return luaCpath;
+    }
+
+    public Context getContext() {
+        return this;
+    }
+
+    @Override
+    public void initialize(Lua L) {
+        L.openLibraries();
+        L.setExternalLoader(new LuaModuleLoader(this));
+        luaCpath = app.getLuaCpath();
+        luaLpath = app.getLuaLpath();
+        if (!luaDir.equals(app.getLuaDir())) {
+            luaCpath = luaCpath + luaDir + "/lib?.so;";
+            luaLpath = luaLpath + luaDir + "/?.lua;" + luaDir + "/lua/?.lua;" + luaDir + "/?/init.lua;";
+        }
+        // package.path 和 cpath
+        L.getGlobal("package");
+        if (L.isTable(1)) {
+            L.setField(1, "path", luaLpath);
+            L.setField(1, "cpath", luaCpath);
+            L.pop(1);
+        }
+        // 插入 LuaActivity
+        L.pushGlobal(this, "activity", "this");
+        L.pushGlobal(app, "application", "app");
+        L.pushGlobal(print, "print");
+    }
 }

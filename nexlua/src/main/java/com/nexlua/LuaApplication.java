@@ -48,24 +48,8 @@ public class LuaApplication extends Application implements LuaContext {
         luaLpath = luaLibDir + "/?.lua;" + luaLibDir + "/lua/?.lua;" + luaLibDir + "/?/init.lua;";
         try {
             L = new Lua();
-            L.openLibraries();
-            L.setExternalLoader(new LuaModuleLoader(this));
-            // Lua Application
-            L.getGlobal("package");
-            if (L.isTable(-1)) {
-                L.push(getLuaLpath());
-                L.setField(-2, "path");
-                L.push(getLuaCpath());
-                L.setField(-2, "cpath");
-            }
-            L.pushGlobal(this, "application", "app", "this");
-            L.loadExternal(LUA_APPLICATION_ENTRY);
-            mOnTerminate = L.getLuaFunction("onTerminate");
-            mOnLowMemory = L.getLuaFunction("onLowMemory");
-            mOnTrimMemory = L.getLuaFunction("onTrimMemory");
-            mOnConfigurationChanged = L.getLuaFunction("onConfigurationChanged");
-            runFunc("onCreate");
-        } catch (Exception e) {
+            initialize(L);
+        } catch (LuaException e) {
             sendError(e);
         }
     }
@@ -179,6 +163,27 @@ public class LuaApplication extends Application implements LuaContext {
 
     public Context getContext() {
         return this;
+    }
+
+    @Override
+    public void initialize(Lua L) {
+        L.openLibraries();
+        L.setExternalLoader(new LuaModuleLoader(this));
+        // Lua Application
+        L.getGlobal("package");
+        if (L.isTable(-1)) {
+            L.push(getLuaLpath());
+            L.setField(-2, "path");
+            L.push(getLuaCpath());
+            L.setField(-2, "cpath");
+        }
+        L.pushGlobal(this, "application", "app", "this");
+        L.loadExternal(LUA_APPLICATION_ENTRY);
+        mOnTerminate = L.getLuaFunction("onTerminate");
+        mOnLowMemory = L.getLuaFunction("onLowMemory");
+        mOnTrimMemory = L.getLuaFunction("onTrimMemory");
+        mOnConfigurationChanged = L.getLuaFunction("onConfigurationChanged");
+        runFunc("onCreate");
     }
 }
 
