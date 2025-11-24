@@ -9,12 +9,13 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
@@ -23,6 +24,7 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 @SuppressLint("StaticFieldLeak")
+@SuppressWarnings("IOStreamConstructor")
 public final class LuaUtil {
 
     private LuaUtil() {
@@ -110,13 +112,12 @@ public final class LuaUtil {
             closeQuietly(in);
         }
     }
-
     public static ByteBuffer readFileBuffer(File file) throws IOException {
-        return readStreamBufferWithAutoClose(Files.newInputStream(file.toPath()), (int) file.length());
+        return readStreamBufferWithAutoClose(new FileInputStream(file), (int) file.length());
     }
 
     public static byte[] readFileBytes(File file) throws IOException {
-        return readStreamBytesWithAutoClose(Files.newInputStream(file.toPath()));
+        return readStreamBytesWithAutoClose(new FileInputStream(file));
     }
 
     public static String readFile(File file) throws IOException {
@@ -145,7 +146,7 @@ public final class LuaUtil {
     }
 
     public static void copyFile(File src, File dest) throws IOException {
-        copyStreamWithAutoClose(Files.newInputStream(src.toPath()), Files.newOutputStream(dest.toPath()));
+        copyStreamWithAutoClose(new FileInputStream(src), new FileOutputStream(dest));
     }
 
     public static void copyDir(File srcDir, File destDir) throws IOException {
@@ -203,7 +204,7 @@ public final class LuaUtil {
     }
 
     public static void copyAssetsFile(String assetPath, File destFile) throws IOException {
-        copyStreamWithAutoClose(assetManager.open(assetPath), Files.newOutputStream(destFile.toPath()));
+        copyStreamWithAutoClose(assetManager.open(assetPath), new FileOutputStream(destFile));
     }
 
     public static void copyAssetsDir(String assetPath, File destDir) throws IOException {
@@ -228,7 +229,7 @@ public final class LuaUtil {
     public static void zip(File srcFile, File zipFile) throws IOException {
         ZipOutputStream zipOutputStream = null;
         try {
-            zipOutputStream = new ZipOutputStream(Files.newOutputStream(zipFile.toPath()));
+            zipOutputStream = new ZipOutputStream(new FileOutputStream(zipFile));
             zipInternal(zipOutputStream, srcFile, "");
         } finally {
             closeQuietly(zipOutputStream);
@@ -248,7 +249,7 @@ public final class LuaUtil {
                 }
             }
         } else {
-            copyStreamWithAutoClose(Files.newInputStream(file.toPath()), zipOutputStream);
+            copyStreamWithAutoClose(new FileInputStream(file), zipOutputStream);
             zipOutputStream.closeEntry();
         }
     }
@@ -270,7 +271,7 @@ public final class LuaUtil {
                     entryFile.mkdirs();
                 } else {
                     entryFile.getParentFile().mkdirs();
-                    copyStreamWithAutoClose(zip.getInputStream(entry), Files.newOutputStream(entryFile.toPath()));
+                    copyStreamWithAutoClose(zip.getInputStream(entry), new FileOutputStream(entryFile));
                 }
             }
         } finally {
@@ -303,7 +304,7 @@ public final class LuaUtil {
     }
 
     public static String getFileDigest(File file, String algorithm) throws IOException, NoSuchAlgorithmException {
-        return getStreamDigestWithAutoClose(new BufferedInputStream(Files.newInputStream(file.toPath())), algorithm);
+        return getStreamDigestWithAutoClose(new BufferedInputStream(new FileInputStream(file)), algorithm);
     }
 
     public static String getAssetDigest(String assetPath, String algorithm) throws IOException, NoSuchAlgorithmException {
