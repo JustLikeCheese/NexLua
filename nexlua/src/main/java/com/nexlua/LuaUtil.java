@@ -225,6 +225,32 @@ public final class LuaUtil {
         }
     }
 
+    // Resource Utils
+    public static ByteBuffer readRawBuffer(int id) throws IOException {
+        try {
+            AssetFileDescriptor fileDescriptor = context.getResources().openRawResourceFd(id);
+            try {
+                return readStreamBufferWithAutoClose(fileDescriptor.createInputStream(), (int) fileDescriptor.getLength());
+            } finally {
+                closeQuietly(fileDescriptor);
+            }
+        } catch (Exception e) {
+            return wrap(readRawBytes(id));
+        }
+    }
+
+    public static byte[] readRawBytes(int id) throws IOException {
+        return readStreamBytesWithAutoClose(context.getResources().openRawResource(id));
+    }
+
+    public static String readRaw(int id) throws IOException {
+        return new String(readRawBytes(id), StandardCharsets.UTF_8);
+    }
+
+    public static void copyRawFile(int id, File destFile) throws IOException {
+        copyStreamWithAutoClose(context.getResources().openRawResource(id), new FileOutputStream(destFile));
+    }
+
     // Zip Utils
     public static void zip(File srcFile, File zipFile) throws IOException {
         ZipOutputStream zipOutputStream = null;
@@ -309,6 +335,10 @@ public final class LuaUtil {
 
     public static String getAssetDigest(String assetPath, String algorithm) throws IOException, NoSuchAlgorithmException {
         return getStreamDigestWithAutoClose(new BufferedInputStream(assetManager.open(assetPath)), algorithm);
+    }
+
+    public static String getRawDigest(int id, String algorithm) throws IOException, NoSuchAlgorithmException {
+        return getStreamDigestWithAutoClose(new BufferedInputStream(context.getResources().openRawResource(id)), algorithm);
     }
 
     public static String getStreamDigest(InputStream in, String algorithm) throws IOException, NoSuchAlgorithmException {
