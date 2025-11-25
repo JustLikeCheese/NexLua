@@ -132,44 +132,46 @@ public final class JuaAPI {
         // Class.STATIC_FIELD
         Field field = ClassUtils.getPublicStaticField(clazz, name);
         if (field != null) return L.push(ClassUtils.getField(field), field.getType());
-        // Class.innerClass
+        // Class.InnerClass
         Class<?> innerClass = ClassUtils.getInnerClass(clazz, name);
         if (innerClass != null) return L.push(innerClass);
         // Class.staticMethod(XXX)
         Method[] methods = clazz.getMethods();
-        char prefix = name.charAt(0);
-        String suffix = name.substring(1);
-        boolean isLowerCase = Character.isLowerCase(prefix);
-        final String PREFIX = "get";
-        String methodName1; // get Xxx
-        String methodName2; // get xXX
-        if (isLowerCase) {
-            methodName1 = PREFIX + Character.toUpperCase(prefix) + suffix;
-            methodName2 = PREFIX + prefix + suffix;
-        } else {
-            methodName1 = PREFIX + prefix + suffix;
-            methodName2 = PREFIX + Character.toLowerCase(prefix) + suffix;
+        String fieldMethodName1; // get Xxx
+        String fieldMethodName2; // get xXX
+        Method fieldMethod1 = null;
+        Method fieldMethod2 = null;
+        {
+            char firstChar = name.charAt(0);
+            boolean isLowerCase = Character.isLowerCase(firstChar);
+            final String SUFFIX = name.substring(1);
+            final String PREFIX = "get";
+            if (isLowerCase) {
+                fieldMethodName1 = PREFIX + Character.toUpperCase(firstChar) + SUFFIX;
+                fieldMethodName2 = PREFIX + firstChar + SUFFIX;
+            } else {
+                fieldMethodName1 = PREFIX + firstChar + SUFFIX;
+                fieldMethodName2 = PREFIX + Character.toLowerCase(firstChar) + SUFFIX;
+            }
         }
-        Method matchMethod1 = null;
-        Method matchMethod2 = null;
         for (Method method : methods) {
             if (Modifier.isStatic(method.getModifiers())) {
                 String methodName = method.getName();
                 if (name.equals(method.getName())) {
                     return L.push(new JMethod(null, clazz, name));
-                } else if (matchMethod1 == null && method.getParameterCount() == 0) {
-                    if (methodName1.equals(methodName)) {
-                        matchMethod1 = method;
-                    } else if (matchMethod2 == null && methodName2.equals(methodName)) {
-                        matchMethod2 = method;
+                } else if (fieldMethod1 == null && method.getParameterCount() == 0) {
+                    if (fieldMethodName1.equals(methodName)) {
+                        fieldMethod1 = method;
+                    } else if (fieldMethod2 == null && fieldMethodName2.equals(methodName)) {
+                        fieldMethod2 = method;
                     }
                 }
             }
         }
-        if (matchMethod1 != null)
-            return L.push(ClassUtils.getMethodField(matchMethod1), matchMethod1.getReturnType());
-        else if (matchMethod2 != null)
-            return L.push(ClassUtils.getMethodField(matchMethod2), matchMethod2.getReturnType());
+        if (fieldMethod1 != null)
+            return L.push(ClassUtils.getMethodField(fieldMethod1), fieldMethod1.getReturnType());
+        else if (fieldMethod2 != null)
+            return L.push(ClassUtils.getMethodField(fieldMethod2), fieldMethod2.getReturnType());
         throw new LuaException(String.format("%s@%s is not a field or method", clazz.getName(), name));
     }
 
@@ -181,7 +183,6 @@ public final class JuaAPI {
         Field field = ClassUtils.getPublicStaticField(clazz, name);
         if (field != null) {
             if (!Modifier.isFinal(field.getModifiers())) {
-                field.setAccessible(true);
                 field.set(null, values[0].toJavaObject(field.getType()));
                 return 0;
             }
@@ -189,35 +190,37 @@ public final class JuaAPI {
         }
         // Class.STATIC_METHOD = value (setter)
         Method[] methods = clazz.getMethods();
-        char prefix = name.charAt(0);
-        String suffix = name.substring(1);
-        boolean isLowerCase = Character.isLowerCase(prefix);
-        final String PREFIX = "set";
-        String methodName1; // set Xxx
-        String methodName2; // set xXX
-        if (isLowerCase) {
-            methodName1 = PREFIX + Character.toUpperCase(prefix) + suffix;
-            methodName2 = PREFIX + prefix + suffix;
-        } else {
-            methodName1 = PREFIX + prefix + suffix;
-            methodName2 = PREFIX + Character.toLowerCase(prefix) + suffix;
+        String fieldMethodName1; // set Xxx
+        String fieldMethodName2; // set xXX
+        Method fieldMethod1 = null;
+        Method fieldMethod2 = null;
+        {
+            char firstChar = name.charAt(0);
+            boolean isLowerCase = Character.isLowerCase(firstChar);
+            final String SUFFIX = name.substring(1);
+            final String PREFIX = "set";
+            if (isLowerCase) {
+                fieldMethodName1 = PREFIX + Character.toUpperCase(firstChar) + SUFFIX;
+                fieldMethodName2 = PREFIX + firstChar + SUFFIX;
+            } else {
+                fieldMethodName1 = PREFIX + firstChar + SUFFIX;
+                fieldMethodName2 = PREFIX + Character.toLowerCase(firstChar) + SUFFIX;
+            }
         }
-        // Method matchMethod1 = null;
-        Method matchMethod2 = null;
         for (Method method : methods) {
             Class<?>[] paramTypes = method.getParameterTypes();
             if (Modifier.isStatic(method.getModifiers()) && paramTypes.length == values.length && matchParams(paramTypes, values)) {
                 String methodName = method.getName();
-                if (methodName1.equals(methodName)) {
+                if (fieldMethodName1.equals(methodName)) {
                     callMethod(null, method, method.getParameterTypes(), values);
                     return 0;
-                } else if (matchMethod2 == null && methodName2.equals(methodName)) {
-                    matchMethod2 = method;
+                } else if (fieldMethod2 == null && fieldMethodName2.equals(methodName)) {
+                    fieldMethod2 = method;
                 }
             }
         }
-        if (matchMethod2 != null) {
-            callMethod(null, matchMethod2, matchMethod2.getParameterTypes(), values);
+        if (fieldMethod2 != null) {
+            callMethod(null, fieldMethod2, fieldMethod2.getParameterTypes(), values);
             return 0;
         }
         throw new LuaException(String.format("%s@%s is not a field", clazz.getName(), name));
@@ -226,27 +229,19 @@ public final class JuaAPI {
     public static int jclassNew(long ptr, Class<?> clazz) throws LuaException {
         Lua L = Jua.get(ptr);
         LuaValue[] values = L.getAll(2);
-        ArrayList<Constructor<?>> matchedConstructors = new ArrayList<>();
-        StringBuilder msg = new StringBuilder();
-        for (Constructor<?> constructor : clazz.getConstructors()) {
-            matchedConstructors.add(constructor);
-            try {
-                return L.push(JuaAPI.callConstructor(constructor, values));
-            } catch (IllegalArgumentException ignored) {
+        Constructor<?> constructor;
+        try {
+            constructor = matchConstructor(clazz.getConstructors(), values);
+        } catch (LuaException e) {
+            if (values.length == 1) {
+                LuaValue value = values[0];
+                if (value.isTable()) {
+                    return L.push(value.toJavaArray(clazz));
+                }
             }
+            throw e;
         }
-        if (values.length == 1) {
-            LuaValue value = values[0];
-            if (value.isTable()) {
-                return L.push(value.toJavaArray(clazz));
-            }
-        }
-        msg.append("Invalid constructor call. Invalid Parameters.").append("\n");
-        for (Constructor<?> constructor : matchedConstructors) {
-            msg.append(constructor);
-            msg.append("\n");
-        }
-        throw new LuaException(msg.toString());
+        return L.push(callConstructor(constructor, values));
     }
 
     /* Java Object */
@@ -261,59 +256,60 @@ public final class JuaAPI {
         if (innerClass != null) return L.push(innerClass);
         // Class.staticMethod(XXX)
         Method[] methods = clazz.getMethods();
-        char prefix = name.charAt(0);
-        String suffix = name.substring(1);
-        boolean isLowerCase = Character.isLowerCase(prefix);
-        String methodName1; // get Xxx
-        String methodName2; // get xXX
-        final String PREFIX = "get";
-        if (isLowerCase) {
-            methodName1 = PREFIX + Character.toUpperCase(prefix) + suffix;
-            methodName2 = PREFIX + prefix + suffix;
-        } else {
-            methodName1 = PREFIX + prefix + suffix;
-            methodName2 = PREFIX + Character.toLowerCase(prefix) + suffix;
+        String fieldMethodName1; // get Xxx
+        String fieldMethodName2; // get xXX
+        Method fieldMethod1 = null;
+        Method fieldMethod2 = null;
+        Method staticFieldMethod1 = null;
+        Method staticFieldMethod2 = null;
+        Method staticMethod = null;
+        {
+            char firstChar = name.charAt(0);
+            boolean isLowerCase = Character.isLowerCase(firstChar);
+            final String SUFFIX = name.substring(1);
+            final String PREFIX = "get";
+            if (isLowerCase) {
+                fieldMethodName1 = PREFIX + Character.toUpperCase(firstChar) + SUFFIX;
+                fieldMethodName2 = PREFIX + firstChar + SUFFIX;
+            } else {
+                fieldMethodName1 = PREFIX + firstChar + SUFFIX;
+                fieldMethodName2 = PREFIX + Character.toLowerCase(firstChar) + SUFFIX;
+            }
         }
-        Method matchedGetMethod1 = null;
-        Method matchedGetMethod2 = null;
-        Method matchedStaticGetMethod1 = null;
-        Method matchedStaticGetMethod2 = null;
-        Method matchedStaticMethod = null;
         for (Method method : methods) {
             String methodName = method.getName();
             if (!Modifier.isStatic(method.getModifiers())) { // instance method first
                 if (name.equals(method.getName())) { // object.methodName
-                    L.push(new JMethod(instance, clazz, name));
-                    return 1;
-                } else if (matchedGetMethod1 == null) { // object.get Xxx
-                    if (methodName1.equals(methodName)) {
-                        matchedGetMethod1 = method;
-                    } else if (methodName2.equals(methodName)) { // object.get xXX
-                        matchedGetMethod2 = method;
+                    return L.push(new JMethod(instance, clazz, name));
+                } else if (fieldMethod1 == null) { // object.get Xxx
+                    if (fieldMethodName1.equals(methodName)) {
+                        fieldMethod1 = method;
+                    } else if (fieldMethodName2.equals(methodName)) { // object.get xXX
+                        fieldMethod2 = method;
                     }
                 }
-            } else {
-                if (name.equals(method.getName())) { // Class.methodName
-                    matchedStaticMethod = method;
-                } else if (matchedStaticGetMethod1 == null) { // Class.get Xxx
-                    if (methodName1.equals(methodName)) {
-                        matchedStaticGetMethod1 = method;
-                    } else if (methodName2.equals(methodName)) { // Class.get xXX
-                        matchedStaticGetMethod2 = method;
+            } else if (staticMethod == null) { // Class.methodName
+                if (name.equals(methodName)) {
+                    staticMethod = method;
+                } else if (staticFieldMethod1 == null) {
+                    if (fieldMethodName1.equals(methodName)) {
+                        staticFieldMethod1 = method;
+                    } else if (staticFieldMethod2 == null && fieldMethodName2.equals(methodName)) { // Class.get xXX
+                        staticFieldMethod2 = method;
                     }
                 }
             }
         }
-        if (matchedStaticMethod != null)
+        if (staticMethod != null)
             return L.push(new JMethod(null, clazz, name));
-        else if (matchedGetMethod1 != null)
-            return L.push(ClassUtils.callMethod(instance, matchedGetMethod1, null), matchedGetMethod1.getReturnType());
-        else if (matchedGetMethod2 != null)
-            return L.push(ClassUtils.callMethod(instance, matchedGetMethod2, null), matchedGetMethod2.getReturnType());
-        else if (matchedStaticGetMethod1 != null)
-            return L.push(ClassUtils.callMethod(null, matchedStaticGetMethod1, null), matchedStaticGetMethod1.getReturnType());
-        else if (matchedStaticGetMethod2 != null)
-            return L.push(ClassUtils.callMethod(null, matchedStaticGetMethod2, null), matchedStaticGetMethod2.getReturnType());
+        else if (fieldMethod1 != null)
+            return L.push(ClassUtils.callMethod(instance, fieldMethod1, null), fieldMethod1.getReturnType());
+        else if (fieldMethod2 != null)
+            return L.push(ClassUtils.callMethod(instance, fieldMethod2, null), fieldMethod2.getReturnType());
+        else if (staticFieldMethod1 != null)
+            return L.push(ClassUtils.callMethod(null, staticFieldMethod1, null), staticFieldMethod1.getReturnType());
+        else if (staticFieldMethod2 != null)
+            return L.push(ClassUtils.callMethod(null, staticFieldMethod2, null), staticFieldMethod2.getReturnType());
         throw new LuaException(String.format("%s@%s is not a field or method", clazz.getName(), name));
     }
 
@@ -322,6 +318,7 @@ public final class JuaAPI {
         Lua L = Jua.get(ptr);
         Class<?> clazz = object.getClass();
         LuaValue[] values = L.getAll(3);
+        // object.field = value
         Field field = ClassUtils.getPublicField(clazz, name);
         if (field != null) {
             if (!Modifier.isFinal(field.getModifiers())) {
@@ -331,51 +328,53 @@ public final class JuaAPI {
             }
             throw new LuaException(String.format("%s@%s is a final field that cannot be changed", clazz.getName(), name));
         }
-        // Class.STATIC_METHOD = value (setter)
+        // object.method = value (setter)
         Method[] methods = clazz.getMethods();
-        char prefix = name.charAt(0);
-        String suffix = name.substring(1);
-        boolean isLowerCase = Character.isLowerCase(prefix);
-        final String PREFIX = "set";
-        String methodName1; // set Xxx
-        String methodName2; // set xXX
-        if (isLowerCase) {
-            methodName1 = PREFIX + Character.toUpperCase(prefix) + suffix;
-            methodName2 = PREFIX + prefix + suffix;
-        } else {
-            methodName1 = PREFIX + prefix + suffix;
-            methodName2 = PREFIX + Character.toLowerCase(prefix) + suffix;
+        String fieldMethodName1; // set Xxx
+        String fieldMethodName2; // set xXx
+        Method fieldMethod1 = null;
+        Method fieldMethod2 = null;
+        Method staticFieldMethod1 = null;
+        Method staticFieldMethod2 = null;
+        {
+            char firstChar = name.charAt(0);
+            boolean isLowerCase = Character.isLowerCase(firstChar);
+            final String SUFFIX = name.substring(1);
+            final String PREFIX = "set";
+            if (isLowerCase) {
+                fieldMethodName1 = PREFIX + Character.toUpperCase(firstChar) + SUFFIX;
+                fieldMethodName2 = PREFIX + firstChar + SUFFIX;
+            } else {
+                fieldMethodName1 = PREFIX + firstChar + SUFFIX;
+                fieldMethodName2 = PREFIX + Character.toLowerCase(firstChar) + SUFFIX;
+            }
         }
-        // Method matchMethod1 = null;
-        Method matchStaticMethod1 = null;
-        Method matchStaticMethod2 = null;
-        Method matchMethod2 = null;
         for (Method method : methods) {
             Class<?>[] paramTypes = method.getParameterTypes();
             if (paramTypes.length == values.length && matchParams(paramTypes, values)) {
                 String methodName = method.getName();
-                if (!Modifier.isStatic(method.getModifiers())) { // instance method first
-                    if (methodName1.equals(methodName)) {
-                        callMethod(object, method, method.getParameterTypes(), values);
+                if (!Modifier.isStatic(method.getModifiers())) {
+                    if (fieldMethodName1.equals(methodName)) {
+                        callMethod(object, method, paramTypes, values);
                         return 0;
-                    } else if (matchMethod2 == null && methodName2.equals(methodName)) {
-                        matchMethod2 = method;
+                    } else if (fieldMethod2 == null && fieldMethodName2.equals(methodName)) {
+                        fieldMethod2 = method;
                     }
                 } else {
-                    if (methodName1.equals(methodName)) {
-                        matchStaticMethod1 = method;
-                    } else if (matchStaticMethod2 == null && methodName2.equals(methodName)) {
-                        matchStaticMethod2 = method;
+                    if (fieldMethodName1.equals(methodName)) {
+                        staticFieldMethod1 = method;
+                    } else if (staticFieldMethod2 == null && fieldMethodName2.equals(methodName)) {
+                        staticFieldMethod2 = method;
                     }
                 }
             }
         }
-        if (matchMethod2 != null) {
-            callMethod(object, matchMethod2, matchMethod2.getParameterTypes(), values);
-        } else if (matchStaticMethod1 != null) {
-            callMethod(object, matchStaticMethod1, matchStaticMethod1.getParameterTypes(), values);
-        } else if (matchStaticMethod2 != null) {
-            callMethod(object, matchStaticMethod2, matchStaticMethod2.getParameterTypes(), values);
+        if (fieldMethod2 != null) {
+            callMethod(object, fieldMethod2, fieldMethod2.getParameterTypes(), values);
+        } else if (staticFieldMethod1 != null) {
+            callMethod(null, staticFieldMethod1, staticFieldMethod1.getParameterTypes(), values);
+        } else if (staticFieldMethod2 != null) {
+            callMethod(null, staticFieldMethod2, staticFieldMethod2.getParameterTypes(), values);
         } else {
             throw new LuaException(String.format("%s@%s is not a field", clazz.getName(), name));
         }
