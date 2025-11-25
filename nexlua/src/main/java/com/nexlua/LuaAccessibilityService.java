@@ -3,12 +3,15 @@ package com.nexlua;
 import android.accessibilityservice.AccessibilityGestureEvent;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.InputMethod;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.accessibility.AccessibilityEvent;
 
+@SuppressLint("AccessibilityPolicy")
 public class LuaAccessibilityService extends AccessibilityService {
     protected static LuaAccessibilityService instance;
     protected static Callback callback;
@@ -150,7 +153,9 @@ public class LuaAccessibilityService extends AccessibilityService {
     @Override
     public boolean onGesture(AccessibilityGestureEvent gestureEvent) {
         if (callback != null) {
-            return callback.onGesture(gestureEvent.getGestureId());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                return callback.onGesture(gestureEvent.getGestureId());
+            }
         }
         return super.onGesture(gestureEvent);
     }
