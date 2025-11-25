@@ -45,3 +45,7 @@ layout.addView(toolbar)
 layout.addView(editor)
 
 activity.setContentView(layout)
+
+function onError(e)
+    alert(e)
+end

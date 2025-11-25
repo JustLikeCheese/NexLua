@@ -18,9 +18,9 @@ public interface LuaContext extends LuaHandler {
 
     Lua getLua();
 
-    File getLuaFile();
+    LuaConfig getConfig();
 
-    File getLuaDir();
+    String getLuaDir();
 
     String getLuaPath();
 

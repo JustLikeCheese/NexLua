@@ -1,16 +1,11 @@
-local LinearLayout = luajava.bindClass("android.widget.LinearLayout")
-local TextView = luajava.bindClass("android.widget.TextView")
-local Button = luajava.bindClass("android.widget.Button")
+print(type(this.luaDir))
+print(this.luaDir)
+local path = this.luaDir .. "/main.lua"
+print(type(path))
+print(path)
 
-local layout = LinearLayout(activity)
-layout.orientation = LinearLayout.VERTICAL
-layout.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
+local LuaUtil = luajava.bindClass "com.nexlua.LuaUtil"
+local File = luajava.bindClass "java.io.File"
+LuaUtil.copyAssetsFile("main.lua", File(this.luaDir .. "/main.lua"))
 
-local btn = Button(activity)
-btn.text = "欢迎使用"
-btn.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-
-layout.setFitsSystemWindows(true)
-layout.addView(btn)
-
-activity.setContentView(layout)
+dofile(this.luaDir .. "/main.lua")

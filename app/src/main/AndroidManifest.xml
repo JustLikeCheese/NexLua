@@ -56,7 +56,7 @@
         tools:ignore="ForegroundServicesPolicy" />
 
     <application
-        android:name="com.nexlua.LuaApplication"
+        android:name="com.mycompany.MyApplication"
         android:icon="@drawable/icon"
         android:label="NexLua"
         android:largeHeap="true"
@@ -80,7 +80,7 @@
             android:name="com.nexlua.LuaActivity"
             android:exported="false" />
         <activity
-            android:name="com.nexlua.TestActivity"
+            android:name="com.mycompany.TestActivity"
             android:exported="true" />
     </application>
 </manifest>

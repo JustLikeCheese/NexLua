@@ -1,4 +1,4 @@
-package com.nexlua;
+package com.mycompany;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -46,10 +46,10 @@ public class TestActivity extends Activity {
             public int __call(Lua L) {
                 int top = L.getTop();
                 if (top > 0) {
-                    output.append(L.ltoString(1));
+                    output.append(L.LtoString(1));
                     for (int i = 2; i <= top; i++) {
                         output.append("\t");
-                        output.append(L.ltoString(i));
+                        output.append(L.LtoString(i));
                     }
                     showToast(output.toString());
                     output.setLength(0);

@@ -1,4 +1,4 @@
-package com.nexlua;
+package com.mycompany;
 
 @SuppressWarnings("unused")
 public class TestClass {

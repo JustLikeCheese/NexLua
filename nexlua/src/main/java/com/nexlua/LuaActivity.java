@@ -22,6 +22,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -32,8 +33,9 @@ import com.luajava.LuaException;
 import com.luajava.LuaHandler;
 import com.luajava.value.LuaValue;
 import com.luajava.value.referable.LuaFunction;
+import com.nexlua.module.LuaModule;
+import com.nexlua.module.LuaModuleLoader;
 
-import java.io.File;
 import java.util.ArrayList;
 
 public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnReceiveListener, LuaContext, LuaHandler {
@@ -46,14 +48,15 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     protected LuaFunction mOnActivityResult, onRequestPermissionsResult, mOnSaveInstanceState, mOnRestoreInstanceState;
     protected LuaFunction mOnStart, mOnResume, mOnPause, mOnStop, mOnRestarted;
     protected LuaFunction mOnConfigurationChanged;
-    protected LuaFunction mOnError, mOnReceive, mOnNewIntent, mOnResult, mOnDestroy;
+    protected LuaFunction mOnMessage, mOnError, mOnReceive, mOnNewIntent, mOnResult, mOnDestroy;
     protected LuaBroadcastReceiver mReceiver;
     protected final LuaApplication app = LuaApplication.getInstance();
+    protected final LuaConfig config = app.getConfig();
     protected final Lua L = new Lua(this);
     protected final LuaPrint print = new LuaPrint(this);
-    protected File luaDir, luaFile;
-    protected String luaPath, luaLpath, luaCpath;
+    protected String luaPath, luaDir, luaLpath, luaCpath;
     protected LuaIntent intent;
+    protected LuaModule module;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,10 +64,9 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         StrictMode.setThreadPolicy(policy);
         this.intent = LuaIntent.from(getIntent());
         if (intent != null) {
-            setTheme(intent.theme);
-            luaFile = intent.file;
-            luaPath = luaFile.getAbsolutePath();
-            luaDir = luaFile.getParentFile();
+            module = intent.module;
+            luaPath = module.getPath();
+            luaDir = PathUtil.getParentPath(luaPath);
         }
         super.onCreate(null);
         try {
@@ -80,7 +82,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     }
 
     public void loadLua() throws Exception {
-        L.loadExternal(luaPath);
+        module.load(L, this);
     }
 
     public void loadEvent() {
@@ -110,6 +112,8 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         mOnConfigurationChanged = L.getLuaFunction("onConfigurationChanged");
         // onReceive
         mOnReceive = L.getLuaFunction("onReceive");
+        // onMessage
+        mOnMessage = L.getLuaFunction("onMessage");
         // onError
         mOnError = L.getLuaFunction("onError");
         // onNewIntent
@@ -183,8 +187,13 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
                 }
             };
             listView.setAdapter(adapter);
-            consoleLayout.addView(listView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+            consoleLayout.addView(listView);
             consoleLayout.setBackgroundColor(backgroundColor);
+            consoleLayout.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+            listView.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+            View footerView = new View(this);
+            footerView.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, 0));
+            listView.addFooterView(footerView, null, false);
         }
         setContentView(consoleLayout);
         isViewInflated = false;
@@ -422,25 +431,15 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     }
 
     public void newActivity(String name, Object[] args) {
-        File file = new File(name);
-        if (!file.exists()) file = new File(luaDir, name);
-        Intent intent = new Intent(this, LuaActivity.class);
-        intent.putExtra(LuaIntent.NAME, new LuaIntent(file, args));
-        startActivity(intent);
+        startActivity(LuaIntent.newIntent(this, name, args));
     }
 
     public void newActivityForResult(String name, int requestCode, Object... args) {
-        File file = new File(name);
-        if (!file.exists()) file = new File(luaDir, name);
-        Intent intent = new Intent(this, LuaActivity.class);
-        intent.putExtra(LuaIntent.NAME, new LuaIntent(file, args));
-        startActivityForResult(intent, requestCode);
+        startActivityForResult(LuaIntent.newIntent(this, name, args), requestCode);
     }
 
     public void setActivityResult(int resultCode, Object[] data) {
-        Intent intent = new Intent();
-        intent.putExtra(LuaIntent.NAME, new LuaIntent(this.intent.file, this.intent.args));
-        setResult(resultCode, intent);
+        setResult(resultCode, LuaIntent.newIntent(this, this.intent.module, data));
         finish();
     }
 
@@ -468,11 +467,23 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
 
     @Override
     public void sendError(String title, String message) {
+        boolean ret = false;
+        if (mOnError != null) {
+            try {
+                L.push(mOnError);
+                if (L.isFunction(-1)) {
+                    L.vpCall(new Object[]{message}, Lua.Conversion.SEMI, 1);
+                    Object object = L.get().toJavaObject();
+                    ret = object != Boolean.FALSE && object != null;
+                }
+            } catch (Exception ignored) {
+                showToast(message);
+            }
+        }
         if (!isViewInflated) {
             setConsoleLayout();
             ActionBar actionBar = getActionBar();
             if (actionBar != null) actionBar.setDisplayHomeAsUpEnabled(true);
-            boolean ret = onLuaEvent(mOnError, message);
             if (!ret) {
                 setTitle(title);
                 runOnUiThread(new Runnable() {
@@ -495,11 +506,13 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         return L;
     }
 
-    public File getLuaFile() {
-        return luaFile;
+    @Override
+    public LuaConfig getConfig() {
+        return app.getConfig();
     }
 
-    public File getLuaDir() {
+    @Override
+    public String getLuaDir() {
         return luaDir;
     }
 
@@ -523,12 +536,8 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     public void initialize(Lua L) {
         L.openLibraries();
         L.setExternalLoader(new LuaModuleLoader(this));
-        luaCpath = app.getLuaCpath();
-        luaLpath = app.getLuaLpath();
-        if (!luaDir.equals(app.getLuaDir())) {
-            luaCpath = luaCpath + luaDir + "/lib?.so;";
-            luaLpath = luaLpath + luaDir + "/?.lua;" + luaDir + "/lua/?.lua;" + luaDir + "/?/init.lua;";
-        }
+        luaCpath = app.getLuaCpath(luaDir);
+        luaLpath = app.getLuaLpath(luaDir);
         // package.path 和 cpath
         L.getGlobal("package");
         if (L.isTable(1)) {

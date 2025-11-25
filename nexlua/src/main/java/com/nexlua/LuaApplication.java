@@ -1,35 +1,33 @@
 package com.nexlua;
 
-import android.annotation.SuppressLint;
 import android.app.Application;
-import android.content.ClipData;
-import android.content.ClipDescription;
 import android.content.Context;
 import android.content.res.Configuration;
-import android.os.Build;
 import android.widget.Toast;
 
 import com.luajava.Lua;
 import com.luajava.LuaException;
-import com.luajava.value.LuaValue;
 import com.luajava.value.referable.LuaFunction;
+import com.nexlua.module.LuaModule;
+import com.nexlua.module.LuaModuleLoader;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import io.github.justlikecheese.nextoast.NexToast;
 
 public class LuaApplication extends Application implements LuaContext {
-    private static LuaApplication mApplication;
-    private static final String LUA_APPLICATION_ENTRY = "app.lua";
-    private File luaDir, luaFile;
-    private String luaLpath, luaCpath;
-    private Lua L;
-    private LuaFunction mOnTerminate, mOnLowMemory, mOnTrimMemory, mOnConfigurationChanged;
-    private NexToast mToast;
-    private StringBuilder mToastBuilder = new StringBuilder();
-    private long mToastTime;
+    protected static LuaApplication mApplication;
+    protected String luaPath, luaDir, luaLpath, luaCpath;
+    protected Lua L;
+    protected LuaFunction mOnTerminate, mOnLowMemory, mOnTrimMemory, mOnConfigurationChanged;
+    protected NexToast mToast;
+    protected StringBuilder mToastBuilder = new StringBuilder();
+    protected long mToastTime;
+    protected LuaConfig config;
+    protected LuaModule module;
+    protected String baseCpath;
+    protected String baseLpath;
 
     @Override
     public void onCreate() {
@@ -37,33 +35,35 @@ public class LuaApplication extends Application implements LuaContext {
         mApplication = this;
         // 初始化 LuaUtil, CrashHandler
         LuaUtil.init(this);
-        LuaConfig.onConfig(this);
         CrashHandler.getInstance().init(this);
         // 获取 luaDir, luaFile, luaCpath, luaLpath
-        luaDir = LuaConfig.LUA_ROOT_DIR;
-        luaFile = new File(luaDir, LUA_APPLICATION_ENTRY);
-        File luaLibDir = getDir("lua", Context.MODE_PRIVATE);
-        File libDir = getDir("lib", Context.MODE_PRIVATE);
-        luaCpath = getApplicationInfo().nativeLibraryDir + "/lib?.so;" + libDir + "/lib?.so;";
-        luaLpath = luaLibDir + "/?.lua;" + luaLibDir + "/lua/?.lua;" + luaLibDir + "/?/init.lua;";
+        config = getConfig();
+        module = config.application;
+        luaPath = module.getPath();
+        luaDir = PathUtil.getParentPath(luaPath);
+        String luaLibDir = new File(luaDir, "lua").getAbsolutePath();
+        String libDir = new File(luaDir, "lib").getAbsolutePath();
+        baseCpath = getApplicationInfo().nativeLibraryDir + "/lib?.so;" + libDir + "/lib?.so;";
+        baseLpath = luaLibDir + "/?.lua;" + luaLibDir + "/lua/?.lua;" + luaLibDir + "/?/init.lua;";
+        luaCpath = getLuaCpath(luaDir);
+        luaLpath = getLuaLpath(luaDir);
         try {
             L = new Lua();
             initialize(L);
-        } catch (LuaException e) {
+            loadLua();
+        } catch (Exception e) {
             sendError(e);
         }
     }
 
-    protected boolean onLuaEvent(LuaValue event, Object... args) {
+    public void loadLua() throws Exception {
+        module.load(L, this);
+    }
+
+    protected boolean onLuaEvent(LuaFunction event, Object... args) {
         if (event != null) {
             try {
-                L.push(event);
-                if (L.isFunction(-1)) {
-                    L.pCall(args, Lua.Conversion.SEMI, 1);
-                    Object object = L.get().toJavaObject();
-                    return object != Boolean.FALSE && object != null;
-                }
-                return false;
+                return event.vpCall(args, Lua.Conversion.SEMI, 1)[0].toBoolean();
             } catch (LuaException e) {
                 sendError(e);
             }
@@ -72,20 +72,7 @@ public class LuaApplication extends Application implements LuaContext {
     }
 
     protected boolean runFunc(String funcName, Object... args) {
-        if (funcName != null) {
-            try {
-                L.getGlobal(funcName);
-                if (L.isFunction(-1)) {
-                    L.pCall(args, Lua.Conversion.SEMI, 1);
-                    Object object = L.get().toJavaObject();
-                    return object != Boolean.FALSE && object != null;
-                }
-                return false;
-            } catch (LuaException e) {
-                sendError(e);
-            }
-        }
-        return false;
+        return onLuaEvent(L.getLuaFunction(funcName), args);
     }
 
     @Override
@@ -141,16 +128,21 @@ public class LuaApplication extends Application implements LuaContext {
         return L;
     }
 
-    public File getLuaFile() {
-        return luaFile;
+    @Override
+    public LuaConfig getConfig() {
+        if (config == null) {
+            config = new LuaConfig(this);
+        }
+        return config;
     }
 
-    public File getLuaDir() {
+    @Override
+    public String getLuaDir() {
         return luaDir;
     }
 
     public String getLuaPath() {
-        return luaFile.getPath();
+        return luaPath;
     }
 
     public String getLuaLpath() {
@@ -159,6 +151,22 @@ public class LuaApplication extends Application implements LuaContext {
 
     public String getLuaCpath() {
         return luaCpath;
+    }
+
+    public String getBaseLpath() {
+        return baseLpath;
+    }
+
+    public String getBaseCpath() {
+        return baseCpath;
+    }
+
+    public String getLuaLpath(String luaDir) {
+        return getBaseLpath() + luaDir + "/?.lua;" + luaDir + "/lua/?.lua;" + luaDir + "/?/init.lua;";
+    }
+
+    public String getLuaCpath(String luaDir) {
+        return getBaseCpath() + luaDir + "/lib?.so;";
     }
 
     public Context getContext() {
@@ -171,14 +179,12 @@ public class LuaApplication extends Application implements LuaContext {
         L.setExternalLoader(new LuaModuleLoader(this));
         // Lua Application
         L.getGlobal("package");
-        if (L.isTable(-1)) {
-            L.push(getLuaLpath());
-            L.setField(-2, "path");
-            L.push(getLuaCpath());
-            L.setField(-2, "cpath");
+        if (L.isTable(1)) {
+            L.setField(1, "cpath", luaCpath);
+            L.setField(1, "path", luaLpath);
+            L.pop(1);
         }
         L.pushGlobal(this, "application", "app", "this");
-        L.loadExternal(LUA_APPLICATION_ENTRY);
         mOnTerminate = L.getLuaFunction("onTerminate");
         mOnLowMemory = L.getLuaFunction("onLowMemory");
         mOnTrimMemory = L.getLuaFunction("onTrimMemory");
@@ -186,6 +192,3 @@ public class LuaApplication extends Application implements LuaContext {
         runFunc("onCreate");
     }
 }
-
-
-

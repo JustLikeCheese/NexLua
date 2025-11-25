@@ -1,65 +1,102 @@
 package com.nexlua;
 
-import android.content.Context;
+import android.util.Log;
 
 import com.luajava.Lua;
+import com.nexlua.module.LuaAssetsModule;
+import com.nexlua.module.LuaDexModule;
+import com.nexlua.module.LuaFileModule;
+import com.nexlua.module.LuaModule;
+import com.nexlua.module.LuaResourceModule;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
 
-public final class LuaConfig {
-    public static final int APP_THEME = android.R.style.Theme_Material_Light;
-    public static final int WELCOME_THEME = android.R.style.Theme_Material_Light;
-    // 在 Welcome 启动时申请的权限
-    public static final String[] REQUIRED_PERMISSIONS_IN_WELCOME = new String[]{
-            // Manifest.permission.INTERNET,
-            // Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            // Manifest.permission.READ_EXTERNAL_STORAGE,
-    };
-    // 在 Main 启动时申请的权限
-    public static final String[] REQUIRED_PERMISSIONS = new String[]{
-            // Manifest.permission.INTERNET,
-            // Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            // Manifest.permission.READ_EXTERNAL_STORAGE,
-    };
-    public static final String[] ONLY_DECOMPRESS = new String[]{
-            // 指定解压的文件
-            // "res/gradle.tar.xz"
-    };
-    public static final String[] SKIP_DECOMPRESS = new String[]{
-            // 跳过解压的文件
-            // "res/gradle.tar.xz"
-    };
-    // Lua 入口文件
-    // 抽离到 Dex 的 Lua 的映射表
-    public static Map<String, Class<?>> LUA_DEX_MAP;
-    public static File LUA_WELCOME;
-    public static File LUA_ENTRY;
-    public static File LUA_ROOT_DIR;
-    public static File FILES_DIR;
+public class LuaConfig {
+    protected static File FILES_DIR;
+    protected ArrayList<LuaModule> LUA_MODULES;
+    protected LuaModule welcome;
+    protected LuaModule application;
+    protected LogLevel level;
 
-    public static void onConfig(Context context) {
-        if (FILES_DIR != null) return;
-        FILES_DIR = context.getFilesDir();
-        // Lua Root Dir
-        LUA_ROOT_DIR = FILES_DIR;
-        LUA_WELCOME = new File(LUA_ROOT_DIR, "welcome.lua");
-        LUA_ENTRY = new File(LUA_ROOT_DIR, "main.lua");
-        // Lua Module: Put your modules here
-        Map<String, Class<?>> map = new HashMap<>();
-        LUA_DEX_MAP = Collections.unmodifiableMap(map);
+    public enum LogLevel {
+        TOAST,
+        TOAST_LONG,
+        DIALOG,
+        DIALOG_LONG,
+        NONE
     }
 
-    public static LuaModule getModule(String path) {
-        Class<?> module = LUA_DEX_MAP.get(path);
-        if (module != null) {
-            try {
-                return (LuaModule) module.newInstance();
-            } catch (IllegalAccessException | InstantiationException ignored) {
+    public LuaConfig(LuaContext context) {
+        if (FILES_DIR == null) {
+            FILES_DIR = context.getContext().getFilesDir();
+        }
+        LUA_MODULES = new ArrayList<>();
+    }
+
+    public void registerWelcome(LuaModule welcome) {
+        this.welcome = welcome;
+    }
+
+    public void registerApplication(LuaModule application) {
+        this.application = application;
+    }
+
+    public LuaModule register(LuaModule module) {
+        LUA_MODULES.add(module);
+        return module;
+    }
+
+    public LuaModule registerAssets(String path, String fileName) {
+        return register(new LuaAssetsModule(path, fileName));
+    }
+
+    public LuaModule register(String path, int resource) {
+        return register(new LuaResourceModule(path, resource));
+    }
+
+    public LuaModule register(String path, File file) {
+        return register(new LuaFileModule(path, file));
+    }
+
+    public LuaModule register(String path, String content) {
+        return register(new LuaDexModule(path, content));
+    }
+
+    public LuaModule get(String path) {
+        for (LuaModule entry : LUA_MODULES) {
+            final String entryPath = entry.getPath();
+            if (entryPath.equals(path) || entryPath.equals(path + ".lua")) {
+                return entry;
             }
         }
         return null;
+    }
+
+    public LogLevel getLevel() {
+        return level;
+    }
+
+    public int load(LuaContext context, Lua L, String moduleName) {
+        LuaModule module;
+        String path = context.getLuaDir() + "/" + moduleName;
+        File file1 = new File(moduleName);
+        File file2 = new File(path);
+        if (file1.isAbsolute()) {
+            module = get(moduleName);
+            if (module == null && file1.exists()) {
+                module = register(file1.getAbsolutePath(), file1);
+            }
+        } else {
+            module = get(path);
+            if (module == null && file2.exists()) {
+                module = register(file2.getAbsolutePath(), file2);
+            }
+        }
+        if (module != null) {
+            int nResult = module.load(L, context);
+            return nResult > 0 ? nResult : 1;
+        }
+        return 0;
     }
 }

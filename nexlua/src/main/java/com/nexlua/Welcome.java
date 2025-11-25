@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 
-public class Welcome extends LuaActivity implements LuaContext {
+public class Welcome extends LuaActivity {
     public static String oldVersionName, newVersionName;
     public static long oldUpdateTime, newUpdateTime;
     public static boolean isVersionChanged;
@@ -21,12 +21,7 @@ public class Welcome extends LuaActivity implements LuaContext {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Intent intent = getIntent();
-        intent.putExtra(LuaIntent.NAME, new LuaIntent(LuaConfig.LUA_WELCOME));
-        try {
-            LuaUtil.copyAssetsFile("welcome.lua", new File(app.getLuaDir(), "welcome.lua"));
-        } catch (IOException e) {
-            sendError(e);
-        }
+        intent.putExtra(LuaIntent.NAME, new LuaIntent(this, config.welcome));
         super.onCreate(savedInstanceState);
         isVersionChanged = checkVersionChanged();
     }
@@ -39,7 +34,6 @@ public class Welcome extends LuaActivity implements LuaContext {
                     permissions.add(requiredPermission);
             if (!permissions.isEmpty()) {
                 requestPermissions(permissions.toArray(new String[0]), 0);
-                return;
             }
         }
     }
@@ -47,35 +41,7 @@ public class Welcome extends LuaActivity implements LuaContext {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        startActivity();
-    }
-
-    public void startActivity() {
-        Intent intent = new Intent(Welcome.this, Main.class);
-        LuaIntent luaIntent = new LuaIntent(LuaConfig.APP_THEME, LuaConfig.LUA_ENTRY);
-        intent.putExtra(LuaIntent.NAME, luaIntent);
-        if (isVersionChanged) {
-            intent.putExtra("isVersionChanged", true);
-            intent.putExtra("newVersionName", newVersionName);
-            intent.putExtra("oldVersionName", oldVersionName);
-            AssetExtractor.extractAssets(this, new AssetExtractor.ExtractCallback() {
-                @Override
-                public void onStart() {
-                }
-
-                @Override
-                public void onSuccess() {
-                    startActivity(intent);
-                    finish();
-                }
-
-                @Override
-                public void onError(IOException e) {
-                }
-            });
-            return;
-        }
-        startActivity(intent);
+        startActivity(new Intent(this, Main.class));
         finish();
     }
 
