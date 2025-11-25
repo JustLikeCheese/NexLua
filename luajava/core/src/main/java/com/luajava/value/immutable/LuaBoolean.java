@@ -39,7 +39,7 @@ public class LuaBoolean extends AbstractLuaValue {
     }
 
     @Override
-    public String ltoString() {
+    public String LtoString() {
         return toString();
     }
 

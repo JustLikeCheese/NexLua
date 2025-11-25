@@ -97,7 +97,7 @@ public class LuaUserdata extends AbstractLuaRefValue {
             return this;
         }
         Object object = toJavaObject();
-        if (object == this) {
+        if (object == NONE) {
             if (clazz == Object.class) {
                 return null;
             }
@@ -109,5 +109,37 @@ public class LuaUserdata extends AbstractLuaRefValue {
             return object;
         }
         return super.toJavaObject(clazz);
+    }
+
+    @Override
+    public boolean LtoBoolean() throws LuaException {
+        if (isJavaObject(boolean.class)) {
+            return (boolean) toJavaObject(boolean.class);
+        }
+        return super.LtoBoolean();
+    }
+
+    @Override
+    public long LtoInteger() throws LuaException {
+        if (isJavaObject(Number.class)) {
+            return ((Number)toJavaObject(Number.class)).longValue();
+        }
+        return super.LtoInteger();
+    }
+
+    @Override
+    public double LtoNumber() throws LuaException {
+        if (isJavaObject(Number.class)) {
+            return ((Number)toJavaObject(Number.class)).doubleValue();
+        }
+        return super.LtoNumber();
+    }
+
+    @Override
+    public String LtoString() throws LuaException {
+        if (isJavaObject(String.class)) {
+            return (String) toJavaObject(String.class);
+        }
+        return super.LtoString();
     }
 }

@@ -16,10 +16,10 @@ public class LuaPrint implements CFunction {
     public int __call(Lua L) {
         int top = L.getTop();
         if (top > 0) {
-            output.append(L.ltoString(1));
+            output.append(L.LtoString(1));
             for (int i = 2; i <= top; i++) {
                 output.append("\t");
-                output.append(L.ltoString(i));
+                output.append(L.LtoString(i));
             }
             mLuaContext.sendMessage(output.toString());
             output.setLength(0);

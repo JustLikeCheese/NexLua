@@ -71,7 +71,7 @@ public class LuaString extends AbstractLuaRefValue {
     }
 
     @Override
-    public String ltoString() {
+    public String LtoString() {
         return toString();
     }
 

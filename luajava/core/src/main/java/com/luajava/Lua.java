@@ -526,7 +526,7 @@ public class Lua {
         return C.lua_tostring(L, index);
     }
 
-    public @Nullable String ltoString(int index) {
+    public @Nullable String LtoString(int index) {
         return C.luaJ_tostring(L, index);
     }
 

@@ -32,7 +32,7 @@ public class LuaNil extends AbstractLuaValue {
     }
 
     @Override
-    public String ltoString() {
+    public String LtoString() {
         return toString();
     }
 

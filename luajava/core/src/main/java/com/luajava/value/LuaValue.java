@@ -273,67 +273,90 @@ public interface LuaValue {
     // Value Function Call
     // Keep Object[]
     LuaValue[] vCall(Object[] args) throws LuaException;
+
     LuaValue[] vCall(Object[] args, int nResults) throws LuaException;
 
     // Keep Lua.Conversion
     LuaValue[] vCall(Object[] args, Lua.Conversion degree) throws LuaException;
+
     LuaValue[] vCall(Object[] args, Lua.Conversion degree, int nResults) throws LuaException;
 
     // Keep Class<?>
     LuaValue[] vCall(Object[] args, Class<?> clazz) throws LuaException;
+
     LuaValue[] vCall(Object[] args, Class<?> clazz, int nResults) throws LuaException;
 
     // Keep Class<?> & Lua.Conversion
     LuaValue[] vCall(Object[] args, Class<?> clazz, Lua.Conversion degree) throws LuaException;
+
     LuaValue[] vCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) throws LuaException;
 
     LuaValue[] vCall();
+
     LuaValue[] vCall(int nArgs);
+
     LuaValue[] vCall(int nArgs, int nResults);
 
     // Keep Object[]
     LuaValue[] vpCall(Object[] args) throws LuaException;
+
     LuaValue[] vpCall(Object[] args, int nResults) throws LuaException;
+
     LuaValue[] vpCall(Object[] args, int nResults, int errfunc) throws LuaException;
 
     // Keep Lua.Conversion
     LuaValue[] vpCall(Object[] args, Lua.Conversion degree) throws LuaException;
+
     LuaValue[] vpCall(Object[] args, Lua.Conversion degree, int nResults) throws LuaException;
+
     LuaValue[] vpCall(Object[] args, Lua.Conversion degree, int nResults, int errfunc) throws LuaException;
 
     // Keep Class<?>
     LuaValue[] vpCall(Object[] args, Class<?> clazz) throws LuaException;
+
     LuaValue[] vpCall(Object[] args, Class<?> clazz, int nResults) throws LuaException;
+
     LuaValue[] vpCall(Object[] args, Class<?> clazz, int nResults, int errfunc) throws LuaException;
 
     // Keep Class<?> & Lua.Conversion
     LuaValue[] vpCall(Object[] args, Class<?> clazz, Lua.Conversion degree) throws LuaException;
+
     LuaValue[] vpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) throws LuaException;
+
     LuaValue[] vpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults, int errfunc) throws LuaException;
 
     LuaValue[] vpCall() throws LuaException;
+
     LuaValue[] vpCall(int nArgs) throws LuaException;
+
     LuaValue[] vpCall(int nArgs, int nResults) throws LuaException;
+
     LuaValue[] vpCall(int nArgs, int nResults, int errfunc) throws LuaException;
 
     // Keep Object[]
     LuaValue[] vxpCall(Object[] args, CFunction handler) throws LuaException;
+
     LuaValue[] vxpCall(Object[] args, int nResults, CFunction handler) throws LuaException;
 
     // Keep Lua.Conversion
     LuaValue[] vxpCall(Object[] args, Lua.Conversion degree, CFunction handler) throws LuaException;
+
     LuaValue[] vxpCall(Object[] args, Lua.Conversion degree, int nResults, CFunction handler) throws LuaException;
 
     // Keep Class<?>
     LuaValue[] vxpCall(Object[] args, Class<?> clazz, CFunction handler) throws LuaException;
+
     LuaValue[] vxpCall(Object[] args, Class<?> clazz, int nResults, CFunction handler) throws LuaException;
 
     // Keep Class<?> & Lua.Conversion
     LuaValue[] vxpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, CFunction handler) throws LuaException;
+
     LuaValue[] vxpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults, CFunction handler) throws LuaException;
 
     LuaValue[] vxpCall(CFunction handler) throws LuaException;
+
     LuaValue[] vxpCall(int nArgs, CFunction handler) throws LuaException;
+
     LuaValue[] vxpCall(int nArgs, int nResults, CFunction handler) throws LuaException;
 
     // sugar
@@ -362,13 +385,19 @@ public interface LuaValue {
     // to object
     boolean toBoolean() throws LuaException;
 
+    long toInteger() throws LuaException;
+
     double toNumber() throws LuaException;
 
     String toString();
 
-    String ltoString() throws LuaException;
+    boolean LtoBoolean() throws LuaException;
 
-    long toInteger() throws LuaException;
+    long LtoInteger() throws LuaException;
+
+    double LtoNumber() throws LuaException;
+
+    String LtoString() throws LuaException;
 
     boolean isJavaObject() throws LuaException;
 

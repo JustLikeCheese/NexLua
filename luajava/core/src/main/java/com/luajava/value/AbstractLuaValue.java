@@ -1212,22 +1212,6 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean isJavaObject() throws LuaException {
-        push();
-        boolean result = L.isJavaObject(-1);
-        L.pop(1);
-        return result;
-    }
-
-    @Override
-    public Object toJavaObject() throws LuaException {
-        push();
-        Object result = L.toJavaObject(-1);
-        L.pop(1);
-        return result;
-    }
-
-    @Override
     public String toString() {
         try {
             push();
@@ -1240,9 +1224,40 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public String ltoString() throws LuaException {
+    public boolean LtoBoolean() throws LuaException {
+        return toBoolean();
+    }
+
+    @Override
+    public long LtoInteger() throws LuaException {
+        return toInteger();
+    }
+
+    @Override
+    public double LtoNumber() throws LuaException {
+        return toNumber();
+    }
+
+    @Override
+    public String LtoString() throws LuaException {
         push();
-        String result = L.ltoString(-1);
+        String result = L.LtoString(-1);
+        L.pop(1);
+        return result;
+    }
+
+    @Override
+    public boolean isJavaObject() throws LuaException {
+        push();
+        boolean result = L.isJavaObject(-1);
+        L.pop(1);
+        return result;
+    }
+
+    @Override
+    public Object toJavaObject() throws LuaException {
+        push();
+        Object result = L.toJavaObject(-1);
         L.pop(1);
         return result;
     }
