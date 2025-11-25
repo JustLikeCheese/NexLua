@@ -491,45 +491,6 @@ public final class JuaAPI {
     }
 
     /**
-     * Loads a Java static method that accepts a single {@link Lua} parameter and returns an integer
-     *
-     * @param id         see {@link Jua#get(long)}
-     * @param className  the clazz name
-     * @param methodName the method name
-     * @return the number of elements pushed onto the stack
-     */
-    public static int loadLib(long id, String className, String methodName) throws LuaException {
-        Lua L = Jua.get(id);
-        try {
-            Class<?> clazz = Class.forName(className);
-            final Method method = clazz.getDeclaredMethod(methodName, Lua.class);
-            if (method.getReturnType() == int.class) {
-                //noinspection Convert2Lambda
-                return L.push(new CFunction() {
-                    @Override
-                    public int __call(Lua l) throws LuaException {
-                        try {
-                            return (Integer) method.invoke(null, l);
-                        } catch (IllegalAccessException e) {
-                            return l.error(e);
-                        } catch (InvocationTargetException e) {
-                            return l.error(e.getCause());
-                        }
-                    }
-                });
-            } else {
-                L.pushNil();
-                L.push("\n  no method '" + methodName + "': not returning int values");
-                return 2;
-            }
-        } catch (ClassNotFoundException | NoSuchMethodException ignored) {
-            L.pushNil();
-            L.push("\n  no method '" + methodName + "': no such method");
-            return 2;
-        }
-    }
-
-    /**
      * Calls a {@link CFunction}
      *
      * @param index the id of {@link Jua} thread calling this method
