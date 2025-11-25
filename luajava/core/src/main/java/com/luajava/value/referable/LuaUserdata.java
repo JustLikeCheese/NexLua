@@ -113,8 +113,14 @@ public class LuaUserdata extends AbstractLuaRefValue {
 
     @Override
     public boolean LtoBoolean() throws LuaException {
-        if (isJavaObject(boolean.class)) {
-            return (boolean) toJavaObject(boolean.class);
+        Object object = toJavaObject();
+        if (object == null) {
+            return false;
+        } else if (object != NONE) {
+            Class<?> objClass = ClassUtils.getWrapperType(object.getClass());
+            if (Boolean.class.isAssignableFrom(objClass)) {
+                return (boolean) object;
+            }
         }
         return super.LtoBoolean();
     }
