@@ -76,7 +76,7 @@ public final class JuaAPI {
         for (Method method : methods) {
             if (!method.getName().equals(name)) continue;
             matchedMethod.add(method);
-            if (object == null && Modifier.isStatic(method.getModifiers())) continue;
+            if (object == null && !Modifier.isStatic(method.getModifiers())) continue;
             Class<?>[] paramTypes = method.getParameterTypes();
             if (paramTypes.length != values.length) continue;
             if (!matchParams(paramTypes, values)) continue;

@@ -50,7 +50,6 @@ public class JMethod implements CFunction {
             returnType = method.getReturnType();
         }
         Object result = JuaAPI.callMethod(object, method, values);
-        L.push(result, returnType);
-        return 1;
+        return L.push(result, returnType);
     }
 }
