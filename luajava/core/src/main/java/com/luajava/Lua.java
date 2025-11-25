@@ -792,18 +792,18 @@ public class Lua {
         C.lua_settable(L, index);
     }
 
-    public void getField(int index, String value) throws LuaException {
+    public void getField(int index, String key) throws LuaException {
         checkStack(1);
-        C.lua_getfield(L, index, value);
+        C.lua_getfield(L, index, key);
     }
 
-    public void setField(int index, String value) {
-        C.lua_setfield(L, index, value);
+    public void setField(int index, String key) {
+        C.lua_setfield(L, index, key);
     }
 
     public void setField(int index, String key, String value) {
-        push(key);
-        setField(index, value);
+        push(value);
+        setField(index, key);
     }
 
     public void rawGet(int index) throws LuaException {
