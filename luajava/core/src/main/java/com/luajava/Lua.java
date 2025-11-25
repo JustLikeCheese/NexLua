@@ -803,7 +803,7 @@ public class Lua {
 
     public void setField(int index, String key, String value) {
         push(key);
-        setField(getAbsoluteIndex(index), value);
+        setField(index, value);
     }
 
     public void rawGet(int index) throws LuaException {
@@ -1289,6 +1289,11 @@ public class Lua {
     public void loadFile(String filename) throws LuaException {
         checkStack(1);
         checkError(C.luaL_loadfile(L, filename), false);
+    }
+
+    public void loadStringBuffer(String script, String name) throws LuaException {
+        checkStack(1);
+        checkError(C.luaL_loadbuffer(L, script, script.length(), name), false);
     }
 
     public void doFile(String filename) throws LuaException {
