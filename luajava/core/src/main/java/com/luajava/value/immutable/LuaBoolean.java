@@ -49,16 +49,6 @@ public class LuaBoolean extends AbstractLuaValue {
     }
 
     @Override
-    public long toInteger() {
-        return value ? 1 : 0;
-    }
-
-    @Override
-    public double toNumber() {
-        return value ? 1 : 0;
-    }
-
-    @Override
     public boolean isBoolean() {
         return true;
     }

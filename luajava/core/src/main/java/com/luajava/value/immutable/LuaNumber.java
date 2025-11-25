@@ -44,7 +44,7 @@ public class LuaNumber extends AbstractLuaValue {
 
     @Override
     public boolean toBoolean() {
-        return toInteger() != 0;
+        return true;
     }
 
     @Override

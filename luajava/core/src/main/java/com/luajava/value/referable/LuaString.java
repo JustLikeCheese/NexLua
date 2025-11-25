@@ -76,6 +76,22 @@ public class LuaString extends AbstractLuaRefValue {
     }
 
     @Override
+    public long toInteger() throws LuaException {
+        push();
+        long result = L.toInteger(-1);
+        L.pop(1);
+        return result;
+    }
+
+    @Override
+    public double toNumber() throws LuaException {
+        push();
+        double result = L.toNumber(-1);
+        L.pop(1);
+        return result;
+    }
+
+    @Override
     public Buffer toBuffer() throws LuaException {
         if (buffer != null) return buffer;
         if (string != null) return buffer = ByteBuffer.wrap(string.getBytes());

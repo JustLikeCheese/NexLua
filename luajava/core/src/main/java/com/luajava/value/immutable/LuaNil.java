@@ -42,16 +42,6 @@ public class LuaNil extends AbstractLuaValue {
     }
 
     @Override
-    public double toNumber() {
-        return 0;
-    }
-
-    @Override
-    public long toInteger() {
-        return 0;
-    }
-
-    @Override
     public boolean isNil() {
         return true;
     }

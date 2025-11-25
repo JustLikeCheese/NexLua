@@ -1198,26 +1198,17 @@ public abstract class AbstractLuaValue implements LuaValue {
 
     @Override
     public boolean toBoolean() throws LuaException {
-        push();
-        boolean result = L.toBoolean(-1);
-        L.pop(1);
-        return result;
+        return true;
     }
 
     @Override
     public long toInteger() throws LuaException {
-        push();
-        long result = L.toInteger(-1);
-        L.pop(1);
-        return result;
+        return 0;
     }
 
     @Override
     public double toNumber() throws LuaException {
-        push();
-        double result = L.toNumber(-1);
-        L.pop(1);
-        return result;
+        return 0;
     }
 
     @Override
