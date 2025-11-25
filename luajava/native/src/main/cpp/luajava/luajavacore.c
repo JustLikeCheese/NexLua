@@ -38,9 +38,13 @@ int luaJ_initloader(lua_State *L) {
         return -1;
     }
     int len = (int) lua_objlen(L, -1);
+    for (int i = len; i >= 1; i--) {
+        lua_rawgeti(L, -1, i);      // loaders[i]
+        lua_rawseti(L, -2, i + 1);  // loaders[i+1] = loaders[i]
+    }
     lua_pushcfunction(L, &jmoduleLoad);
-    lua_rawseti(L, -2, len + 1);
-    lua_pop(L, 2);
+    lua_rawseti(L, -2, 1);  // loaders[1] = jmoduleLoad
+    lua_pop(L, 2);  // 弹出 loaders 和 package
     return 0;
 }
 
