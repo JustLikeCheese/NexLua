@@ -1,7 +1,5 @@
 package com.nexlua;
 
-import android.util.Log;
-
 import com.luajava.Lua;
 import com.nexlua.module.LuaAssetsModule;
 import com.nexlua.module.LuaDexModule;
@@ -17,16 +15,6 @@ public class LuaConfig {
     protected ArrayList<LuaModule> LUA_MODULES;
     protected LuaModule welcome;
     protected LuaModule application;
-    protected LogLevel level;
-
-    public enum LogLevel {
-        TOAST,
-        TOAST_LONG,
-        DIALOG,
-        DIALOG_LONG,
-        NONE
-    }
-
     public LuaConfig(LuaContext context) {
         if (FILES_DIR == null) {
             FILES_DIR = context.getContext().getFilesDir();
@@ -71,10 +59,6 @@ public class LuaConfig {
             }
         }
         return null;
-    }
-
-    public LogLevel getLevel() {
-        return level;
     }
 
     public int load(LuaContext context, Lua L, String moduleName) {
