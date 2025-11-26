@@ -8,8 +8,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -28,7 +26,7 @@ public class Welcome extends LuaActivity {
 
     public void checkPermissions(String... requiredPermissions) {
         if (Build.VERSION.SDK_INT >= 23 && requiredPermissions != null) {
-            ArrayList<String> permissions = new ArrayList<String>();
+            ArrayList<String> permissions = new ArrayList<>();
             for (String requiredPermission : requiredPermissions)
                 if (checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED)
                     permissions.add(requiredPermission);

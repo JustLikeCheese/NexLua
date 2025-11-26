@@ -2,7 +2,6 @@ package com.nexlua.module;
 
 import com.luajava.Lua;
 import com.nexlua.LuaContext;
-import com.nexlua.LuaUtil;
 
 public class LuaDexModule extends LuaAbstractModule {
     private final String content;

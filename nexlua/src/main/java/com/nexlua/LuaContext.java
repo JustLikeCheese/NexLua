@@ -6,7 +6,6 @@ import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.LuaHandler;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;

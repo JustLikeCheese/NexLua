@@ -4,7 +4,6 @@ import android.content.Intent;
 
 import com.nexlua.module.LuaModule;
 
-import java.io.File;
 import java.io.Serializable;
 
 public class LuaIntent implements Serializable {
