@@ -27,16 +27,16 @@ import com.luajava.value.LuaType;
 /**
  * A wrapper around a Lua error message
  */
-public class LuaException extends RuntimeException {
+public class LuaException extends Exception {
     public final LuaError type;
-
-    public LuaException(String message) {
-        this(LuaError.JAVA, message);
-    }
 
     public LuaException(LuaError type, String message) {
         super(message);
         this.type = type;
+    }
+
+    public LuaException(String message) {
+        this(LuaError.JAVA, message);
     }
 
     @Override
@@ -63,8 +63,6 @@ public class LuaException extends RuntimeException {
                 return "Syntax Error";
             case YIELD:
                 return "Thread Error";
-            case UNKNOWN:
-                return "Unknown Error";
         }
         return "Unknown Error";
     }
@@ -148,7 +146,7 @@ public class LuaException extends RuntimeException {
                 case LuaConsts.LUA_ERRERR:
                     return LuaException.LuaError.HANDLER;
                 default:
-                    throw new LuaException(LuaException.LuaError.RUNTIME, "Unrecognized error code: " + code);
+                    return LuaError.UNKNOWN;
             }
         }
     }

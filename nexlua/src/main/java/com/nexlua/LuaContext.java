@@ -29,7 +29,7 @@ public interface LuaContext extends LuaHandler {
 
     Context getContext();
 
-    void initialize(Lua L);
+    void initialize(Lua L) throws LuaException;
 
     default void showToast(String message) {
         NexToast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();

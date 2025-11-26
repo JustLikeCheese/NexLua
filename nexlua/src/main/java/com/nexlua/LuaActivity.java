@@ -85,7 +85,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         module.load(L, this);
     }
 
-    public void loadEvent() {
+    public void loadEvent() throws LuaException {
         // onKeyEvent
         mOnKeyShortcut = L.getLuaFunction("onKeyShortcut");
         mOnKeyDown = L.getLuaFunction("onKeyDown");
@@ -533,7 +533,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     }
 
     @Override
-    public void initialize(Lua L) {
+    public void initialize(Lua L) throws LuaException {
         L.openLibraries();
         L.setExternalLoader(new LuaModuleLoader(this));
         luaCpath = app.getLuaCpath(luaDir);

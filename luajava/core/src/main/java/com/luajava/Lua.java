@@ -801,7 +801,7 @@ public class Lua {
         C.lua_setfield(L, index, key);
     }
 
-    public void setField(int index, String key, String value) {
+    public void setField(int index, String key, String value) throws LuaException {
         push(value);
         setField(index, key);
     }
@@ -1389,7 +1389,7 @@ public class Lua {
      * @param params the parameters
      * @return the return value
      */
-    public @Nullable Object invokeSpecial(Object object, Method method, @Nullable Object[] params) throws RuntimeException {
+    public @Nullable Object invokeSpecial(Object object, Method method, @Nullable Object[] params) throws RuntimeException, LuaException {
         if (!ClassUtils.isDefault(method)) {
             throw new IncompatibleClassChangeError("Unable to invoke non-default method");
         }
@@ -1858,15 +1858,15 @@ public class Lua {
         return getArgs(call(args, clazz, degree, nResults));
     }
 
-    public LuaValue[] vCall() {
+    public LuaValue[] vCall() throws LuaException {
         return getArgs(call());
     }
 
-    public LuaValue[] vCall(int nArgs) {
+    public LuaValue[] vCall(int nArgs) throws LuaException {
         return getArgs(call(nArgs));
     }
 
-    public LuaValue[] vCall(int nArgs, int nResults) {
+    public LuaValue[] vCall(int nArgs, int nResults) throws LuaException {
         return getArgs(call(nArgs, nResults));
     }
 

@@ -202,11 +202,11 @@ public interface LuaValue {
 
     int call(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) throws LuaException;
 
-    int call();
+    int call() throws LuaException;
 
-    int call(int nArgs);
+    int call(int nArgs) throws LuaException;
 
-    int call(int nArgs, int nResults);
+    int call(int nArgs, int nResults) throws LuaException;
 
     // Keep Object[]
     int pCall(Object[] args) throws LuaException;
@@ -291,11 +291,11 @@ public interface LuaValue {
 
     LuaValue[] vCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) throws LuaException;
 
-    LuaValue[] vCall();
+    LuaValue[] vCall() throws LuaException;
 
-    LuaValue[] vCall(int nArgs);
+    LuaValue[] vCall(int nArgs) throws LuaException;
 
-    LuaValue[] vCall(int nArgs, int nResults);
+    LuaValue[] vCall(int nArgs, int nResults) throws LuaException;
 
     // Keep Object[]
     LuaValue[] vpCall(Object[] args) throws LuaException;
@@ -411,31 +411,31 @@ public interface LuaValue {
 
     boolean isRef();
 
-    int getRef();
+    int getRef() throws LuaException;
 
-    void unRef();
+    void unRef() throws LuaException;
 
-    LuaNil checkNil();
+    LuaNil checkNil() throws LuaException;
 
-    LuaBoolean checkBoolean();
+    LuaBoolean checkBoolean() throws LuaException;
 
-    LuaNumber checkNumber();
+    LuaNumber checkNumber() throws LuaException;
 
-    LuaString checkString();
+    LuaString checkString() throws LuaException;
 
-    LuaTable checkTable();
+    LuaTable checkTable() throws LuaException;
 
-    LuaFunction checkFunction();
+    LuaFunction checkFunction() throws LuaException;
 
-    LuaCFunction checkCFunction();
+    LuaCFunction checkCFunction() throws LuaException;
 
-    LuaLightUserdata checkLightUserdata();
+    LuaLightUserdata checkLightUserdata() throws LuaException;
 
-    LuaUserdata checkUserdata();
+    LuaUserdata checkUserdata() throws LuaException;
 
-    LuaThread checkThread();
+    LuaThread checkThread() throws LuaException;
 
-    LuaUnknown checkUnknown();
+    LuaUnknown checkUnknown() throws LuaException;
 
     Object checkJavaObject() throws LuaException;
 

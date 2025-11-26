@@ -71,7 +71,7 @@ public class LuaApplication extends Application implements LuaContext {
         return false;
     }
 
-    protected boolean runFunc(String funcName, Object... args) {
+    protected boolean runFunc(String funcName, Object... args) throws LuaException {
         return onLuaEvent(L.getLuaFunction(funcName), args);
     }
 
@@ -174,7 +174,7 @@ public class LuaApplication extends Application implements LuaContext {
     }
 
     @Override
-    public void initialize(Lua L) {
+    public void initialize(Lua L) throws LuaException {
         L.openLibraries();
         L.setExternalLoader(new LuaModuleLoader(this));
         // Lua Application

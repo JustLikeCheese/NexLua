@@ -68,19 +68,19 @@ public final class LuaProxy implements InvocationHandler {
             case FUNCTION:
                 String name = ClassUtils.getSingleInterfaceMethodName(interfaces);
                 if (name == null)
-                    throw new IllegalArgumentException("Unable to merge interfaces into a functional one");
+                    throw new LuaException("Unable to merge interfaces into a functional one");
                 return new LuaProxy(L, new LuaFunction(L, idx), degree, interfaces);
             case TABLE:
                 return new LuaProxy(L, new LuaTable(L, idx), degree, interfaces);
             default:
-                throw new IllegalArgumentException("Expecting a table / function and interfaces");
+                throw new LuaException("Expecting a table / function and interfaces");
         }
     }
 
-    public static LuaProxy newInstance(LuaFunction value, Class<?> interfaces, Lua.Conversion degree) {
+    public static LuaProxy newInstance(LuaFunction value, Class<?> interfaces, Lua.Conversion degree) throws LuaException {
         String name = ClassUtils.getSingleInterfaceMethodName(interfaces);
         if (name == null)
-            throw new IllegalArgumentException("Unable to merge interfaces into a functional one");
+            throw new LuaException("Unable to merge interfaces into a functional one");
         return new LuaProxy(value.L, value, degree, interfaces);
     }
 
@@ -143,7 +143,7 @@ public final class LuaProxy implements InvocationHandler {
         if (methodEquals(method, String.class, "toString")) {
             return "LuaProxy" + interfaces.toString() + "@" + Integer.toHexString(hashCode());
         }
-        throw new LuaException(LuaException.LuaError.JAVA, "method not implemented: " + method);
+        throw new LuaException("method not implemented: " + method);
     }
 
     public static boolean methodEquals(Method method, Class<?> returnType,

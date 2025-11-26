@@ -38,55 +38,60 @@ public class TestActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        L.openLibraries();
-        L.setHandler(this::sendException);
-        L.push(new CFunction() {
-            private final StringBuilder output = new StringBuilder();
-            @Override
-            public int __call(Lua L) {
-                int top = L.getTop();
-                if (top > 0) {
-                    output.append(L.LtoString(1));
-                    for (int i = 2; i <= top; i++) {
-                        output.append("\t");
-                        output.append(L.LtoString(i));
-                    }
-                    showToast(output.toString());
-                    output.setLength(0);
-                } else {
-                    showToast("");
-                }
-                return 0;
-            }
-        });
-        L.setGlobal("print");
-        L.push(this);
-        L.setGlobal("activity");
-        LinearLayout layout = new LinearLayout(this);
-        layout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setFitsSystemWindows(true);
-        setContentView(layout);
-        for (int idx = 0; idx < LUA_TESTS.length; idx += 2) {
-            try {
-                String code = readAssets("test/" + LUA_TESTS[idx + 1]);
-                Button button = new Button(this);
-                button.setText(LUA_TESTS[idx]);
-                button.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-                button.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        try {
-                            L.doString(code);
-                        } catch (LuaException e) {
-                            sendException(e);
+        try {
+            L.openLibraries();
+            L.setHandler(this::sendException);
+            L.push(new CFunction() {
+                private final StringBuilder output = new StringBuilder();
+
+                @Override
+                public int __call(Lua L) {
+                    int top = L.getTop();
+                    if (top > 0) {
+                        output.append(L.LtoString(1));
+                        for (int i = 2; i <= top; i++) {
+                            output.append("\t");
+                            output.append(L.LtoString(i));
                         }
+                        showToast(output.toString());
+                        output.setLength(0);
+                    } else {
+                        showToast("");
                     }
-                });
-                layout.addView(button);
-            } catch (Exception e) {
-                sendException(e);
+                    return 0;
+                }
+            });
+            L.setGlobal("print");
+            L.push(this);
+            L.setGlobal("activity");
+            LinearLayout layout = new LinearLayout(this);
+            layout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            layout.setOrientation(LinearLayout.VERTICAL);
+            layout.setFitsSystemWindows(true);
+            setContentView(layout);
+            for (int idx = 0; idx < LUA_TESTS.length; idx += 2) {
+                try {
+                    String code = readAssets("test/" + LUA_TESTS[idx + 1]);
+                    Button button = new Button(this);
+                    button.setText(LUA_TESTS[idx]);
+                    button.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                    button.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            try {
+                                L.doString(code);
+                            } catch (LuaException e) {
+                                sendException(e);
+                            }
+                        }
+                    });
+                    layout.addView(button);
+                } catch (Exception e) {
+                    sendException(e);
+                }
             }
+        } catch (Exception e) {
+            sendException(e);
         }
     }
 

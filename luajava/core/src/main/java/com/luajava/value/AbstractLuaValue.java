@@ -577,7 +577,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public int call() {
+    public int call() throws LuaException {
         push();
         int result = L.call();
         L.pop(1);
@@ -585,7 +585,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public int call(int nArgs) {
+    public int call(int nArgs) throws LuaException {
         push();
         int result = L.call(nArgs);
         L.pop(1);
@@ -593,12 +593,13 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public int call(int nArgs, int nResults) {
+    public int call(int nArgs, int nResults) throws LuaException {
         push();
         int result = L.call(nArgs, nResults);
         L.pop(1);
         return result;
     }
+
     // Keep Object[]
     @Override
     public int pCall(Object[] args) throws LuaException {
@@ -893,7 +894,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue[] vCall() {
+    public LuaValue[] vCall() throws LuaException {
         push();
         LuaValue[] result = L.vCall();
         L.pop(1);
@@ -901,7 +902,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue[] vCall(int nArgs) {
+    public LuaValue[] vCall(int nArgs) throws LuaException {
         push();
         LuaValue[] result = L.vCall(nArgs);
         L.pop(1);
@@ -909,7 +910,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue[] vCall(int nArgs, int nResults) {
+    public LuaValue[] vCall(int nArgs, int nResults) throws LuaException {
         push();
         LuaValue[] result = L.vCall(nArgs, nResults);
         L.pop(1);
@@ -1292,73 +1293,73 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public int getRef() {
-        throw new IllegalArgumentException("Not a reference");
+    public int getRef() throws LuaException {
+        throw new LuaException("Not a reference");
     }
 
     @Override
-    public void unRef() {
-        throw new IllegalArgumentException("Not a reference");
+    public void unRef() throws LuaException {
+        throw new LuaException("Not a reference");
     }
 
     @Override
-    public LuaNil checkNil() {
-        throw new IllegalArgumentException("Not a nil");
+    public LuaNil checkNil() throws LuaException {
+        throw new LuaException("Not a nil");
     }
 
     @Override
-    public LuaBoolean checkBoolean() {
-        throw new IllegalArgumentException("Not a boolean");
+    public LuaBoolean checkBoolean() throws LuaException {
+        throw new LuaException("Not a boolean");
     }
 
     @Override
-    public LuaNumber checkNumber() {
-        throw new IllegalArgumentException("Not a number");
+    public LuaNumber checkNumber() throws LuaException {
+        throw new LuaException("Not a number");
     }
 
     @Override
-    public LuaString checkString() {
-        throw new IllegalArgumentException("Not a string");
+    public LuaString checkString() throws LuaException {
+        throw new LuaException("Not a string");
     }
 
     @Override
-    public LuaTable checkTable() {
-        throw new IllegalArgumentException("Not a table");
+    public LuaTable checkTable() throws LuaException {
+        throw new LuaException("Not a table");
     }
 
     @Override
-    public LuaFunction checkFunction() {
-        throw new IllegalArgumentException("Not a function");
+    public LuaFunction checkFunction() throws LuaException {
+        throw new LuaException("Not a function");
     }
 
     @Override
-    public LuaCFunction checkCFunction() {
-        throw new IllegalArgumentException("Not a C function");
+    public LuaCFunction checkCFunction() throws LuaException {
+        throw new LuaException("Not a C function");
     }
 
     @Override
-    public LuaLightUserdata checkLightUserdata() {
-        throw new IllegalArgumentException("Not a light userdata");
+    public LuaLightUserdata checkLightUserdata() throws LuaException {
+        throw new LuaException("Not a light userdata");
     }
 
     @Override
-    public LuaUserdata checkUserdata() {
-        throw new IllegalArgumentException("Not a userdata");
+    public LuaUserdata checkUserdata() throws LuaException {
+        throw new LuaException("Not a userdata");
     }
 
     @Override
-    public LuaThread checkThread() {
-        throw new IllegalArgumentException("Not a thread");
+    public LuaThread checkThread() throws LuaException {
+        throw new LuaException("Not a thread");
     }
 
     @Override
-    public LuaUnknown checkUnknown() {
-        throw new IllegalArgumentException("Not a unknown");
+    public LuaUnknown checkUnknown() throws LuaException {
+        throw new LuaException("Not a unknown");
     }
 
     @Override
     public Object checkJavaObject() throws LuaException {
-        throw new IllegalArgumentException("Not a java object");
+        throw new LuaException("Not a java object");
     }
 
     @Override
