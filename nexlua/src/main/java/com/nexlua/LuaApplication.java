@@ -39,7 +39,7 @@ public class LuaApplication extends Application implements LuaContext {
         config = getConfig();
         module = config.application;
         luaPath = module.getPath();
-        luaDir = PathUtil.getParentPath(luaPath);
+        luaDir = LuaUtil.getParentPath(luaPath);
         String luaLibDir = new File(luaDir, "lua").getAbsolutePath();
         String libDir = new File(luaDir, "lib").getAbsolutePath();
         baseCpath = getApplicationInfo().nativeLibraryDir + "/lib?.so;" + libDir + "/lib?.so;";

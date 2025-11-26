@@ -359,6 +359,15 @@ public final class LuaUtil {
         }
     }
 
+    public static String getParentPath(String path) {
+        if (path == null || path.isEmpty()) {
+            return "/";
+        }
+        File file = new File(path);
+        String parent = file.getParent();
+        return (parent == null || parent.isEmpty()) ? "/" : parent;
+    }
+
     private static void closeQuietly(Closeable closeable) {
         if (closeable != null) {
             try {

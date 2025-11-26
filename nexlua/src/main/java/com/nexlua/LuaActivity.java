@@ -66,7 +66,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         if (intent != null) {
             module = intent.module;
             luaPath = module.getPath();
-            luaDir = PathUtil.getParentPath(luaPath);
+            luaDir = LuaUtil.getParentPath(luaPath);
         }
         super.onCreate(null);
         try {
