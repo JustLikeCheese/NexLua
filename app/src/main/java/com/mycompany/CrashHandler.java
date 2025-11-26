@@ -1,4 +1,4 @@
-package com.nexlua;
+package com.mycompany;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

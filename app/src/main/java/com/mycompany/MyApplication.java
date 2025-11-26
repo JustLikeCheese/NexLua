@@ -6,6 +6,7 @@ import com.nexlua.LuaConfig;
 public class MyApplication extends LuaApplication {
     @Override
     public void onCreate() {
+        CrashHandler.getInstance().init(this);
         super.onCreate();
     }
 
