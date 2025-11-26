@@ -100,12 +100,9 @@ public final class JuaAPI {
         try {
             return callConstructor(constructor, paramTypes, values);
         } catch (Exception e) {
-            Throwable throwable = e.getCause();
-            Object cause = (throwable == null) ? e : throwable;
             throw new LuaException("Invalid constructor method call." +
                     "\n  at " + constructor +
-                    "\n  -> " + cause +
-                    "\n");
+                    "\n  -> ", e);
         }
     }
 
@@ -429,9 +426,6 @@ public final class JuaAPI {
     }
 
     public static String getStackTrace(Throwable throwable) {
-        if (throwable.getClass() == LuaException.class) {
-            return throwable.getMessage();
-        }
         StringWriter sw = new StringWriter(2048);
         PrintWriter pw = new PrintWriter(sw);
         throwable.printStackTrace(pw);

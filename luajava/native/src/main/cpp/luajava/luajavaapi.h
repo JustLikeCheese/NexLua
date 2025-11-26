@@ -6,7 +6,7 @@
 #include "luakit.h"
 
 // error handler
-#define GLOBAL_THROWABLE "__jthrowable__"
+#define JAVA_GLOBAL_THROWABLE "__java_throwable__"
 
 int fatalError(lua_State *L);
 

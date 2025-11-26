@@ -22,26 +22,72 @@
 
 package com.luajava;
 
-import com.luajava.value.LuaType;
+import com.luajava.value.referable.LuaUserdata;
+
+import java.io.PrintStream;
+import java.io.PrintWriter;
 
 /**
  * A wrapper around a Lua error message
  */
 public class LuaException extends Exception {
     public final LuaError type;
+    public final Throwable cause;
 
-    public LuaException(LuaError type, String message) {
+    public LuaException(LuaError type, String message, Throwable cause) {
         super(message);
         this.type = type;
+        this.cause = cause;
+    }
+
+    public LuaException(LuaError type, String message) {
+        this(type, message, null);
+    }
+
+    public LuaException(LuaError type, Exception cause) {
+        this(type, cause.getMessage(), cause);
+    }
+
+    public LuaException(String message, Exception cause) {
+        this(LuaError.JAVA, message, cause);
     }
 
     public LuaException(String message) {
-        this(LuaError.JAVA, message);
+        this(LuaError.JAVA, message, null);
+    }
+
+    @Override
+    public String getMessage() {
+        return super.getMessage();
     }
 
     @Override
     public String toString() {
         return getType() + ": " + getMessage();
+    }
+
+    @Override
+    public void printStackTrace(PrintStream stream) {
+        stream.println(getType() + ": " + getMessage());
+        for (StackTraceElement traceElement : getStackTrace()) {
+            stream.println("\tat " + traceElement);
+        }
+        if (cause != null) {
+            stream.print("Caused by: ");
+            cause.printStackTrace(stream);
+        }
+    }
+
+    @Override
+    public void printStackTrace(PrintWriter writer) {
+        writer.println(getType() + ": " + getMessage());
+        for (StackTraceElement traceElement : getStackTrace()) {
+            writer.println("\tat " + traceElement);
+        }
+        if (cause != null) {
+            writer.print("Caused by: ");
+            cause.printStackTrace(writer);
+        }
     }
 
     public final String getType() {
@@ -154,13 +200,15 @@ public class LuaException extends Exception {
     public static LuaException from(Lua L, int code, boolean runtime) throws LuaException {
         LuaError error = LuaError.from(code, runtime);
         if (LuaError.OK == error) return null;
-        String message;
-        if (L.type(-1) == LuaType.STRING) {
-            message = L.toString(-1);
-        } else {
-            message = "Lua-side error";
-        }
+        String message = L.toString(-1);
+        LuaUserdata userdata = L.getLuaUserdata(Lua.JAVA_GLOBAL_THROWABLE);
         L.pop(1);
+        if (userdata != null && userdata.isJavaObject(Throwable.class)) {
+            Object throwable = userdata.toJavaObject(Throwable.class);
+            if (throwable != null) {
+                return new LuaException(error, message, (Throwable) throwable);
+            }
+        }
         return new LuaException(error, message);
     }
 }

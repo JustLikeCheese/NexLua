@@ -31,6 +31,7 @@ import com.luajava.value.LuaValue;
 
 public class LuaUserdata extends AbstractLuaRefValue {
     private Object javaObject;
+    private boolean isJavaObject;
 
     public LuaUserdata(Lua L) {
         super(L, LuaType.USERDATA);

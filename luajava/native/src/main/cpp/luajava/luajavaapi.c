@@ -16,12 +16,10 @@ bool checkIfError(JNIEnv *env, lua_State *L) {
         return 0;
     }
     (*env)->ExceptionClear(env);
-    jstring message = (jstring) (*env)->CallStaticObjectMethod(env, com_luajava_JuaAPI,
-                                                         com_luajava_JuaAPI_getStackTrace, e);
-    const char *str = (*env)->GetStringUTFChars(env, message, NULL);
-    lua_pushstring(L, str);
-    (*env)->ReleaseStringUTFChars(env, message, str);
-    (*env)->DeleteLocalRef(env, (jobject) message);
+    luaJ_pushobject(env, L, e);
+    lua_setglobal(L, JAVA_GLOBAL_THROWABLE);
+    jstring message = (jstring) (*env)->CallStaticObjectMethod(env, com_luajava_JuaAPI, com_luajava_JuaAPI_getStackTrace, e);
+    luaJ_pushstring(env, L, message);
     // https://stackoverflow.com/q/33481144/17780636
     // env->DeleteLocalRef(e);
     return 1;

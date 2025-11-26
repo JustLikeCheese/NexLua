@@ -65,6 +65,7 @@ public class Lua {
     protected final ConcurrentHashMap<Integer, LuaReference<?>> recordedReferences;
     public final LuaNil NIL;
     public final LuaBoolean TRUE, FALSE;
+    public static final String JAVA_GLOBAL_THROWABLE = "__java_throwable__";
     public static final Object NONE = new Object();
     public static LuaNatives C;
     protected final long L;
