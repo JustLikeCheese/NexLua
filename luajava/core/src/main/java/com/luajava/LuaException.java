@@ -62,13 +62,8 @@ public class LuaException extends Exception {
     }
 
     @Override
-    public String toString() {
-        return getType() + ": " + getMessage();
-    }
-
-    @Override
     public void printStackTrace(PrintStream stream) {
-        stream.println(getType() + ": " + getMessage());
+        stream.println(getMessage());
         for (StackTraceElement traceElement : getStackTrace()) {
             stream.println("\tat " + traceElement);
         }
@@ -80,7 +75,7 @@ public class LuaException extends Exception {
 
     @Override
     public void printStackTrace(PrintWriter writer) {
-        writer.println(getType() + ": " + getMessage());
+        writer.println(getMessage());
         for (StackTraceElement traceElement : getStackTrace()) {
             writer.println("\tat " + traceElement);
         }
@@ -210,5 +205,16 @@ public class LuaException extends Exception {
             }
         }
         return new LuaException(error, message);
+    }
+
+    public static String getType(Exception e) {
+        if (e instanceof LuaException) {
+            return ((LuaException) e).getType();
+        }
+        return e.getClass().getSimpleName();
+    }
+
+    public static String getFullMessage(Exception e) {
+        return getType(e) + ": " + e.getMessage();
     }
 }
