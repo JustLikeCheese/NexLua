@@ -123,7 +123,6 @@ public class Lua {
 
     // Push API
     public int pushNil() throws LuaException {
-        checkStack(1);
         C.lua_pushnil(L);
         return 1;
     }
@@ -169,7 +168,6 @@ public class Lua {
     }
 
     public int push(@NotNull String string) throws LuaException {
-        checkStack(1);
         C.lua_pushstring(L, string);
         return 1;
     }
@@ -780,7 +778,6 @@ public class Lua {
     }
 
     public void createTable(int nArr, int nRec) throws LuaException {
-        checkStack(1);
         C.lua_createtable(L, nArr, nRec);
     }
 
@@ -794,7 +791,6 @@ public class Lua {
     }
 
     public void getField(int index, String key) throws LuaException {
-        checkStack(1);
         C.lua_getfield(L, index, key);
     }
 
@@ -1168,7 +1164,6 @@ public class Lua {
 
     // Lua Global API
     public void getGlobal(String name) throws LuaException {
-        checkStack(1);
         C.lua_getglobal(L, name);
     }
 
@@ -1273,7 +1268,6 @@ public class Lua {
     }
 
     public void loadString(String script) throws LuaException {
-        checkStack(1);
         checkError(C.luaL_loadstring(L, script), false);
     }
 
