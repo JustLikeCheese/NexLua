@@ -60,7 +60,8 @@ public class LuaNil extends AbstractLuaValue {
     public boolean isJavaObject(Class<?> clazz) {
         return clazz == Object.class
                 || clazz == LuaValue.class
-                || clazz == LuaNil.class;
+                || clazz == LuaNil.class
+                || !clazz.isPrimitive();
     }
 
     @Override
@@ -71,6 +72,8 @@ public class LuaNil extends AbstractLuaValue {
             return null;
         else if (clazz == Boolean.class || clazz == boolean.class)
             return false;
+        else if (!clazz.isPrimitive())
+            return null;
         return super.toJavaObject(clazz);
     }
 }
