@@ -543,8 +543,8 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         if (L.isTable(1)) {
             L.setField(1, "path", luaLpath);
             L.setField(1, "cpath", luaCpath);
-            L.pop(1);
         }
+        L.pop(1);
         // 插入 LuaActivity
         L.pushGlobal(this, "activity", "this");
         L.pushGlobal(app, "application", "app");

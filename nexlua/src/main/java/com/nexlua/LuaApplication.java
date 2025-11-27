@@ -181,8 +181,8 @@ public class LuaApplication extends Application implements LuaContext {
         if (L.isTable(1)) {
             L.setField(1, "cpath", luaCpath);
             L.setField(1, "path", luaLpath);
-            L.pop(1);
         }
+        L.pop(1);
         L.pushGlobal(this, "application", "app", "this");
         mOnTerminate = L.getLuaFunction("onTerminate");
         mOnLowMemory = L.getLuaFunction("onLowMemory");

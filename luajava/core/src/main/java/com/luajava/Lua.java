@@ -387,7 +387,9 @@ public class Lua {
     // Get API
     public LuaValue get(String globalName) throws LuaException {
         getGlobal(globalName);
-        return get();
+        LuaValue value = get();
+        pop(1);
+        return value;
     }
 
     public void set(String key, Object value) throws LuaException {
@@ -1624,8 +1626,7 @@ public class Lua {
     public LuaNil getLuaNil(String globalName) throws LuaException {
         getGlobal(globalName);
         LuaNil value = getLuaNil();
-        if (value == null)
-            pop(1);
+        pop(1);
         return value;
     }
 
@@ -1643,8 +1644,7 @@ public class Lua {
     public LuaBoolean getLuaBoolean(String globalName) throws LuaException {
         getGlobal(globalName);
         LuaBoolean value = getLuaBoolean();
-        if (value == null)
-            pop(1);
+        pop(1);
         return value;
     }
 
@@ -1662,8 +1662,7 @@ public class Lua {
     public LuaUserdata getLuaUserdata(String globalName) throws LuaException {
         getGlobal(globalName);
         LuaUserdata value = getLuaUserdata();
-        if (value == null)
-            pop(1);
+        pop(1);
         return value;
     }
 
@@ -1681,8 +1680,7 @@ public class Lua {
     public LuaNumber getLuaNumber(String globalName) throws LuaException {
         getGlobal(globalName);
         LuaNumber value = getLuaNumber();
-        if (value == null)
-            pop(1);
+        pop(1);
         return value;
     }
 
@@ -1700,8 +1698,7 @@ public class Lua {
     public LuaString getLuaString(String globalName) throws LuaException {
         getGlobal(globalName);
         LuaString value = getLuaString();
-        if (value == null)
-            pop(1);
+        pop(1);
         return value;
     }
 
@@ -1719,8 +1716,7 @@ public class Lua {
     public LuaTable getLuaTable(String globalName) throws LuaException {
         getGlobal(globalName);
         LuaTable value = getLuaTable();
-        if (value == null)
-            pop(1);
+        pop(1);
         return value;
     }
 
@@ -1738,8 +1734,7 @@ public class Lua {
     public LuaFunction getLuaFunction(String globalName) throws LuaException {
         getGlobal(globalName);
         LuaFunction value = getLuaFunction();
-        if (value == null)
-            pop(1);
+        pop(1);
         return value;
     }
 
@@ -1757,8 +1752,7 @@ public class Lua {
     public LuaCFunction getLuaCFunction(String globalName) throws LuaException {
         getGlobal(globalName);
         LuaCFunction value = getLuaCFunction();
-        if (value == null)
-            pop(1);
+        pop(1);
         return value;
     }
 
@@ -1776,8 +1770,7 @@ public class Lua {
     public LuaLightUserdata getLuaLightUserdata(String globalName) throws LuaException {
         getGlobal(globalName);
         LuaLightUserdata value = getLuaLightUserdata();
-        if (value == null)
-            pop(1);
+        pop(1);
         return value;
     }
 
@@ -1795,8 +1788,7 @@ public class Lua {
     public LuaThread getLuaThread(String globalName) throws LuaException {
         getGlobal(globalName);
         LuaThread value = getLuaThread();
-        if (value == null)
-            pop(1);
+        pop(1);
         return value;
     }
 
