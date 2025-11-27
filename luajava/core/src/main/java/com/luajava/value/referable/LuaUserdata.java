@@ -31,7 +31,7 @@ import com.luajava.value.LuaValue;
 
 public class LuaUserdata extends AbstractLuaRefValue {
     private Object javaObject;
-    private boolean isJavaObject;
+    private Boolean isJavaObject;
 
     public LuaUserdata(Lua L) {
         super(L, LuaType.USERDATA);
@@ -66,16 +66,21 @@ public class LuaUserdata extends AbstractLuaRefValue {
 
     @Override
     public Object toJavaObject() throws LuaException {
-        if (javaObject == null) {
-            Object obj = super.toJavaObject();
-            javaObject = (obj != null) ? obj : NONE;
+        if (isJavaObject()) {
+            return javaObject;
         }
-        return javaObject;
+        return null;
     }
 
     @Override
     public boolean isJavaObject() throws LuaException {
-        return toJavaObject() != this;
+        if (isJavaObject == null) {
+            push();
+            isJavaObject = L.isJavaAnyObject(-1);
+            javaObject = L.toJavaAnyObject(-1);
+            L.pop(1);
+        }
+        return isJavaObject;
     }
 
     @Override
@@ -83,8 +88,8 @@ public class LuaUserdata extends AbstractLuaRefValue {
         if (clazz == Object.class || clazz == LuaValue.class || clazz == LuaUserdata.class) {
             return true;
         }
-        Object object = toJavaObject();
-        if (object != NONE) {
+        if (isJavaObject()) {
+            Object object = toJavaObject();
             Class<?> wrapperClass = ClassUtils.getWrapperType(clazz);
             Class<?> objectClass = ClassUtils.getWrapperType(object.getClass());
             return wrapperClass.isAssignableFrom(objectClass);
@@ -97,29 +102,24 @@ public class LuaUserdata extends AbstractLuaRefValue {
         if (clazz == LuaValue.class || clazz == LuaUserdata.class) {
             return this;
         }
-        Object object = toJavaObject();
-        if (object == NONE) {
-            if (clazz == Object.class) {
-                return null;
+        if (isJavaObject()) {
+            Object object = toJavaObject();
+            Class<?> objClass = ClassUtils.getWrapperType(object.getClass());
+            Class<?> wrapperClass = ClassUtils.getWrapperType(clazz);
+            if (clazz == Object.class || wrapperClass.isAssignableFrom(objClass)) {
+                return object;
             }
-            return super.toJavaObject(clazz);
-        }
-        Class<?> objClass = ClassUtils.getWrapperType(object.getClass());
-        Class<?> wrapperClass = ClassUtils.getWrapperType(clazz);
-        if (clazz == Object.class || wrapperClass.isAssignableFrom(objClass)) {
-            return object;
         }
         return super.toJavaObject(clazz);
     }
 
     @Override
     public boolean LtoBoolean() throws LuaException {
-        Object object = toJavaObject();
-        if (object == null) {
-            return false;
-        } else if (object != NONE) {
-            Class<?> objClass = ClassUtils.getWrapperType(object.getClass());
-            if (Boolean.class.isAssignableFrom(objClass)) {
+        if (isJavaObject()) {
+            Object object = toJavaObject();
+            if (object == null) {
+                return false;
+            } else if (Boolean.class.isAssignableFrom(ClassUtils.getWrapperType(object.getClass()))) {
                 return (boolean) object;
             }
         }
@@ -129,7 +129,7 @@ public class LuaUserdata extends AbstractLuaRefValue {
     @Override
     public long LtoInteger() throws LuaException {
         if (isJavaObject(Number.class)) {
-            return ((Number)toJavaObject(Number.class)).longValue();
+            return ((Number) toJavaObject(Number.class)).longValue();
         }
         return super.LtoInteger();
     }
@@ -137,7 +137,7 @@ public class LuaUserdata extends AbstractLuaRefValue {
     @Override
     public double LtoNumber() throws LuaException {
         if (isJavaObject(Number.class)) {
-            return ((Number)toJavaObject(Number.class)).doubleValue();
+            return ((Number) toJavaObject(Number.class)).doubleValue();
         }
         return super.LtoNumber();
     }
