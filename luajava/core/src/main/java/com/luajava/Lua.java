@@ -221,7 +221,7 @@ public class Lua {
         return push(object, clazz, Conversion.NONE);
     }
 
-    public int push(@Nullable Object object, Class<?> clazz, Conversion degree) throws LuaException {
+    public int push(Object object, Class<?> clazz, Conversion degree) throws LuaException {
         if (clazz != null && clazz.isPrimitive()) {
             if (clazz == boolean.class)
                 return push((boolean) object);
@@ -262,7 +262,7 @@ public class Lua {
         return 1;
     }
 
-    public int pushJavaObject(@NotNull Object object) throws LuaException {
+    public int pushJavaObject(Object object) throws LuaException {
         checkStack(1);
         if (object == null) {
             C.lua_pushnil(L);
