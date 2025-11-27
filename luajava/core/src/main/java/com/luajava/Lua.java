@@ -529,6 +529,41 @@ public class Lua {
         return C.luaJ_tostring(L, index);
     }
 
+    public boolean LtoBoolean(int index) {
+        if (isJavaObject(index)) {
+            Object object = toJavaObject(index);
+            if (object == null) {
+                return false;
+            } else if (Boolean.class.isAssignableFrom(ClassUtils.getWrapperType(object.getClass()))) {
+                return (boolean) object;
+            }
+            return true;
+        }
+        return toBoolean(index);
+    }
+
+    public long LtoInteger(int index) {
+        if (isJavaObject(index)) {
+            Object object = toJavaObject(index);
+            if (Number.class.isAssignableFrom(ClassUtils.getWrapperType(object.getClass()))) {
+                return ((Number) object).longValue();
+            }
+            return 0;
+        }
+        return toInteger(index);
+    }
+
+    public double LtoNumber(int index) {
+        if (isJavaObject(index)) {
+            Object object = toJavaObject(index);
+            if (Number.class.isAssignableFrom(ClassUtils.getWrapperType(object.getClass()))) {
+                return ((Number) object).doubleValue();
+            }
+            return 0;
+        }
+        return toNumber(index);
+    }
+
     public @Nullable ByteBuffer toBuffer(int index) {
         return (ByteBuffer) C.luaJ_tobuffer(L, index);
     }
