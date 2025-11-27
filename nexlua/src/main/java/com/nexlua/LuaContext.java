@@ -1,16 +1,12 @@
 package com.nexlua;
+
 import android.content.Context;
-import android.widget.Toast;
 
 import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.LuaHandler;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
-
-import io.github.justlikecheese.nextoast.NexToast;
 
 public interface LuaContext extends LuaHandler {
     ArrayList<ClassLoader> getClassLoaders();
@@ -31,27 +27,9 @@ public interface LuaContext extends LuaHandler {
 
     void initialize(Lua L) throws LuaException;
 
-    default void showToast(String message) {
-        NexToast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-    }
+    void showToast(String message);
 
-    default void sendMessage(String message) {
-        showToast(message);
-    }
+    void sendMessage(String message);
 
-    default void sendError(String title, String error) {
-        showToast(error);
-    }
-
-    @Override
-    default void sendError(Exception e) {
-        if (e instanceof LuaException) {
-            LuaException luaException = (LuaException) e;
-            sendError(luaException.getType(), e.getMessage());
-        } else {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            sendError(e.getClass().getSimpleName(), sw.toString());
-        }
-    }
+    void sendError(Exception e);
 }

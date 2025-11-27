@@ -119,6 +119,16 @@ public class LuaApplication extends Application implements LuaContext {
         mToastTime = now;
     }
 
+    @Override
+    public void sendMessage(String message) {
+        showToast(message);
+    }
+
+    @Override
+    public void sendError(Exception e) {
+        showToast(LuaException.getFullMessage(e));
+    }
+
     public ArrayList<ClassLoader> getClassLoaders() {
         return null;
     }

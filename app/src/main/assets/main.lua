@@ -1,5 +1,6 @@
 local LinearLayout = luajava.bindClass("android.widget.LinearLayout")
 local Button = luajava.bindClass("android.widget.Button")
+local TextView = luajava.bindClass("android.widget.TextView")
 local EditText = luajava.bindClass("android.widget.EditText")
 local Toast = luajava.bindClass("android.widget.Toast")
 local AlertDialog = luajava.bindClass("android.app.AlertDialog")
@@ -9,12 +10,18 @@ local function toast(text)
     Toast.makeText(activity, text, Toast.LENGTH_SHORT).show()
 end
 
-local function alert(text)
-    AlertDialog.Builder(activity)
-        .setTitle("提示")
-        .setMessage(text)
-        .setPositiveButton("OK", nil)
-        .show()
+local function alert(title, text)
+    local dialog = AlertDialog.Builder(activity)
+            .setTitle(title)
+            .setMessage(text)
+            .setPositiveButton("OK", null)
+            .create()
+    dialog.show()
+    local androidId = luajava.bindClass("android.R$id")
+    messageView = dialog.findViewById(androidId.message)
+    if messageView ~= nil then
+        messageView.setTextIsSelectable(true)
+    end
 end
 
 local layout = LinearLayout(activity)
@@ -44,8 +51,10 @@ layout.setFitsSystemWindows(true)
 layout.addView(toolbar)
 layout.addView(editor)
 
+activity.setHomeAsUpEnabled(false)
 activity.setContentView(layout)
 
-function onError(e)
-    alert(e)
+function onError(e, type, message)
+    alert(type, e.toString());
+    return true;
 end

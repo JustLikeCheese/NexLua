@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -148,6 +149,13 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         isViewInflated = true;
     }
 
+    public void setHomeAsUpEnabled(boolean enabled) {
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(enabled);
+        }
+    }
+
     @Override
     public void setContentView(int layoutResID) {
         super.setContentView(layoutResID);
@@ -160,7 +168,8 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         isViewInflated = true;
     }
 
-    public void setConsoleLayout() {
+    public boolean setConsoleLayout() {
+        if (isViewInflated) return false;
         if (consoleLayout == null) {
             // 获取主题颜色
             TypedArray array = getTheme().obtainStyledAttributes(new int[]{
@@ -195,8 +204,10 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
             footerView.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, 0));
             listView.addFooterView(footerView, null, false);
         }
+        setHomeAsUpEnabled(true);
         setContentView(consoleLayout);
         isViewInflated = false;
+        return true;
     }
 
     protected boolean onLuaEvent(LuaValue event, Object... args) {
@@ -364,20 +375,19 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return (item.hasSubMenu())
-                ? super.onOptionsItemSelected(item)
-                : onLuaEvent(mOnOptionsItemSelected, item);
+        return onLuaEvent(mOnMenuItemSelected, item) | super.onOptionsItemSelected(item);
     }
 
     @Override
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
-        if (!isViewInflated && mOnOptionsItemSelected == null && item.getItemId() == android.R.id.home) {
+        if (onLuaEvent(mOnMenuItemSelected, featureId, item)) {
+            return true;
+        } else if (!isViewInflated && item.getItemId() == android.R.id.home) {
             this.finish();
             return true;
+        } else {
+            return super.onMenuItemSelected(featureId, item);
         }
-        return (item.hasSubMenu())
-                ? super.onMenuItemSelected(featureId, item)
-                : onLuaEvent(mOnMenuItemSelected, featureId, item);
     }
 
     @Override
@@ -443,6 +453,17 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         finish();
     }
 
+    public void showAlert(String title, String message) {
+        TextView text = new TextView(this);
+        text.setText(message);
+        text.setTextIsSelectable(true);
+        new AlertDialog.Builder(this)
+                .setView(text)
+                .setMessage(message)
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
     @Override
     public void showToast(String message) {
         app.showToast(message);
@@ -450,10 +471,22 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
 
     @Override
     public void sendMessage(String message) {
+        if (mOnError != null) {
+            try {
+                L.push(mOnError);
+                L.push(message, Lua.Conversion.SEMI);
+                L.pCall(1, 1);
+                if (L.toBoolean(1)) {
+                    return;
+                }
+            } catch (Exception exception) {
+                Lua.logError(exception.getMessage());
+            } finally {
+                L.pop(1);
+            }
+        }
         if (!isViewInflated) {
             setConsoleLayout();
-            ActionBar actionBar = getActionBar();
-            if (actionBar != null) actionBar.setDisplayHomeAsUpEnabled(true);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -461,41 +494,48 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
                     adapter.notifyDataSetChanged();
                 }
             });
+        } else {
+            showToast(message);
         }
-        showToast(message);
     }
 
     @Override
-    public void sendError(String title, String message) {
-        boolean ret = false;
+    public void sendError(Exception e) {
+        String type = LuaException.getType(e);
+        String message = e.getMessage();
+        String fullMessage = type + ": " + message;
         if (mOnError != null) {
+            int top = L.getTop();
             try {
                 L.push(mOnError);
-                if (L.isFunction(-1)) {
-                    L.vpCall(new Object[]{message}, Lua.Conversion.SEMI, 1);
-                    Object object = L.get().toJavaObject();
-                    ret = object != Boolean.FALSE && object != null;
+                L.push(e);
+                L.push(type);
+                L.push(message);
+                L.pCall(3, 1);
+                if (L.toBoolean(1)) {
+                    return;
                 }
-            } catch (Exception ignored) {
-                showToast(message);
+            } catch (Exception exception) {
+                String error = LuaException.getFullMessage(exception);
+                showToast(error);
+                Lua.logError("onError:\n" + error);
+            } finally {
+                L.setTop(top);
             }
-        }
-        if (!isViewInflated) {
+        } else if (!isViewInflated) {
             setConsoleLayout();
-            ActionBar actionBar = getActionBar();
-            if (actionBar != null) actionBar.setDisplayHomeAsUpEnabled(true);
-            if (!ret) {
-                setTitle(title);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.add(message);
-                        adapter.notifyDataSetChanged();
-                    }
-                });
-            }
+            setTitle(type);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    adapter.add(fullMessage);
+                    adapter.notifyDataSetChanged();
+                }
+            });
+        } else {
+            showToast(fullMessage);
         }
-        showToast(message);
+        Lua.logError(fullMessage);
     }
 
     public ArrayList<ClassLoader> getClassLoaders() {

@@ -15,6 +15,7 @@ public class LuaConfig {
     protected ArrayList<LuaModule> LUA_MODULES;
     protected LuaModule welcome;
     protected LuaModule application;
+
     public LuaConfig(LuaContext context) {
         if (FILES_DIR == null) {
             FILES_DIR = context.getContext().getFilesDir();
