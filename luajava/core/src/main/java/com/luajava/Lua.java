@@ -598,7 +598,7 @@ public class Lua {
         C.lua_xmove(L, to.L, n);
     }
 
-    public void copy(Lua to) {
+    public void copyTo(Lua to) {
         C.luaJ_copy(this.L, to.L);
     }
 
@@ -1532,6 +1532,10 @@ public class Lua {
 
     public long refGetPointer(int ref) {
         return C.luaJ_refGetPointer(L, ref);
+    }
+
+    public void refCopyTo(Lua to, int ref) {
+        C.luaJ_refCopyTo(L, to.L, ref);
     }
 
     public LuaNil fromNull() {

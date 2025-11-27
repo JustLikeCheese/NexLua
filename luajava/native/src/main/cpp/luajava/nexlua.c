@@ -274,6 +274,12 @@ JNIWRAP(jlong, luaJ_1refGetPointer, jlong ptr, jint ref) {
     return result;
 }
 
+JNIWRAP(void, luaJ_1refCopyTo, jlong ptr, jlong ptr1, jint ref) {
+    luaJ_refGet(L, ref);
+    luaJ_copy(L, L1, ref);
+    lua_pop(L, 1);
+}
+
 #undef L
 #undef L1
 #undef JNIWRAP

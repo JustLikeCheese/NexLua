@@ -51,6 +51,8 @@ public interface LuaValue {
 
     int push(Lua L) throws LuaException;
 
+    void copyTo(Lua L) throws LuaException;
+
     LuaType type();
 
     String typeName();

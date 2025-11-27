@@ -151,6 +151,8 @@ public class LuaNatives {
 
     public native long luaJ_refGetPointer(long ptr, int ref);
 
+    public native void luaJ_refCopyTo(long ptr, long ptr1, int ref);
+
     // lua.h bindings
     public native void lua_close(long ptr);
 
