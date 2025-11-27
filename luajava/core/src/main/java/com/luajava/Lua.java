@@ -1400,9 +1400,9 @@ public class Lua {
         C.luaL_getmetatable(L, typeName);
     }
 
-    public int newMetatable(String typeName) throws LuaException {
+    public boolean newMetatable(String typeName) throws LuaException {
         checkStack(1);
-        return C.luaL_newmetatable(L, typeName);
+        return C.luaL_newmetatable(L, typeName) != 0;
     }
 
     public void openLibraries() throws LuaException {
