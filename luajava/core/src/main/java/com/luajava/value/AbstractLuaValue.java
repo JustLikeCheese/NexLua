@@ -1249,7 +1249,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     @Override
     public boolean isJavaObject() throws LuaException {
         push();
-        boolean result = L.isJavaObject(-1);
+        boolean result = L.isJavaAnyObject(-1);
         L.pop(1);
         return result;
     }
@@ -1257,7 +1257,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     @Override
     public Object toJavaObject() throws LuaException {
         push();
-        Object result = L.toJavaObject(-1);
+        Object result = L.toJavaAnyObject(-1);
         L.pop(1);
         return result;
     }

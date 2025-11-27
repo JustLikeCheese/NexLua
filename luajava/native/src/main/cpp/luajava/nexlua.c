@@ -51,17 +51,61 @@ JNIWRAP(void, luaJ_1pushbuffer, jlong ptr, jobject obj_buffer, jint size) {
     luaJ_pushbuffer(env, L, obj_buffer);
 }
 
-/* Type Check API */
+/* String API */
 JNIWRAP(jstring, luaJ_1tostring, jlong ptr, jint index) {
     return ToString(luaJ_tostring(L, index));
 }
 
-JNIWRAP(jobject, luaJ_1toobject, jlong ptr, jint index) {
-    return (jobject) luaJ_toanyobject(L, (int) index);
+/* Type Check API */
+JNIWRAP(jint, luaJ_1isanyobject, jlong ptr, jint index) {
+    return luaJ_isanyobject(L, index);
+}
+
+JNIWRAP(jobject, luaJ_1toanyobject, jlong ptr, jint index) {
+    return (jobject) luaJ_toanyobject(L, index);
+}
+
+JNIWRAP(jobject, luaJ_1checkanyobject, jlong ptr, jint index) {
+    return (jobject) luaJ_checkanyobject(L, index);
+}
+
+/* Is API */
+JNIWRAP(jint, luaJ_1isclass, jlong ptr, jint index) {
+    return luaJ_isclass(L, index);
 }
 
 JNIWRAP(jint, luaJ_1isobject, jlong ptr, jint index) {
-    return luaJ_isanyobject(L, (int) index);
+    return luaJ_isobject(L, index);
+}
+
+JNIWRAP(jint, luaJ_1isarray, jlong ptr, jint index) {
+    return luaJ_isarray(L, index);
+}
+
+/* To API */
+JNIWRAP(jclass, luaJ_1toclass, jlong ptr, jint index) {
+    return luaJ_toclass(L, index);
+}
+
+JNIWRAP(jobject, luaJ_1toobject, jlong ptr, jint index) {
+    return luaJ_toobject(L, index);
+}
+
+JNIWRAP(jarray, luaJ_1toarray, jlong ptr, jint index) {
+    return luaJ_toarray(L, index);
+}
+
+/* Check API */
+JNIWRAP(jclass, luaJ_1checkclass, jlong ptr, jint index) {
+    return luaJ_checkclass(L, index);
+}
+
+JNIWRAP(jobject, luaJ_1checkobject, jlong ptr, jint index) {
+    return luaJ_checkobject(L, index);
+}
+
+JNIWRAP(jarray, luaJ_1checkarray, jlong ptr, jint index) {
+    return luaJ_checkarray(L, index);
 }
 
 /* Buffer API */

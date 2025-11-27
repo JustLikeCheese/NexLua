@@ -53,6 +53,12 @@ const char JAVA_CLASS_META_REGISTRY[] = "__jclass__";
 const char JAVA_OBJECT_META_REGISTRY[] = "__jobject__";
 const char JAVA_ARRAY_META_REGISTRY[] = "__jarray__";
 
+const char JAVA_CLASS_TYPENAME[] = "Java Class";
+const char JAVA_OBJECT_NAME[] = "Java Object";
+const char JAVA_ARRAY_NAME[] = "Java Array";
+
+const char JAVA_OBJECT_ID[] = "__jobjectid__";
+
 /* Java Common API */
 
 /* Push API */
@@ -89,32 +95,78 @@ int luaJ_pusharray(JNIEnv *env, lua_State *L, jarray arr) {
     return 0;
 }
 
+/* Type API */
+int luaJ_getjavatype(lua_State *L, int index) {
+    if (!lua_isuserdata(L, index)) return 0;
+    if (lua_getmetatable(L, index) == 0) return 0;
+    lua_pushstring(L, JAVA_OBJECT_ID);
+    lua_rawget(L, -2);
+    int type = lua_tointeger(L, -1);
+    lua_pop(L, 2); // pop metatable and type
+    return type;
+}
+
+/* Any Object */
+int luaJ_isanyobject(lua_State *L, int index) {
+    return luaJ_getjavatype(L, index) != 0;
+}
+
+jobject luaJ_checkanyobject(lua_State *L, int index) {
+    if (!luaJ_isanyobject(L, index)) {
+        luaL_typerror(L, index, JAVA_OBJECT_NAME);
+    }
+    return luaJ_toanyobject(L, index);
+}
+
+jobject luaJ_toanyobject(lua_State *L, int index) {
+    return luaJ_isanyobject(L, index) ? *(jobject *) lua_topointer(L, index) : NULL;
+}
+
+/* Type Check API */
+int luaJ_isclass(lua_State *L, int index) {
+    return luaJ_getjavatype(L, index) == JAVA_TYPE_CLASS;
+}
+
+int luaJ_isobject(lua_State *L, int index) {
+    return luaJ_getjavatype(L, index) == JAVA_TYPE_OBJECT;
+}
+
+int luaJ_isarray(lua_State *L, int index) {
+    return luaJ_getjavatype(L, index) == JAVA_TYPE_ARRAY;
+}
+
 /* Check API */
 jclass luaJ_checkclass(lua_State *L, int index) {
-    return *(jobject *) luaL_checkudata(L, index, JAVA_CLASS_META_REGISTRY);
+    if (!luaJ_isclass(L, index)) {
+        luaL_typerror(L, index, JAVA_CLASS_TYPENAME);
+    }
+    return *(jobject *) lua_topointer(L, index);
 }
 
 jobject luaJ_checkobject(lua_State *L, int index) {
-    return *(jobject *) luaL_checkudata(L, index, JAVA_OBJECT_META_REGISTRY);
+    if (!luaJ_isobject(L, index)) {
+        luaL_typerror(L, index, JAVA_OBJECT_NAME);
+    }
+    return *(jobject *) lua_topointer(L, index);
 }
 
 jarray luaJ_checkarray(lua_State *L, int index) {
-    return *(jarray *) luaL_checkudata(L, index, JAVA_ARRAY_META_REGISTRY);
+    if (!luaJ_isarray(L, index)) {
+        luaL_typerror(L, index, JAVA_ARRAY_NAME);
+    }
+    return *(jarray *) lua_topointer(L, index);
 }
 
 jclass luaJ_toclass(lua_State *L, int index) {
-    jobject *userdata = (jobject *) luaL_testudata(L, index, JAVA_CLASS_META_REGISTRY);
-    return userdata ? *userdata : NULL;
+    return luaJ_isclass(L, index) ? *(jclass *) lua_topointer(L, index) : NULL;
 }
 
 jobject luaJ_toobject(lua_State *L, int index) {
-    jobject *userdata = (jobject *) luaL_testudata(L, index, JAVA_OBJECT_META_REGISTRY);
-    return userdata ? *userdata : NULL;
+    return luaJ_isobject(L, index) ? *(jobject *) lua_topointer(L, index) : NULL;
 }
 
 jarray luaJ_toarray(lua_State *L, int index) {
-    jobject *userdata = (jobject *) luaL_testudata(L, index, JAVA_ARRAY_META_REGISTRY);
-    return userdata ? (jarray) *userdata : NULL;
+    return luaJ_isarray(L, index) ? *(jarray *) lua_topointer(L, index) : NULL;
 }
 
 // jfunction wrapper
@@ -426,8 +478,13 @@ bindMetaname(__unm)
 
 /* Initialize Metatable Registry */
 void initMetaRegistry(lua_State *L) {
+    // Java ObjectID
+    lua_pushstring(L, JAVA_OBJECT_ID);
     // Java Class
     if (luaL_newmetatable(L, JAVA_CLASS_META_REGISTRY) == 1) {
+        lua_pushvalue(L, -2);
+        lua_pushinteger(L, JAVA_TYPE_CLASS);
+        lua_rawset(L, -3);
         bindMetatable(__eq, &classEquals); // equal
         bindMetatable(__gc, &classGC); // gc
         bindMetatable(__index, &classIndex); // index
@@ -440,6 +497,9 @@ void initMetaRegistry(lua_State *L) {
     lua_pop(L, 1);
     // Java Object
     if (luaL_newmetatable(L, JAVA_OBJECT_META_REGISTRY) == 1) {
+        lua_pushvalue(L, -2);
+        lua_pushinteger(L, JAVA_TYPE_OBJECT);
+        lua_rawset(L, -3);
         bindMetatable(__eq, &objectEquals); // equal
         bindMetatable(__gc, &objectGC); // gc
         bindMetatable(__index, &objectIndex); // index
@@ -451,6 +511,9 @@ void initMetaRegistry(lua_State *L) {
     lua_pop(L, 1);
     // Java Array
     if (luaL_newmetatable(L, JAVA_ARRAY_META_REGISTRY) == 1) {
+        lua_pushvalue(L, -2);
+        lua_pushinteger(L, JAVA_TYPE_ARRAY);
+        lua_rawset(L, -3);
         bindMetatable(__eq, &arrayEquals); // equal
         bindMetatable(__gc, &arrayGC); // gc
         bindMetatable(__tostring, &arrayToString); // tostring
@@ -461,5 +524,5 @@ void initMetaRegistry(lua_State *L) {
         bindMetatable(__pairs, &arrayIpairs); // pairs
         bindMetatable(__concat, &commonConcat); // concat
     }
-    lua_pop(L, 1);
+    lua_pop(L, 2);
 }

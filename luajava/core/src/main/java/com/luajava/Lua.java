@@ -1259,12 +1259,56 @@ public class Lua {
         return top + 1 + index;
     }
 
+    /* Type Check API */
+    public boolean isJavaAnyObject(int index) {
+        return C.luaJ_isanyobject(L, index) != 0;
+    }
+
+    public Object toJavaAnyObject(int index) {
+        return C.luaJ_toanyobject(L, index);
+    }
+
+    public Object checkJavaAnyObject(int index) {
+        return C.luaJ_checkanyobject(L, index);
+    }
+
+    /* Is API */
+    public boolean isJavaClass(int index) {
+        return C.luaJ_isclass(L, index) != 0;
+    }
+
     public boolean isJavaObject(int index) {
         return C.luaJ_isobject(L, index) != 0;
     }
 
+    public boolean isJavaArray(int index) {
+        return C.luaJ_isarray(L, index) != 0;
+    }
+
+    /* To API */
+    public Object toJavaClass(int index) {
+        return C.luaJ_toclass(L, index);
+    }
+
     public Object toJavaObject(int index) {
         return C.luaJ_toobject(L, index);
+    }
+
+    public Object toJavaArray(int index) {
+        return C.luaJ_toarray(L, index);
+    }
+
+    /* Check API */
+    public Class<?> checkJavaClass(int index) {
+        return C.luaJ_checkclass(L, index);
+    }
+
+    public Object checkJavaObject(int index) {
+        return C.luaJ_checkobject(L, index);
+    }
+
+    public Object checkJavaArray(int index) {
+        return C.luaJ_checkarray(L, index);
     }
 
     public void loadString(String script) throws LuaException {
@@ -1418,7 +1462,7 @@ public class Lua {
         if (method.getReturnType() == Void.TYPE) {
             return null;
         }
-        Object ret = toJavaObject(-1);
+        Object ret = toJavaAnyObject(-1);
         pop(1);
         return ret;
     }
