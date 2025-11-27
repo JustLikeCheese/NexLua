@@ -124,12 +124,12 @@ public interface LuaValue {
 
     Map<LuaValue, LuaValue> toMap() throws LuaException;
 
-    long length() throws LuaException;
+    int length() throws LuaException;
 
     // metatable
     LuaValue getMetatable() throws LuaException;
 
-    boolean setMetatable(String tname) throws LuaException;
+    void setMetatable(String tname) throws LuaException;
 
     LuaValue callMetatable(String method) throws LuaException;
 

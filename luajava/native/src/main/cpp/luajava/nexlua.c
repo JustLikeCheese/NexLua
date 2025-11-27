@@ -173,12 +173,61 @@ JNIWRAP(jint, luaJ_1ref, jlong ptr) {
     return luaJ_ref(L);
 }
 
-JNIWRAP(jint, luaJ_1typeRef, jlong ptr, jint ref) {
+JNIWRAP(jint, luaJ_1refType, jlong ptr, jint ref) {
     lua_State *lua = L;
     luaJ_refGet(L, ref);
     int type = lua_type(lua, -1);
     lua_pop(lua, 1);
     return type;
+}
+
+JNIWRAP(jint, luaJ_1refLength, jlong ptr, jint ref) {
+    lua_State *lua = L;
+    luaJ_refGet(L, ref);
+    jint length = (jint) lua_objlen(lua, -1);
+    lua_pop(lua, 1);
+    return length;
+}
+
+JNIWRAP(void, luaJ_1refSetMetatable, jlong ptr, jint ref, jstring j_name) {
+    luaJ_refGet(L, ref);
+    const char *name = GetString(j_name);
+    luaL_setmetatable(L, name);
+    ReleaseString(j_name, name);
+    lua_pop(L, 1);
+}
+
+JNIWRAP(jstring, luaJ_1refLtoString, jlong ptr, jint ref) {
+    luaJ_refGet(L, ref);
+    jstring result = ToString(luaJ_tostring(L, -1));
+    lua_pop(L, 1);
+    return result;
+}
+
+JNIWRAP(jstring, luaJ_1refToString, jlong ptr, jint ref) {
+    luaJ_refGet(L, ref);
+    jstring result = ToString(lua_tostring(L, -1));
+    lua_pop(L, 1);
+    return result;
+}
+
+JNIWRAP(jint, luaJ_1refCallMeta, jlong ptr, jint ref, jstring j_name) {
+    luaJ_refGet(L, ref);
+    const char *name = GetString(j_name);
+    int result = luaL_callmeta(L, -1, name);
+    ReleaseString(j_name, name);
+    if (result != 0) {
+        return 1;
+    }
+    lua_pop(L, 1);
+    return 0;
+}
+
+JNIWRAP(jlong, luaJ_1refGetPointer, jlong ptr, jint ref) {
+    luaJ_refGet(L, ref);
+    long result = (long) lua_topointer(L, -1);
+    lua_pop(L, 1);
+    return result;
 }
 
 #undef L

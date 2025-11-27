@@ -120,8 +120,8 @@ JNIWRAP(jint, lua_1toboolean, jlong ptr, jint idx) {
     return (jint) lua_toboolean(L, idx);
 }
 
-JNIWRAP(jlong, lua_1objlen, jlong ptr, jint idx) {
-    return (jlong) lua_objlen(L, idx);
+JNIWRAP(jint, lua_1objlen, jlong ptr, jint idx) {
+    return (jint) lua_objlen(L, idx);
 }
 
 JNIWRAP(jlong, lua_1tocfunction, jlong ptr, jint idx) {

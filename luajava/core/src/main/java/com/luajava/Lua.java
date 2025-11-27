@@ -761,7 +761,7 @@ public class Lua {
         return C.lua_topointer(L, index);
     }
 
-    public long rawLength(int index) {
+    public int rawLength(int index) {
         return C.lua_objlen(L, index);
     }
 
@@ -868,7 +868,6 @@ public class Lua {
     }
 
     public boolean getMetatable(int index) throws LuaException {
-        checkStack(1);
         return C.lua_getmetatable(L, index) != 0;
     }
 
@@ -1469,8 +1468,32 @@ public class Lua {
         C.luaL_unref(L, index, ref);
     }
 
-    public LuaType typeRef(int ref) throws LuaException {
-        return LuaType.from(C.luaJ_typeRef(L, ref));
+    public LuaType refType(int ref) throws LuaException {
+        return LuaType.from(C.luaJ_refType(L, ref));
+    }
+
+    public int refLength(int ref) {
+        return C.luaJ_refLength(L, ref);
+    }
+
+    public void refSetMetatable(int ref, String name) {
+        C.luaJ_refSetMetatable(L, ref, name);
+    }
+
+    public String refLtoString(int ref) {
+        return C.luaJ_refLtoString(L, ref);
+    }
+
+    public String refToString(int ref) {
+        return C.luaJ_refToString(L, ref);
+    }
+
+    public boolean refCallMeta(int ref, String name) {
+        return C.luaJ_refCallMeta(L, ref, name) != 0;
+    }
+
+    public long refGetPointer(int ref) {
+        return C.luaJ_refGetPointer(L, ref);
     }
 
     public LuaNil fromNull() {

@@ -26,6 +26,8 @@ import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.cleaner.LuaReferable;
 
+import java.nio.Buffer;
+
 public abstract class AbstractLuaRefValue extends AbstractLuaValue implements LuaReferable {
     protected final int ref;
 
@@ -54,6 +56,37 @@ public abstract class AbstractLuaRefValue extends AbstractLuaValue implements Lu
         }
         L.checkStack(1);
         return L.refGet(ref);
+    }
+
+    // RefValue Performance Optimization
+    @Override
+    public int length() {
+        return L.refLength(ref);
+    }
+
+    @Override
+    public void setMetatable(String tname) {
+        L.refSetMetatable(ref, tname);
+    }
+
+    @Override
+    public LuaValue callMetatable(String method) throws LuaException {
+        if (L.refCallMeta(ref, method)) {
+            LuaValue result = L.get();
+            L.pop(2);
+            return result;
+        }
+        return L.NIL;
+    }
+
+    @Override
+    public String LtoString() throws LuaException {
+        return L.refLtoString(ref);
+    }
+
+    @Override
+    public long getPointer() {
+        return L.refGetPointer(ref);
     }
 
     @Override

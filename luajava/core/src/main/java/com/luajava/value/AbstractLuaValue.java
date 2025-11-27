@@ -270,7 +270,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     @Override
     public LuaValue[] toArray() throws LuaException {
         push();
-        int length = (int) L.rawLength(-1);
+        int length = L.rawLength(-1);
         LuaValue[] array = new LuaValue[length];
         L.ipairs((index, value) -> {
             array[(int) index - 1] = value;
@@ -301,9 +301,9 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public long length() throws LuaException {
+    public int length() throws LuaException {
         push();
-        long result = L.rawLength(-1);
+        int result = L.rawLength(-1);
         L.pop(1);
         return result;
     }
@@ -321,11 +321,10 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean setMetatable(String tname) throws LuaException {
+    public void setMetatable(String tname) throws LuaException {
         push();
         L.setMetatable(tname);
         L.pop(2);
-        return false;
     }
 
     @Override
@@ -333,7 +332,7 @@ public abstract class AbstractLuaValue implements LuaValue {
         push();
         if (L.callMetatable(-1, method)) {
             LuaValue result = L.get();
-            L.pop(1);
+            L.pop(2);
             return result;
         }
         L.pop(1);
@@ -1389,7 +1388,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     @Override
     public Object toJavaArray(Class<?> clazz) throws LuaException {
         push();
-        int length = (int) L.rawLength(-1);
+        int length = L.rawLength(-1);
         Object array = Array.newInstance(clazz, length);
         L.ipairs((index, value) -> {
             int arrayIndex = (int) (index - 1);

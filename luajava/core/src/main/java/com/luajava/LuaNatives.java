@@ -117,7 +117,19 @@ public class LuaNatives {
 
     public native int luaJ_ref(long ptr);
 
-    public native int luaJ_typeRef(long ptr, int ref);
+    public native int luaJ_refType(long ptr, int ref);
+
+    public native int luaJ_refLength(long ptr, int ref);
+
+    public native void luaJ_refSetMetatable(long ptr, int ref, String name);
+
+    public native String luaJ_refLtoString(long ptr, int ref);
+
+    public native String luaJ_refToString(long ptr, int ref);
+
+    public native int luaJ_refCallMeta(long ptr, int ref, String name);
+
+    public native long luaJ_refGetPointer(long ptr, int ref);
 
     // lua.h bindings
     public native void lua_close(long ptr);
@@ -164,7 +176,7 @@ public class LuaNatives {
 
     public native int lua_toboolean(long ptr, int idx);
 
-    public native long lua_objlen(long ptr, int idx);
+    public native int lua_objlen(long ptr, int idx);
 
     public native long lua_tocfunction(long ptr, int idx);
 
