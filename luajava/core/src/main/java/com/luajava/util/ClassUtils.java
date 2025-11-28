@@ -1,7 +1,7 @@
 package com.luajava.util;
 
 
-import com.luajava.Nullable;
+import androidx.annotation.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;

@@ -2,9 +2,11 @@
 agp = "8.13.1"
 nextoast = "1.2.2"
 vanniktech-maven-publish = "0.35.0"
+androidx-annotation = "1.9.1"
 
 [libraries]
 nextoast = { module = "io.github.justlikecheese.nextoast:NexToast", version.ref = "nextoast" }
+androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidx-annotation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

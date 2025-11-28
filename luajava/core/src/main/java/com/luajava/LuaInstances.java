@@ -22,6 +22,8 @@
 
 package com.luajava;
 
+import androidx.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -44,7 +46,7 @@ public class LuaInstances<T> {
      * @param instance element to be added to this collection
      * @return the allocated id
      */
-    protected synchronized int add(@NotNull T instance) {
+    protected synchronized int add(@Nullable T instance) {
         return addNullable(instance);
     }
 

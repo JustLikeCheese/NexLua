@@ -24,6 +24,9 @@ package com.luajava;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.luajava.cleaner.LuaReferable;
 import com.luajava.cleaner.LuaReference;
 import com.luajava.util.ClassUtils;
@@ -167,7 +170,7 @@ public class Lua {
         return push((long) ch);
     }
 
-    public int push(@NotNull String string) throws LuaException {
+    public int push(@NonNull String string) throws LuaException {
         C.lua_pushstring(L, string);
         return 1;
     }
@@ -280,7 +283,7 @@ public class Lua {
         return 1;
     }
 
-    public int pushArray(@NotNull Object array) throws IllegalArgumentException, LuaException {
+    public int pushArray(@NonNull Object array) throws IllegalArgumentException, LuaException {
         Class<?> clazz = array.getClass();
         if (!clazz.isArray()) {
             throw new IllegalArgumentException("Not an array");
@@ -296,7 +299,7 @@ public class Lua {
         return 1;
     }
 
-    public int pushCollection(@NotNull Collection<?> collection) throws LuaException {
+    public int pushCollection(@NonNull Collection<?> collection) throws LuaException {
         checkStack(2);
         C.lua_createtable(L, collection.size(), 0);
         int index = 1;
@@ -308,7 +311,7 @@ public class Lua {
         return 1;
     }
 
-    public int pushMap(@NotNull Map<?, ?> map) throws LuaException {
+    public int pushMap(@NonNull Map<?, ?> map) throws LuaException {
         checkStack(3);
         C.lua_createtable(L, 0, map.size());
         for (Map.Entry<?, ?> entry : map.entrySet()) {
