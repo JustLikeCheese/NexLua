@@ -491,7 +491,7 @@ public final class JuaAPI {
      * @param obj   the {@link CFunction} object
      * @return the number result pushed on stack
      */
-    public static int jfunctionCall(long index, Object obj) throws LuaException {
+    public static int jfunctionCall(long index, Object obj) throws Exception {
         Lua L = Jua.get(index);
         if (obj instanceof CFunction) {
             return ((CFunction) obj).__call(L);

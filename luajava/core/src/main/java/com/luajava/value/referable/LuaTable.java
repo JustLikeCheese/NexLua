@@ -22,19 +22,22 @@
 
 package com.luajava.value.referable;
 
+import com.luajava.CFunction;
 import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.value.AbstractLuaRefValue;
+import com.luajava.value.LuaMetatable;
 import com.luajava.value.LuaProxy;
 import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public class LuaTable extends AbstractLuaRefValue {
-    private LuaProxy luaProxy;
+    protected LuaProxy luaProxy;
 
     public LuaTable(Lua L) {
         super(L, LuaType.TABLE);
@@ -50,6 +53,38 @@ public class LuaTable extends AbstractLuaRefValue {
 
     public static LuaTable fromRef(Lua L, int ref) {
         return new LuaTable(ref, L);
+    }
+
+    public static LuaTable fromMetatable(Lua L, LuaMetatable metatable) {
+        Class<?> clazz = metatable.getClass();
+        String metaName = clazz.getName();
+        int top = L.getTop();
+        try {
+            if (!L.newMetatable(metaName)) return null;
+            for (LuaMetatable.MetaName methodType : LuaMetatable.MetaName.values()) {
+                String methodName = methodType.name();
+                Method method = clazz.getMethod(methodName, Lua.class);
+                if (method.getReturnType() != int.class) continue;
+                if (method.getDeclaringClass() != LuaMetatable.class) {
+                    L.push(methodName);
+                    L.push(new CFunction() {
+                        @Override
+                        public int __call(Lua L) throws Exception {
+                            Integer result = (Integer) method.invoke(metatable, L);
+                            return result == null ? 0 : result;
+                        }
+                    });
+                    L.rawSet(-3);
+                }
+            }
+            LuaTable table = new LuaTable(L);
+            L.pop(1);
+            return table;
+        } catch (Exception e) {
+            return null;
+        } finally {
+            L.setTop(top);
+        }
     }
 
     @Override

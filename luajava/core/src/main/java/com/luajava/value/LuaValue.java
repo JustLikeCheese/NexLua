@@ -133,6 +133,8 @@ public interface LuaValue {
 
     void setMetatable(String tname) throws LuaException;
 
+    void setMetatable(LuaTable metatable) throws LuaException;
+
     LuaValue callMetatable(String method) throws LuaException;
 
     // compare

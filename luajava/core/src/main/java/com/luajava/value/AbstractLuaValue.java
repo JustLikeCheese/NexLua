@@ -333,6 +333,13 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
+    public void setMetatable(LuaTable metatable) throws LuaException {
+        push(L);
+        metatable.push(L);
+        L.setMetatable(-2);
+    }
+
+    @Override
     public LuaValue callMetatable(String method) throws LuaException {
         push();
         if (L.callMetatable(-1, method)) {
