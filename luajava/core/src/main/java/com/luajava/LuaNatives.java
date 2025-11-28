@@ -62,29 +62,11 @@ public class LuaNatives {
 
     public native void luaJ_pushobject(long ptr, Object obj);
 
-    public native Object luaJ_toanyobject(long ptr, int index);
-
-    public native Object luaJ_checkanyobject(long ptr, int index);
-
-    public native int luaJ_isanyobject(long ptr, int index);
-
-    public native int luaJ_isclass(long ptr, int index);
-
     public native int luaJ_isobject(long ptr, int index);
-
-    public native int luaJ_isarray(long ptr, int index);
-
-    public native Class<?> luaJ_toclass(long ptr, int index);
 
     public native Object luaJ_toobject(long ptr, int index);
 
-    public native Object luaJ_toarray(long ptr, int index);
-
-    public native Class<?> luaJ_checkclass(long ptr, int index);
-
     public native Object luaJ_checkobject(long ptr, int index);
-
-    public native Object luaJ_checkarray(long ptr, int index);
 
     public native void luaJ_pushclass(long ptr, Object obj);
 

@@ -76,8 +76,8 @@ public class LuaUserdata extends AbstractLuaRefValue {
     public boolean isJavaObject() throws LuaException {
         if (isJavaObject == null) {
             push();
-            isJavaObject = L.isJavaAnyObject(-1);
-            javaObject = L.toJavaAnyObject(-1);
+            isJavaObject = L.isJavaObject(-1);
+            javaObject = L.toJavaObject(-1);
             L.pop(1);
         }
         return isJavaObject;
