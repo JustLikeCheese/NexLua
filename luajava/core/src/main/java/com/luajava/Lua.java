@@ -36,13 +36,16 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.luajava.value.LuaIpairsIterator;
-import com.luajava.value.LuaPairsIterator;
+import com.luajava.value.LuaIterator;
 import com.luajava.value.LuaProxy;
 import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;
@@ -861,35 +864,41 @@ public class Lua {
         C.lua_rawseti(L, index, n);
     }
 
-    public void pairs(LuaPairsIterator iterator) throws LuaException {
+    /**
+     * Stack: -2 is key, -1 is value
+     * if iterator returns true then pop and break
+     */
+    public void pairs(int tableIndex, LuaIterator.Pairs iterator) throws LuaException {
+        tableIndex = getAbsoluteIndex(tableIndex);
         pushNil();
-        while (next(-2)) {
-            LuaValue key = get(-2); // key
-            LuaValue value = get(-1); // value
-            pop(1); // pop value
-            boolean shouldContinue = iterator.iterate(key, value);
-            if (!shouldContinue) {
-                pop(1); // pop key
+        while (next(tableIndex)) {
+            if (iterator.iterate(this)) {
+                pop(2); // pop key and value
                 break;
             }
+            pop(1); // pop value
         }
     }
 
-    public void ipairs(LuaIpairsIterator iterator) throws LuaException {
-        long index = 1;
+    /**
+     * Stack: -1 is value
+     * if iterator returns true then pop and break
+     */
+    public void ipairs(int tableIndex, LuaIterator.Ipairs iterator) throws LuaException {
+        tableIndex = getAbsoluteIndex(tableIndex);
+        int index = 1;
         while (true) {
             push(index);
-            getTable(-2);
+            getTable(tableIndex);
             if (isNil(-1)) {
-                pop(1); // pop nil value
+                pop(1); // pop nil
                 break;
             }
-            LuaValue value = get(-1);
+            if (iterator.iterate(this, index)) {
+                pop(1); // pop value
+                break;
+            }
             pop(1); // pop value
-            boolean shouldContinue = iterator.iterate(index, value);
-            if (!shouldContinue) {
-                break;
-            }
             index++;
         }
     }
@@ -1299,7 +1308,7 @@ public class Lua {
         return top + 1 + index;
     }
 
-    /* Type Check API */
+    /* Java Object */
     public boolean isJavaObject(int index) {
         return C.luaJ_isobject(L, index) != 0;
     }
@@ -1310,6 +1319,218 @@ public class Lua {
 
     public Object checkJavaObject(int index) {
         return C.luaJ_checkobject(L, index);
+    }
+
+    /* Java Object Cast */
+    public boolean isJavaObject(int index, Class<?> clazz) throws LuaException {
+        LuaType type = type(index);
+        Class<?> wrapperType = ClassUtils.getWrapperType(clazz);
+        switch (type) {
+            case NIL:
+            case NONE:
+                return (clazz == Object.class
+                        || clazz == LuaValue.class
+                        || clazz == LuaNil.class
+                        || !clazz.isPrimitive());
+            case BOOLEAN:
+                return clazz == Object.class
+                        || clazz == LuaValue.class
+                        || clazz == LuaBoolean.class
+                        || clazz == Boolean.class || clazz == boolean.class;
+            case NUMBER:
+                return clazz == Object.class
+                        || clazz == LuaValue.class
+                        || clazz == LuaNumber.class
+                        || clazz == byte.class || clazz == Byte.class
+                        || clazz == short.class || clazz == Short.class
+                        || clazz == int.class || clazz == Integer.class
+                        || clazz == long.class || clazz == Long.class
+                        || clazz == float.class || clazz == Float.class
+                        || clazz == double.class || clazz == Double.class
+                        || clazz == char.class || clazz == Character.class
+                        || clazz == Number.class;
+            case STRING:
+                return clazz == Object.class
+                        || clazz == LuaValue.class
+                        || clazz == LuaString.class
+                        || CharSequence.class.isAssignableFrom(clazz);
+            case TABLE:
+                return clazz == Object.class || clazz == LuaValue.class || clazz == LuaTable.class
+                        || clazz.isArray() || List.class.isAssignableFrom(clazz) || Map.class.isAssignableFrom(clazz)
+                        || clazz.isInterface();
+            case FUNCTION:
+                return clazz == Object.class
+                        || clazz == LuaValue.class
+                        || clazz == LuaFunction.class
+                        || clazz.isInterface();
+            case THREAD:
+                return clazz == Object.class
+                        || clazz == LuaValue.class
+                        || clazz == LuaThread.class;
+            case LIGHTUSERDATA:
+                return clazz == Object.class
+                        || clazz == LuaValue.class
+                        || clazz == LuaLightUserdata.class;
+            case USERDATA:
+                if (clazz == Object.class || clazz == LuaValue.class || clazz == LuaUserdata.class) {
+                    return true;
+                }
+                if (isJavaObject(index)) {
+                    Object object = toJavaObject(index);
+                    Class<?> wrapperClass = ClassUtils.getWrapperType(clazz);
+                    Class<?> objectClass = ClassUtils.getWrapperType(object.getClass());
+                    return wrapperClass.isAssignableFrom(objectClass);
+                }
+                return false;
+        }
+        return false;
+    }
+
+    public Object toJavaObject(int index, Class<?> clazz) throws IllegalArgumentException, LuaException {
+        LuaType type = type(index);
+        switch (type) {
+            case NIL:
+            case NONE:
+                if (clazz == LuaValue.class || clazz == LuaNil.class)
+                    return NIL;
+                else if (clazz == Objects.class)
+                    return null;
+                else if (clazz == boolean.class || clazz == Boolean.class)
+                    return false;
+                else if (!clazz.isPrimitive())
+                    return null;
+                break;
+            case BOOLEAN:
+                if (clazz == LuaValue.class || clazz == LuaBoolean.class)
+                    return from(toBoolean(index));
+                else if (clazz == Object.class || clazz == Boolean.class || clazz == boolean.class)
+                    return toBoolean(index);
+                break;
+            case NUMBER:
+                if (clazz == LuaValue.class || clazz == LuaNumber.class)
+                    return new LuaNumber(this, index);
+                else if (clazz == Object.class)
+                    return toNumber(index);
+                else if (clazz == Number.class)
+                    return toNumber(index);
+                else if (clazz == long.class || clazz == Long.class)
+                    return toInteger(index);
+                else if (clazz == int.class || clazz == Integer.class)
+                    return (int) toInteger(index);
+                else if (clazz == short.class || clazz == Short.class)
+                    return (short) toInteger(index);
+                else if (clazz == byte.class || clazz == Byte.class)
+                    return (byte) toInteger(index);
+                else if (clazz == char.class || clazz == Character.class)
+                    return (char) toInteger(index);
+                else if (clazz == float.class || clazz == Float.class)
+                    return (float) toNumber(index);
+                else if (clazz == double.class || clazz == Double.class)
+                    return toNumber(index);
+            case STRING:
+                if (clazz == LuaValue.class || clazz == LuaString.class)
+                    return new LuaString(this, index);
+                else if (clazz == Object.class)
+                    return toString(index);
+                else if (CharSequence.class.isAssignableFrom(clazz))
+                    return toString(index);
+                break;
+            case TABLE:
+                if (clazz == LuaValue.class || clazz == LuaTable.class)
+                    return new LuaTable(this, index);
+                else if (clazz.isArray())
+                    return toJavaArray(index);
+                else if (clazz.isAssignableFrom(Collection.class))
+                    return toJavaList(index);
+                else if (clazz == Object.class || Map.class.isAssignableFrom(clazz))
+                    return toJavaMap(index);
+                else if (clazz.isInterface())
+                    return LuaProxy.newInstance(new LuaTable(this, index), clazz, Lua.Conversion.SEMI).toProxy();
+                break;
+            case FUNCTION:
+                if (clazz == LuaValue.class || clazz == LuaFunction.class)
+                    return new LuaFunction(this, index);
+                else if (clazz == Object.class || clazz.isInterface())
+                    return LuaProxy.newInstance(new LuaFunction(this, index), clazz, Lua.Conversion.SEMI).toProxy();
+            case THREAD:
+                if (clazz == LuaValue.class || clazz == LuaThread.class)
+                    return new LuaThread(this, index);
+                else if (clazz == Object.class)
+                    return null;
+            case LIGHTUSERDATA:
+                if (clazz == LuaValue.class || clazz == LuaLightUserdata.class)
+                    return this;
+                else if (clazz == Object.class)
+                    return null;
+            case USERDATA:
+                if (clazz == LuaValue.class || clazz == LuaUserdata.class) {
+                    return this;
+                }
+                if (isJavaObject(index)) {
+                    Object object = toJavaObject(index);
+                    Class<?> objClass = ClassUtils.getWrapperType(object.getClass());
+                    Class<?> wrapperClass = ClassUtils.getWrapperType(clazz);
+                    if (clazz == Object.class || wrapperClass.isAssignableFrom(objClass)) {
+                        return object;
+                    }
+                }
+        }
+        if (clazz == Void.class || clazz == void.class)
+            return null;
+        else if (clazz == boolean.class || clazz == Boolean.class)
+            return true;
+        throw new LuaException(String.format("Could not convert %s to %s", type, clazz.getName()));
+    }
+
+    public Object toJavaArray(int idx) throws LuaException {
+        return toJavaArray(idx, Object.class);
+    }
+
+    public List<Object> toJavaList(int idx) throws LuaException {
+        return toJavaList(idx, Object.class);
+    }
+
+    public Map<Object, Object> toJavaMap(int index) throws LuaException {
+        return toJavaMap(index, Object.class);
+    }
+
+    public Object toJavaArray(int index, Class<?> clazz) throws LuaException {
+        int length = rawLength(index);
+        Object array = Array.newInstance(clazz, length);
+        ipairs(index, (L, value) -> {
+            int javaIndex = index - 1;
+            Object element = toJavaObject(-1, clazz);
+            Array.set(array, javaIndex, element);
+            return false;
+        });
+        return array;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> List<T> toJavaList(int index, Class<T> clazz) throws LuaException {
+        List<T> list = new ArrayList<>();
+        ipairs(index, (L, value) -> {
+            list.add((T) toJavaObject(-1, clazz));
+            return false;
+        });
+        return list;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <K, V> Map<K, V> toJavaMap(int index, Class<K> keyClazz, Class<V> valueClazz) throws LuaException {
+        Map<K, V> map = new LinkedHashMap<>();
+        pairs(index, (L) -> {
+            map.put(
+                    (K) toJavaObject(-2, keyClazz),
+                    (V) toJavaObject(-1, valueClazz)
+            );
+            return false;
+        });
+        return map;
+    }
+
+    public <T> Map<T, T> toJavaMap(int index, Class<T> clazz) throws LuaException {
+        return toJavaMap(index, clazz, clazz);
     }
 
     public void loadString(String script) throws LuaException {

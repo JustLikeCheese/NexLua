@@ -115,7 +115,10 @@ public class LuaString extends AbstractLuaRefValue {
 
     @Override
     public boolean isJavaObject(Class<?> clazz) {
-        return clazz == Object.class || clazz == LuaValue.class || clazz == LuaString.class || CharSequence.class.isAssignableFrom(clazz);
+        return clazz == Object.class
+                || clazz == LuaValue.class
+                || clazz == LuaString.class
+                || CharSequence.class.isAssignableFrom(clazz);
     }
 
     @Override

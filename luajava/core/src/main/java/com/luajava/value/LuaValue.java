@@ -116,9 +116,9 @@ public interface LuaValue {
 
     void rawset(Object key, Object value, Class<?> clazz1, Class<?> clazz2, Lua.Conversion degree1, Lua.Conversion degree2) throws LuaException;
 
-    void pairs(LuaPairsIterator iterator) throws LuaException;
+    void pairs(LuaIterator.Pairs iterator) throws LuaException;
 
-    void ipairs(LuaIpairsIterator iterator) throws LuaException;
+    void ipairs(LuaIterator.Ipairs iterator) throws LuaException;
 
     LuaValue[] toArray() throws LuaException;
 
@@ -403,10 +403,6 @@ public interface LuaValue {
 
     String LtoString() throws LuaException;
 
-    boolean isJavaObject() throws LuaException;
-
-    Object toJavaObject() throws LuaException;
-
     Buffer toBuffer() throws LuaException;
 
     Buffer dump() throws LuaException;
@@ -442,6 +438,10 @@ public interface LuaValue {
     LuaUnknown checkUnknown() throws LuaException;
 
     Object checkJavaObject() throws LuaException;
+
+    boolean isJavaObject() throws LuaException;
+
+    Object toJavaObject() throws LuaException;
 
     boolean isJavaObject(Class<?> clazz) throws LuaException;
 

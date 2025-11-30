@@ -62,7 +62,9 @@ public class LuaThread extends AbstractLuaRefValue {
 
     @Override
     public boolean isJavaObject(Class<?> clazz) {
-        return clazz == Object.class || clazz == LuaValue.class || clazz == LuaThread.class;
+        return clazz == Object.class
+                || clazz == LuaValue.class
+                || clazz == LuaThread.class;
     }
 
     @Override

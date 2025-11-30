@@ -57,7 +57,9 @@ public class LuaUnknown extends AbstractLuaRefValue {
 
     @Override
     public boolean isJavaObject(Class<?> clazz) {
-        return clazz == Object.class || clazz == LuaValue.class || clazz == LuaUnknown.class;
+        return clazz == Object.class
+                || clazz == LuaValue.class
+                || clazz == LuaUnknown.class;
     }
 
     @Override

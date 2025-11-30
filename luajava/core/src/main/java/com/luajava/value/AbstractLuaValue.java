@@ -258,17 +258,25 @@ public abstract class AbstractLuaValue implements LuaValue {
         L.pop(1);
     }
 
+    /**
+     * Stack: -2 is key, -1 is value
+     * if iterator returns true then pop and break
+     */
     @Override
-    public void pairs(LuaPairsIterator iterator) throws LuaException {
+    public void pairs(LuaIterator.Pairs iterator) throws LuaException {
         push();
-        L.pairs(iterator);
+        L.pairs(-1, iterator);
         L.pop(1);
     }
 
+    /**
+     * Stack: -1 is value
+     * if iterator returns true then pop and break
+     */
     @Override
-    public void ipairs(LuaIpairsIterator iterator) throws LuaException {
+    public void ipairs(LuaIterator.Ipairs iterator) throws LuaException {
         push();
-        L.ipairs(iterator);
+        L.ipairs(-1, iterator);
         L.pop(1);
     }
 
@@ -277,9 +285,9 @@ public abstract class AbstractLuaValue implements LuaValue {
         push();
         int length = L.rawLength(-1);
         LuaValue[] array = new LuaValue[length];
-        L.ipairs((index, value) -> {
-            array[(int) index - 1] = value;
-            return true;
+        L.ipairs(-1, (L, index) -> {
+            array[index - 1] = L.get();
+            return false;
         });
         L.pop(1);
         return array;
@@ -288,9 +296,9 @@ public abstract class AbstractLuaValue implements LuaValue {
     @Override
     public List<LuaValue> toList() throws LuaException {
         List<LuaValue> list = new ArrayList<>();
-        ipairs((index, value) -> {
-            list.add(value);
-            return true;
+        ipairs((L, index) -> {
+            list.add(L.get());
+            return false;
         });
         return list;
     }
@@ -298,9 +306,9 @@ public abstract class AbstractLuaValue implements LuaValue {
     @Override
     public Map<LuaValue, LuaValue> toMap() throws LuaException {
         Map<LuaValue, LuaValue> map = new LinkedHashMap<>();
-        pairs((key, value) -> {
-            map.put(key, value);
-            return true; // continue iteration
+        pairs((L) -> {
+            map.put(L.get(-2), L.get(-1));
+            return false;
         });
         return map;
     }
@@ -1229,10 +1237,12 @@ public abstract class AbstractLuaValue implements LuaValue {
             push();
             String result = L.toString(-1);
             L.pop(1);
-            return result;
-        } catch (LuaException e) {
-            return super.toString();
+            if (result != null) {
+                return result;
+            }
+        } catch (LuaException ignored) {
         }
+        return "nil";
     }
 
     @Override
@@ -1402,11 +1412,11 @@ public abstract class AbstractLuaValue implements LuaValue {
         push();
         int length = L.rawLength(-1);
         Object array = Array.newInstance(clazz, length);
-        L.ipairs((index, value) -> {
-            int arrayIndex = (int) (index - 1);
-            Object element = value.toJavaObject(clazz);
+        L.ipairs(-1, (L, index) -> {
+            int arrayIndex = index - 1;
+            Object element = L.toJavaObject(-1, clazz);
             Array.set(array, arrayIndex, element);
-            return true;
+            return false;
         });
         L.pop(1);
         return array;
@@ -1416,9 +1426,9 @@ public abstract class AbstractLuaValue implements LuaValue {
     @SuppressWarnings("unchecked")
     public <T> List<T> toJavaList(Class<T> clazz) throws LuaException {
         List<T> list = new ArrayList<>();
-        ipairs((index, value) -> {
-            list.add((T) value.toJavaObject(clazz));
-            return true;
+        ipairs((L, index) -> {
+            list.add((T) L.toJavaObject(-1, clazz));
+            return false;
         });
         return list;
     }
@@ -1427,10 +1437,10 @@ public abstract class AbstractLuaValue implements LuaValue {
     @SuppressWarnings("unchecked")
     public <K, V> Map<K, V> toJavaMap(Class<K> keyClazz, Class<V> valueClazz) throws LuaException {
         Map<K, V> map = new LinkedHashMap<>();
-        pairs((key, value) -> {
+        pairs((L) -> {
             map.put(
-                    (K) key.toJavaObject(keyClazz),
-                    (V) value.toJavaObject(valueClazz)
+                    (K) L.toJavaObject(-2, keyClazz),
+                    (V) L.toJavaObject(-1, valueClazz)
             );
             return true;
         });
