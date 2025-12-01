@@ -55,7 +55,7 @@ public class LuaConfig {
     public LuaModule get(String path) {
         for (LuaModule entry : LUA_MODULES) {
             final String entryPath = entry.getPath();
-            if (entryPath.equals(path) || entryPath.equals(path + ".lua")) {
+            if (entryPath.equals(path)) {
                 return entry;
             }
         }

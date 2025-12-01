@@ -37,6 +37,7 @@ android {
 }
 
 dependencies {
+    compileOnly(libs.androidx.annotation)
     api project(":luajava:core")
     api libs.nextoast
 }

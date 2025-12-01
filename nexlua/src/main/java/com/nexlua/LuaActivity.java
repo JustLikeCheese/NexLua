@@ -441,15 +441,24 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     }
 
     public void newActivity(String name, Object[] args) {
-        startActivity(LuaIntent.newIntent(this, name, args));
+        Intent intent = new Intent(this, LuaActivity.class);
+        LuaIntent intentArgs = new LuaIntent(config.get(name), args);
+        intent.putExtra(LuaIntent.NAME, intentArgs);
+        startActivity(intent);
     }
 
     public void newActivityForResult(String name, int requestCode, Object... args) {
-        startActivityForResult(LuaIntent.newIntent(this, name, args), requestCode);
+        Intent intent = new Intent(this, LuaActivity.class);
+        LuaIntent intentArgs = new LuaIntent(config.get(name), args);
+        intent.putExtra(LuaIntent.NAME, intentArgs);
+        startActivityForResult(intent, requestCode);
     }
 
     public void setActivityResult(int resultCode, Object[] data) {
-        setResult(resultCode, LuaIntent.newIntent(this, this.intent.module, data));
+        Intent intent = new Intent(this, LuaActivity.class);
+        LuaIntent intentArgs = new LuaIntent(this.intent.module, data);
+        intent.putExtra(LuaIntent.NAME, intentArgs);
+        setResult(resultCode, intent);
         finish();
     }
 
