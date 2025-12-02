@@ -351,15 +351,15 @@ JNIWRAP(jint, lua_1isnoneornil, jlong ptr, jint idx) {
 }
 
 JNIWRAP(void, lua_1setglobal, jlong ptr, jstring j_name) {
-    UseString(j_name, name, {
-        lua_setglobal(L, name);
-    });
+    const char *name = GetString(j_name);
+    lua_setglobal(L, name);
+    ReleaseString(j_name, name);
 }
 
 JNIWRAP(void, lua_1getglobal, jlong ptr, jstring j_name) {
-    UseString(j_name, name, {
-        lua_getglobal(L, name);
-    });
+    const char *name = GetString(j_name);
+    lua_getglobal(L, name);
+    ReleaseString(j_name, name);
 }
 
 JNIWRAP(jstring, lua_1tostring, jlong ptr, jint idx) {

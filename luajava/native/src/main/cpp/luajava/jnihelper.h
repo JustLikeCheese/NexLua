@@ -49,7 +49,6 @@ JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_allocateDirectBuffer;
 #define GetString(j_string) (j_string ? (*env)->GetStringUTFChars(env, j_string, 0) : NULL)
 #define ReleaseString(j_string, c_string) if (c_string) (*env)->ReleaseStringUTFChars(env, j_string, c_string)
 #define LOG(fmt, ...) __android_log_print(ANDROID_LOG_DEBUG, "LuaJava", fmt, ##__VA_ARGS__);
-#define UseString(j_string, c_string, code) const char* c_string = GetString(j_string); code; ReleaseString(j_string, c_string)
 
 #ifdef __GNUC__
 #define DEPRECATED(msg) __attribute__((deprecated(msg)))

@@ -92,10 +92,10 @@ void luaJ_pushbuffer(JNIEnv *env, lua_State *L, jobject obj_buffer) {
     lua_pushstring(L, (char *) buffer);
 }
 
-void luaJ_pushstring(JNIEnv *env, lua_State *L, jstring string) {
-    UseString(string, str, {
-        lua_pushstring(L, str);
-    });
+void luaJ_pushstring(JNIEnv *env, lua_State *L, jstring j_str) {
+    const char *str = GetString(j_str);
+    lua_pushstring(L, str);
+    ReleaseString(j_str,  str);
 }
 
 int luaJ_getfield(JNIEnv *env, lua_State *L, jclass class, jfieldID field, char type) {

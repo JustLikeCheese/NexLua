@@ -93,9 +93,9 @@ JNIWRAP(jobject, luaJ_1todirectbuffer, jlong ptr, jint index) {
 }
 
 JNIWRAP(void, luaJ_1openlib, jlong ptr, jstring j_name) {
-    UseString(j_name, name, {
-        luaJ_openlib(L, name);
-    });
+    const char *name = GetString(j_name);
+    luaJ_require(L, name);
+    ReleaseString(j_name, name);
 }
 
 JNIWRAP(jint, luaJ_1compare, jlong ptr, jint idx1, jint idx2, jint opc) {
