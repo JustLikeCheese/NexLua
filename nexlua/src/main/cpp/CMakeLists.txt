@@ -35,7 +35,6 @@ set(LUAJAVA_SRC
         "${LUAJAVA_DIR}/luajava/luajavacore.c"
         "${LUAJAVA_DIR}/luajava/nexlua.c"
         # libnexlua.c
-        "${CMAKE_CURRENT_SOURCE_DIR}/lualibrary.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/libnexlua.c"
 )
 add_library(luajava SHARED ${LUAJAVA_SRC})
