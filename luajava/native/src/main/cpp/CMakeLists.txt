@@ -26,7 +26,6 @@ set(LUAJAVA_SRC
         "${CMAKE_CURRENT_SOURCE_DIR}/luajava/com_luajava_LuaNatives.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/luajava/invokespecial.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/luajava/jnihelper.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/luajava/lualibrary.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/luajava/luacomp.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/luajava/luajava.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/luajava/luajavaapi.c"

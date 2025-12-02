@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include "luacomp.h"
 #include "jnihelper.h"
-#include "lualibrary.h"
 #include "luajavacore.h"
 
 // useful functions
@@ -256,19 +255,16 @@ int luaJ_pcall(lua_State *L, int nargs, int nresults, int errfunc) {
     return lua_pcall(L, nargs, nresults, errfunc);
 }
 
-void luaJ_openlib_call(lua_State *L, const char *libName, lua_CFunction loader) {
-    lua_pushcfunction(L, loader);
-    lua_pushstring(L, libName);
-    lua_call(L, 1, 0);
-}
-
-void luaJ_openlib(lua_State *L, const char *libName) {
-    const luaL_Reg *lib = allAvailableLibs;
-    for (; lib->func != NULL; lib++) {
-        if (strcmp(lib->name, libName) == 0) {
-            luaJ_openlib_call(L, lib->name, lib->func);
-            return;
-        }
+static lua_CFunction require;
+int luaJ_require(lua_State *L, const char *libName) {
+    int top = lua_gettop(L);
+    if (require == NULL) {
+        lua_getglobal(L, "require");
+        require = lua_tocfunction(L, -1);
+    } else {
+        lua_pushcfunction(L, require);
     }
+    lua_pushstring(L, libName);
+    luaJ_pcall(L, 1, -1, 0);
+    return lua_gettop(L) - top;
 }
-
