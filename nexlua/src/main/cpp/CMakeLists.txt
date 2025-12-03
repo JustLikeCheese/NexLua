@@ -27,7 +27,6 @@ set_target_properties(luajit PROPERTIES
 # add luajava sources
 set(LUAJAVA_SRC
         "${LUAJAVA_DIR}/luajava/com_luajava_LuaNatives.c"
-        "${LUAJAVA_DIR}/luajava/invokespecial.c"
         "${LUAJAVA_DIR}/luajava/jnihelper.c"
         "${LUAJAVA_DIR}/luajava/luacomp.c"
         "${LUAJAVA_DIR}/luajava/luajava.c"

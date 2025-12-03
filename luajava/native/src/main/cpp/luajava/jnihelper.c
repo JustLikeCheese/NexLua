@@ -7,7 +7,7 @@
 #pragma ide diagnostic ignored "readability-misleading-indentation"
 int initJNIBindings(JNIEnv *env) {
     if (updateJNIEnv(env) != 0) return -1;
-    if (initBoxingBindings(env) != 0)
+    if (initBoxingBindings(env) != 0) return -1;
     // java.lang.Object
     java_lang_Object = bindJavaClass(env, "java/lang/Object");
     java_lang_Object_toString = bindJavaMethod(env, java_lang_Object,
