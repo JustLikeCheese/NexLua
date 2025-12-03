@@ -63,14 +63,14 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     public void onCreate(Bundle savedInstanceState) {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-        this.intent = LuaIntent.from(getIntent());
-        if (intent != null) {
-            module = intent.module;
-            luaPath = module.getPath();
-            luaDir = LuaUtil.getParentPath(luaPath);
-        }
-        super.onCreate(null);
         try {
+            super.onCreate(null);
+            this.intent = LuaIntent.from(getIntent());
+            if (intent != null) {
+                module = intent.module;
+                luaPath = module.getPath();
+                luaDir = LuaUtil.getParentPath(luaPath);
+            }
             initialize(L);
             loadLua();
             loadEvent();
@@ -511,7 +511,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     @Override
     public void sendError(Exception e) {
         String type = LuaException.getType(e);
-        String message = e.getMessage();
+        String message = LuaException.getStackTrace(e);
         String fullMessage = type + ": " + message;
         if (mOnError != null) {
             int top = L.getTop();
