@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.value.referable.LuaFunction;
@@ -93,7 +95,7 @@ public class LuaApplication extends Application implements LuaContext {
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         onLuaEvent(mOnConfigurationChanged, newConfig);
     }

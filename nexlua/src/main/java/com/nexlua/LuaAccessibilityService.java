@@ -11,6 +11,8 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.accessibility.AccessibilityEvent;
 
+import androidx.annotation.NonNull;
+
 @SuppressLint("AccessibilityPolicy")
 public class LuaAccessibilityService extends AccessibilityService {
     protected static LuaAccessibilityService instance;
@@ -151,7 +153,7 @@ public class LuaAccessibilityService extends AccessibilityService {
     }
 
     @Override
-    public boolean onGesture(AccessibilityGestureEvent gestureEvent) {
+    public boolean onGesture(@NonNull AccessibilityGestureEvent gestureEvent) {
         if (callback != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 return callback.onGesture(gestureEvent.getGestureId());
@@ -169,13 +171,14 @@ public class LuaAccessibilityService extends AccessibilityService {
     }
 
     @Override
-    public void onMotionEvent(MotionEvent event) {
+    public void onMotionEvent(@NonNull MotionEvent event) {
         if (callback != null) {
             callback.onMotionEvent(event);
         }
         super.onMotionEvent(event);
     }
 
+    @NonNull
     @Override
     public InputMethod onCreateInputMethod() {
         if (callback != null) {

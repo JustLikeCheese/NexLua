@@ -29,6 +29,8 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.LuaHandler;
@@ -76,7 +78,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
             loadEvent();
             // onCreate
             runFunc("onCreate", savedInstanceState);
-            runFunc("main", intent.args);
+            runFunc("main", (Object[]) intent.args);
         } catch (Exception e) {
             sendError(e);
         }
@@ -168,8 +170,8 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         isViewInflated = true;
     }
 
-    public boolean setConsoleLayout() {
-        if (isViewInflated) return false;
+    public void setConsoleLayout() {
+        if (isViewInflated) return;
         if (consoleLayout == null) {
             // 获取主题颜色
             TypedArray array = getTheme().obtainStyledAttributes(new int[]{
@@ -187,8 +189,9 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
             listView.setFastScrollEnabled(true);
             listView.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
             adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1) {
+                @NonNull
                 @Override
-                public View getView(int position, View convertView, ViewGroup parent) {
+                public View getView(int position, View convertView, @NonNull ViewGroup parent) {
                     TextView view = (TextView) super.getView(position, convertView, parent);
                     view.setTextIsSelectable(true);
                     view.setTextColor(textColor);
@@ -207,7 +210,6 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         setHomeAsUpEnabled(true);
         setContentView(consoleLayout);
         isViewInflated = false;
-        return true;
     }
 
     protected boolean onLuaEvent(LuaValue event, Object... args) {
@@ -233,8 +235,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
                 L.getGlobal(funcName);
                 if (L.isFunction(-1)) {
                     L.pCall(args, Lua.Conversion.SEMI, 1);
-                    Object object = L.get().toJavaObject();
-                    return object != Boolean.FALSE && object != null;
+                    return L.LtoBoolean(-1);
                 }
                 return false;
             } catch (LuaException e) {
@@ -320,7 +321,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         onLuaEvent(mOnSaveInstanceState, outState);
     }
@@ -338,48 +339,48 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         onLuaEvent(onRequestPermissionsResult, requestCode, permissions, grantResults);
     }
 
     @Override
     public boolean onKeyShortcut(int keyCode, KeyEvent event) {
-        return onLuaEvent(mOnKeyShortcut, keyCode, event) | super.onKeyShortcut(keyCode, event);
+        return onLuaEvent(mOnKeyShortcut, keyCode, event) || super.onKeyShortcut(keyCode, event);
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        return onLuaEvent(mOnKeyDown, keyCode, event) | super.onKeyDown(keyCode, event);
+        return onLuaEvent(mOnKeyDown, keyCode, event) || super.onKeyDown(keyCode, event);
     }
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        return onLuaEvent(mOnKeyUp, keyCode, event) | super.onKeyUp(keyCode, event);
+        return onLuaEvent(mOnKeyUp, keyCode, event) || super.onKeyUp(keyCode, event);
     }
 
     @Override
     public boolean onKeyLongPress(int keyCode, KeyEvent event) {
-        return onLuaEvent(mOnKeyLongPress, keyCode, event) | super.onKeyLongPress(keyCode, event);
+        return onLuaEvent(mOnKeyLongPress, keyCode, event) || super.onKeyLongPress(keyCode, event);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        return onLuaEvent(mOnTouchEvent, event) | super.onTouchEvent(event);
+        return onLuaEvent(mOnTouchEvent, event) || super.onTouchEvent(event);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        return onLuaEvent(mOnCreateOptionsMenu, menu) | super.onCreateOptionsMenu(menu);
+        return onLuaEvent(mOnCreateOptionsMenu, menu) || super.onCreateOptionsMenu(menu);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        return onLuaEvent(mOnMenuItemSelected, item) | super.onOptionsItemSelected(item);
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        return onLuaEvent(mOnMenuItemSelected, item) || super.onOptionsItemSelected(item);
     }
 
     @Override
-    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+    public boolean onMenuItemSelected(int featureId, @NonNull MenuItem item) {
         if (onLuaEvent(mOnMenuItemSelected, featureId, item)) {
             return true;
         } else if (!isViewInflated && item.getItemId() == android.R.id.home) {
@@ -396,12 +397,12 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     }
 
     @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        return onLuaEvent(mOnContextItemSelected, item) | super.onContextItemSelected(item);
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
+        return onLuaEvent(mOnContextItemSelected, item) || super.onContextItemSelected(item);
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         onLuaEvent(mOnConfigurationChanged, newConfig);
     }
@@ -428,7 +429,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if (intent != null) {
             LuaIntent result = LuaIntent.from(intent);
-            if (onLuaEvent(mOnResult, result.args)) {
+            if (onLuaEvent(mOnResult, (Object[]) result.args)) {
                 return;
             }
         }
