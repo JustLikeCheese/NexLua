@@ -1,10 +1,7 @@
-local LinearLayout = luajava.bindClass("android.widget.LinearLayout")
-local Button = luajava.bindClass("android.widget.Button")
-local TextView = luajava.bindClass("android.widget.TextView")
-local EditText = luajava.bindClass("android.widget.EditText")
-local Toast = luajava.bindClass("android.widget.Toast")
-local AlertDialog = luajava.bindClass("android.app.AlertDialog")
-local Object = luajava.bindClass("java.lang.Object")
+require "import"
+import "android.widget.*"
+import "android.app.AlertDialog"
+import "java.lang.Object"
 
 local function toast(text)
     Toast.makeText(activity, text, Toast.LENGTH_SHORT).show()
