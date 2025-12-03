@@ -3,10 +3,11 @@
 #include "jnihelper.h"
 #include "invokespecial.c"
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "readability-misleading-indentation"
 int initJNIBindings(JNIEnv *env) {
     if (updateJNIEnv(env) != 0) return -1;
     if (initBoxingBindings(env) != 0)
-    // if (initBoxingBindings != 0) return -1;
     // java.lang.Object
     java_lang_Object = bindJavaClass(env, "java/lang/Object");
     java_lang_Object_toString = bindJavaMethod(env, java_lang_Object,
@@ -83,6 +84,7 @@ int initJNIBindings(JNIEnv *env) {
     )
     return 0;
 }
+#pragma clang diagnostic pop
 
 static JavaVM *javaVm = NULL;
 static jint jniEnvVersion;

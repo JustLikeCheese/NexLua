@@ -329,7 +329,7 @@ void luaJ_openlib(lua_State *L, const char *libName) {
     end: {
         lua_pushstring(L, libName);
         luaJ_pcall(L, 1, 0, 0);
-        if (strcmp(libName, "package")) {
+        if (strcmp(libName, "package") != 0) {
             luaJ_initloader(L);
         }
     }

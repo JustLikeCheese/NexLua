@@ -184,7 +184,7 @@ int luaJ_invokespecial(JNIEnv *env, lua_State *L,
                        jobject obj, const char *params) {
     jmethodID method = bindJavaMethod(env, clazz, methodName, sig);
     // The last character signifies the type of return value
-    int paramCount = strlen(params) - 1;
+    size_t paramCount = strlen(params) - 1;
     char returnType = params[paramCount];
 
     // No, it is not standard C++, but using `new` would easily leak memory since lua_error longjmps away.
@@ -192,7 +192,7 @@ int luaJ_invokespecial(JNIEnv *env, lua_State *L,
     for (int i = 0; i < paramCount; ++i) {
         // Arguments are pushed on stack in reverse order
         args[i] = convertFromJobject(env, luaJ_toobject(L, -i - 1), params[i]);
-        RETURN_IF_ERROR(env, L);
+        RETURN_IF_ERROR(env, L)
     }
     lua_pop(L, paramCount);
 
@@ -219,7 +219,7 @@ int luaJ_invokespecial(JNIEnv *env, lua_State *L,
         CALL_NONVIRTUAL(Short, s, java_lang_short_class, short_constructor);
         default:
             v.l = (*env)->CallNonvirtualObjectMethodA(env, obj, clazz, method, args);
-            RETURN_IF_ERROR(env, L);
+            RETURN_IF_ERROR(env, L)
             luaJ_pushobject(env, L, v.l);
             break;
     }
