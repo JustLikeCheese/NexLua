@@ -122,11 +122,14 @@ public class LuaApplication extends Application implements LuaContext {
     @Override
     public void sendMessage(String message) {
         showToast(message);
+        Lua.logWarn(message);
     }
 
     @Override
     public void sendError(Exception e) {
-        showToast(LuaException.getFullMessage(e));
+        String message = LuaException.getFullMessage(e);
+        showToast(message);
+        Lua.logError(message);
     }
 
     public ArrayList<ClassLoader> getClassLoaders() {
@@ -185,6 +188,7 @@ public class LuaApplication extends Application implements LuaContext {
     @Override
     public void initialize(Lua L) throws LuaException {
         L.openLibraries();
+        L.openLibrary("luajava");
         L.setExternalLoader(new LuaModuleLoader(this));
         // Lua Application
         L.getGlobal("package");

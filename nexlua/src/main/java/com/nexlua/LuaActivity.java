@@ -503,9 +503,9 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
                     adapter.notifyDataSetChanged();
                 }
             });
-        } else {
-            showToast(message);
         }
+        showToast(message);
+        Lua.logWarn(message);
     }
 
     @Override
@@ -541,9 +541,8 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
                     adapter.notifyDataSetChanged();
                 }
             });
-        } else {
-            showToast(fullMessage);
         }
+        showToast(fullMessage);
         Lua.logError(fullMessage);
     }
 
