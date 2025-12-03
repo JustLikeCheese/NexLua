@@ -583,6 +583,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     @Override
     public void initialize(Lua L) throws LuaException {
         L.openLibraries();
+        L.openLibrary("luajava");
         L.setExternalLoader(new LuaModuleLoader(this));
         luaCpath = app.getLuaCpath(luaDir);
         luaLpath = app.getLuaLpath(luaDir);
