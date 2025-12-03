@@ -596,7 +596,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         }
         L.pop(1);
         // 插入 LuaActivity
-        L.pushGlobal(this, "activity", "this");
+        L.pushGlobal(this, "activity", "context", "this");
         L.pushGlobal(app, "application", "app");
         L.pushGlobal(print, "print");
     }

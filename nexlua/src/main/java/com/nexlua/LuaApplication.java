@@ -199,7 +199,7 @@ public class LuaApplication extends Application implements LuaContext {
             L.setField(1, "path", luaLpath);
         }
         L.pop(1);
-        L.pushGlobal(this, "application", "app", "this");
+        L.pushGlobal(this, "application", "app", "context", "this");
         mOnTerminate = L.getLuaFunction("onTerminate");
         mOnLowMemory = L.getLuaFunction("onLowMemory");
         mOnTrimMemory = L.getLuaFunction("onTrimMemory");
