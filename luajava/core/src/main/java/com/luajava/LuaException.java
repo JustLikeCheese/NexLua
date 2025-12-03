@@ -214,7 +214,14 @@ public class LuaException extends Exception {
         return e.getClass().getSimpleName();
     }
 
+    public static String getStackTrace(Exception e) {
+        if (e instanceof LuaException) {
+            return e.getMessage();
+        }
+        return JuaAPI.getStackTrace(e);
+    }
+
     public static String getFullMessage(Exception e) {
-        return getType(e) + ": " + e.getMessage();
+        return getType(e) + ": " + getStackTrace(e);
     }
 }
