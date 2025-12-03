@@ -1,3 +1,4 @@
+<!--suppress HtmlDeprecatedAttribute -->
 <div align="right">
   <a title="English" href="./README.md">English</a>
   简体中文
