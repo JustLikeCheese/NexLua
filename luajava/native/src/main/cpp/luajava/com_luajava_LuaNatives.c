@@ -722,10 +722,6 @@ JNIWRAP_LUALIB_WRAP(ffi)
 
 JNIWRAP_LUALIB(string_1buffer, string_buffer)
 
-JNIWRAP(void, luaL_1openlibs, jlong ptr) {
-    luaL_openlibs(L);
-}
-
 #undef JNIWRAP_LUALIB
 #undef JNIWRAP_LUALIB2
 

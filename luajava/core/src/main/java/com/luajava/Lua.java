@@ -1599,9 +1599,6 @@ public class Lua {
     public void openLibrary(String name) throws LuaException {
         checkStack(1);
         C.luaJ_openlib(L, name);
-        if ("package".equals(name)) {
-            C.luaJ_initloader(L);
-        }
     }
 
     public void openLibrary(String... name) throws LuaException {

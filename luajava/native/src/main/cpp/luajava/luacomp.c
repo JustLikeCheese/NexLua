@@ -6,6 +6,7 @@
 #include "luacomp.h"
 #include "jnihelper.h"
 #include "luajavacore.h"
+#include "luareg.h"
 
 // useful functions
 static void dump_buffer_init(DumpBuffer *dump, size_t capacity) {
@@ -255,16 +256,86 @@ int luaJ_pcall(lua_State *L, int nargs, int nresults, int errfunc) {
     return lua_pcall(L, nargs, nresults, errfunc);
 }
 
+static const luaL_Reg allAvailableLibs[] = {
+        {"",              luaopen_base},
+        {"package",       luaopen_package},
+        {"string",        luaopen_string},
+        {"table",         luaopen_table},
+        {"math",          luaopen_math},
+        {"io",            luaopen_io},
+        {"os",            luaopen_os},
+        {"debug",         luaopen_debug},
+        {"ffi",           luaopen_ffi},
+        {"jit",           luaopen_jit},
+        {"bit",           luaopen_bit},
+        {"string.buffer", luaopen_string_buffer},
+        {NULL, NULL},
+};
+
 static lua_CFunction require;
-int luaJ_require(lua_State *L, const char *libName) {
-    int top = lua_gettop(L);
+
+int luaJ_require(lua_State *L, int idx) {
+    // check package.loaders
+    lua_getglobal(L, "package");
+    if (!lua_istable(L, -1)) {
+        lua_pop(L, 1);
+        return -1;
+    }
+    lua_getfield(L, -1, "loaders");
+    if (!lua_istable(L, -1)) {
+        lua_pop(L, 2);
+        return -1;
+    }
+    lua_pop(L, 2);
+    // call require
     if (require == NULL) {
         lua_getglobal(L, "require");
         require = lua_tocfunction(L, -1);
     } else {
         lua_pushcfunction(L, require);
     }
-    lua_pushstring(L, libName);
-    luaJ_pcall(L, 1, -1, 0);
-    return lua_gettop(L) - top;
+    lua_pushvalue(L, idx);
+    return luaJ_pcall(L, 1, 1, 0);
+}
+
+
+void luaJ_openlib(lua_State *L, const char *libName) {
+    // built-in modules
+    const luaL_Reg *lib = allAvailableLibs;
+    for (; lib->func != NULL; lib++) {
+        if (strcmp(lib->name, libName) == 0) {
+            lua_pushcfunction(L, lib->func);
+            goto end;
+        }
+    }
+    // extra modules
+    const ModuleEntry *iter = &__start_extra_modules;
+    const ModuleEntry *end = &__stop_extra_modules;
+    for (; iter < end; iter++) {
+        if (iter->name && iter->func) {
+            lua_pushcfunction(L, iter->func);
+            goto end;
+        }
+    }
+    // require
+    if (require == NULL) {
+        lua_getglobal(L, "require");
+        require = lua_tocfunction(L, -1);
+    } else {
+        lua_pushcfunction(L, require);
+    }
+    return;
+    // package check
+    end: {
+        lua_pushstring(L, libName);
+        luaJ_pcall(L, 1, 0, 0);
+        if (strcmp(libName, "package")) {
+            luaJ_initloader(L);
+        }
+    };
+}
+
+void luaJ_openlibs(lua_State *L) {
+    luaL_openlibs(L);
+    luaJ_initloader(L);
 }

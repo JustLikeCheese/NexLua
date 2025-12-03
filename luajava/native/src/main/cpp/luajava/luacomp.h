@@ -41,7 +41,10 @@ LUALIB_API int luaJ_traceback(lua_State *L); // from LuaJIT
 
 LUALIB_API int luaJ_pcall(lua_State *L, int nargs, int nresults, int errfunc);
 
-LUALIB_API int luaJ_require(lua_State *L, const char *modname);
+LUALIB_API int luaJ_require(lua_State *L, int idx);
+
+LUALIB_API void luaJ_openlib(lua_State *L, const char *libName);
+LUALIB_API void luaJ_openlibs(lua_State *L);
 
 #define luaJ_dofile(L, fn) \
 	(luaL_loadfile(L, fn) || luaJ_pcall(L, 0, LUA_MULTRET, 0))

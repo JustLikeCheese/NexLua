@@ -12,6 +12,7 @@
 #include "luacomp.h"
 #include "luajavaapi.h"
 #include "luajava.h"
+#include "luareg.h"
 
 /* Modules and functions */
 int luajava_bindClass(lua_State *L) {
@@ -30,8 +31,10 @@ static const luaL_Reg javalib[] = {
 };
 
 /* Initializes the library */
+REGISTER_MODULE(luajava, luaopen_luajava);
 int luaopen_luajava(lua_State *L) {
     luaL_newlib(L, javalib);
+    lua_pushvalue(L, -1);
     lua_setglobal(L, LUAJAVA_LIBNAME);
     lua_atpanic(L, &fatalError);
     initMetaRegistry(L);

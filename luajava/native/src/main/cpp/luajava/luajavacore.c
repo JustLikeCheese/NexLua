@@ -7,10 +7,10 @@
 #include "luajavaapi.h"
 #include "luajavacore.h"
 #include "luacomp.h"
+#include "luareg.h"
 
 lua_State *luaJ_newstate() {
     lua_State *L = luaL_newstate();
-    luaopen_luajava(L);
     lua_atpanic(L, fatalError);
     return L;
 }
@@ -27,15 +27,29 @@ static int jmoduleLoad(lua_State *L) {
 }
 
 int luaJ_initloader(lua_State *L) {
+    // package
     lua_getglobal(L, "package");
     if (lua_isnil(L, -1)) {
         lua_pop(L, 1);
-        return -1;
+        return 1;
     }
-    lua_getfield(L, -1, "loaders");
-    if (lua_istable(L, -1) == 0) {
+    // package.nexluajava
+    lua_pushliteral(L, "nexluajava");
+    lua_rawget(L, -2);
+    if (lua_toboolean(L, -1)) {
         lua_pop(L, 2);
-        return -1;
+        return 0;
+    }
+    lua_pop(L, 1);
+    lua_pushliteral(L, "nexluajava");
+    lua_pushboolean(L, 1);
+    lua_rawset(L, -3);
+    // package.loaders
+    lua_pushliteral(L, "loaders");
+    lua_rawget(L, -2);
+    if (!lua_istable(L, -1)) {
+        lua_pop(L, 2);
+        return 1;
     }
     int len = (int) lua_objlen(L, -1);
     for (int i = len; i >= 1; i--) {
@@ -44,7 +58,20 @@ int luaJ_initloader(lua_State *L) {
     }
     lua_pushcfunction(L, &jmoduleLoad);
     lua_rawseti(L, -2, 1);  // loaders[1] = jmoduleLoad
-    lua_pop(L, 2);  // 弹出 loaders 和 package
+    lua_pop(L, 1);  // pop loaders
+    // package.preload
+    lua_pushliteral(L, "preload");
+    lua_rawget(L, -2);
+    // register modules
+    const ModuleEntry *iter = &__start_extra_modules;
+    const ModuleEntry *end = &__stop_extra_modules;
+    for (; iter < end; iter++) {
+        if (iter->name && iter->func) {
+            lua_pushcfunction(L, iter->func);
+            lua_setfield(L, -2, iter->name);
+        }
+    }
+    lua_pop(L, 2); // pop preload, package
     return 0;
 }
 
