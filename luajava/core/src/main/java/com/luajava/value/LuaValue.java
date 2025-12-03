@@ -22,6 +22,8 @@
 
 package com.luajava.value;
 
+import androidx.annotation.NonNull;
+
 import com.luajava.CFunction;
 import com.luajava.Lua;
 import com.luajava.LuaException;
@@ -42,8 +44,6 @@ import java.util.List;
 import java.util.Map;
 
 public interface LuaValue {
-    public static final Object NONE = Lua.NONE;
-
     // stack
     Lua state();
 
@@ -393,7 +393,7 @@ public interface LuaValue {
 
     double toNumber() throws LuaException;
 
-    String toString();
+    @NonNull String toString();
 
     boolean LtoBoolean() throws LuaException;
 

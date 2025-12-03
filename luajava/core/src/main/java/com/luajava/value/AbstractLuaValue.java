@@ -22,6 +22,8 @@
 
 package com.luajava.value;
 
+import androidx.annotation.NonNull;
+
 import com.luajava.CFunction;
 import com.luajava.Lua;
 import com.luajava.LuaException;
@@ -334,9 +336,9 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public void setMetatable(String tname) throws LuaException {
+    public void setMetatable(String name) throws LuaException {
         push();
-        L.setMetatable(tname);
+        L.setMetatable(name);
         L.pop(2);
     }
 
@@ -1231,6 +1233,7 @@ public abstract class AbstractLuaValue implements LuaValue {
         return 0;
     }
 
+    @NonNull
     @Override
     public String toString() {
         try {

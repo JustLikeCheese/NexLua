@@ -57,11 +57,6 @@ public class LuaException extends Exception {
     }
 
     @Override
-    public String getMessage() {
-        return super.getMessage();
-    }
-
-    @Override
     public void printStackTrace(PrintStream stream) {
         stream.println(getMessage());
         for (StackTraceElement traceElement : getStackTrace()) {

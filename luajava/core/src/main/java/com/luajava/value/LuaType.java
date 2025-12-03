@@ -22,6 +22,8 @@
 
 package com.luajava.value;
 
+import androidx.annotation.NonNull;
+
 import com.luajava.LuaConsts;
 import com.luajava.LuaException;
 
@@ -94,6 +96,7 @@ public enum LuaType {
         }
     }
 
+    @NonNull
     @Override
     public String toString() {
         return super.toString().toLowerCase();

@@ -22,6 +22,8 @@
 
 package com.luajava.value.referable;
 
+import androidx.annotation.NonNull;
+
 import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.value.AbstractLuaRefValue;
@@ -63,6 +65,7 @@ public class LuaString extends AbstractLuaRefValue {
         return new LuaString(L);
     }
 
+    @NonNull
     @Override
     public String toString() {
         if (string != null) return string;

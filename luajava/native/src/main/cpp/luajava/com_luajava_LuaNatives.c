@@ -60,8 +60,8 @@ JNIWRAP(void, lua_1replace, jlong ptr, jint idx) {
     lua_replace(L, idx);
 }
 
-JNIWRAP(jint, lua_1checkstack, jlong ptr, jint sz) {
-    return lua_checkstack(L, sz);
+JNIWRAP(jint, lua_1checkstack, jlong ptr, jint size) {
+    return lua_checkstack(L, size);
 }
 
 JNIWRAP(void, lua_1xmove, jlong ptr, jlong ptr1, jint n) {
@@ -89,8 +89,8 @@ JNIWRAP(jint, lua_1type, jlong ptr, jint idx) {
     return (jint) lua_type(L, idx);
 }
 
-JNIWRAP(jstring, lua_1typename, jlong ptr, jint tp) {
-    const char *name = lua_typename(L, tp);
+JNIWRAP(jstring, lua_1typename, jlong ptr, jint type) {
+    const char *name = lua_typename(L, type);
     return ToString(name);
 }
 

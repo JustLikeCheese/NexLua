@@ -1,5 +1,7 @@
 package com.luajava.value.immutable;
 
+import androidx.annotation.NonNull;
+
 import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.value.AbstractLuaValue;
@@ -32,6 +34,7 @@ public class LuaNumber extends AbstractLuaValue {
         return L.push(value.doubleValue());
     }
 
+    @NonNull
     @Override
     public String toString() {
         return value.toString();

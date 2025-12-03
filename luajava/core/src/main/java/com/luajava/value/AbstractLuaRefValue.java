@@ -26,8 +26,6 @@ import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.cleaner.LuaReferable;
 
-import java.nio.Buffer;
-
 public abstract class AbstractLuaRefValue extends AbstractLuaValue implements LuaReferable {
     protected final int ref;
 
@@ -70,8 +68,8 @@ public abstract class AbstractLuaRefValue extends AbstractLuaValue implements Lu
     }
 
     @Override
-    public void setMetatable(String tname) {
-        L.refSetMetatable(ref, tname);
+    public void setMetatable(String name) {
+        L.refSetMetatable(ref, name);
     }
 
     @Override
