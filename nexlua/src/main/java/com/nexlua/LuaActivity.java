@@ -490,7 +490,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
                     return;
                 }
             } catch (Exception exception) {
-                Lua.logError(exception.getMessage());
+                Lua.logError(LuaException.getFullMessage(exception));
             } finally {
                 L.pop(1);
             }
@@ -512,8 +512,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     @Override
     public void sendError(Exception e) {
         String type = LuaException.getType(e);
-        String message = LuaException.getStackTrace(e);
-        String fullMessage = type + ": " + message;
+        String message = LuaException.getFullMessage(e);
         if (mOnError != null) {
             int top = L.getTop();
             try {
@@ -538,13 +537,13 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    adapter.add(fullMessage);
+                    adapter.add(message);
                     adapter.notifyDataSetChanged();
                 }
             });
         }
-        showToast(fullMessage);
-        Lua.logError(fullMessage);
+        showToast(message);
+        Lua.logError(message);
     }
 
     public ArrayList<ClassLoader> getClassLoaders() {

@@ -63,11 +63,10 @@ public final class JuaAPI {
             return callMethod(object, method, paramTypes, values);
         } catch (Exception e) {
             Throwable throwable = e.getCause();
-            Object cause = (throwable == null) ? e : throwable;
+            Throwable cause = (throwable == null) ? e : throwable;
             throw new LuaException("Invalid method call." +
                     "\n  at " + method +
-                    "\n  -> " + cause +
-                    "\n");
+                    "\n  -> ",  cause);
         }
     }
 

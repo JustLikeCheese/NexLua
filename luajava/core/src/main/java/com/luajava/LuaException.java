@@ -22,6 +22,8 @@
 
 package com.luajava;
 
+import androidx.annotation.Nullable;
+
 import com.luajava.value.referable.LuaUserdata;
 
 import java.io.PrintStream;
@@ -44,16 +46,22 @@ public class LuaException extends Exception {
         this(type, message, null);
     }
 
-    public LuaException(LuaError type, Exception cause) {
+    public LuaException(LuaError type, Throwable cause) {
         this(type, cause.getMessage(), cause);
     }
 
-    public LuaException(String message, Exception cause) {
+    public LuaException(String message, Throwable cause) {
         this(LuaError.JAVA, message, cause);
     }
 
     public LuaException(String message) {
         this(LuaError.JAVA, message, null);
+    }
+
+    @Nullable
+    @Override
+    public String getMessage() {
+        return super.getMessage();
     }
 
     @Override
@@ -63,7 +71,7 @@ public class LuaException extends Exception {
             stream.println("\tat " + traceElement);
         }
         if (cause != null) {
-            stream.print("Caused by: ");
+            stream.print("\nCaused by: ");
             cause.printStackTrace(stream);
         }
     }
