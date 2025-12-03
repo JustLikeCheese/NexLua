@@ -237,6 +237,19 @@ static int commonConcat(lua_State *L) {
     return 1;
 }
 
+static int commonEquals(lua_State *L) {
+    jobject obj1 = luaJ_toanyobject(L, 1);
+    jobject obj2 = luaJ_toanyobject(L, 2);
+    if (!obj1 || !obj2) {
+        lua_pushboolean(L, false);
+        return 1;
+    }
+    JNIEnv *env = getJNIEnv(L);
+    jboolean same = (*env)->IsSameObject(env, obj1, obj2);
+    lua_pushboolean(L, same ? true : false);
+    return 1;
+}
+
 /* Class Metatable */
 static int classIndex(lua_State *L) {
     jclass clazz = luaJ_checkclass(L, 1);
@@ -286,19 +299,6 @@ static int classGC(lua_State *L) {
     (*env)->DeleteGlobalRef(env, *obj);
     *obj = NULL;
     return 0;
-}
-
-static int classEquals(lua_State *L) {
-    jclass class1 = luaJ_toclass(L, 1);
-    jclass class2 = luaJ_toclass(L, 2);
-    if (!class1 || !class2) {
-        lua_pushboolean(L, false);
-        return 1;
-    }
-    JNIEnv *env = getJNIEnv(L);
-    jboolean same = (*env)->IsSameObject(env, class1, class2);
-    lua_pushboolean(L, same ? true : false);
-    return 1;
 }
 
 static int classToString(lua_State *L) {
@@ -359,19 +359,6 @@ static int objectNewIndex(lua_State *L) {
     return checkOrError(env, L, result);
 }
 
-static int objectEquals(lua_State *L) {
-    jobject obj1 = luaJ_toobject(L, 1);
-    jobject obj2 = luaJ_toobject(L, 2);
-    if (!obj1 || !obj2) {
-        lua_pushboolean(L, false);
-        return 1;
-    }
-    JNIEnv *env = getJNIEnv(L);
-    jboolean same = (*env)->IsSameObject(env, obj1, obj2);
-    lua_pushboolean(L, same ? true : false);
-    return 1;
-}
-
 static int objectToString(lua_State *L) {
     jobject object = luaJ_checkobject(L, 1);
     JNIEnv *env = getJNIEnv(L);
@@ -401,19 +388,6 @@ static int arrayGC(lua_State *L) {
         *array = NULL;
     }
     return 0;
-}
-
-static int arrayEquals(lua_State *L) {
-    jarray obj1 = luaJ_toarray(L, 1);
-    jarray obj2 = luaJ_toarray(L, 2);
-    if (!obj1 || !obj2) {
-        lua_pushboolean(L, false);
-        return 1;
-    }
-    JNIEnv *env = getJNIEnv(L);
-    jboolean same = (*env)->IsSameObject(env, obj1, obj2);
-    lua_pushboolean(L, same ? true : false);
-    return 1;
 }
 
 static int arrayToString(lua_State *L) {
@@ -512,7 +486,6 @@ void initMetaRegistry(lua_State *L) {
         lua_pushvalue(L, -2);
         lua_pushinteger(L, JAVA_TYPE_CLASS);
         lua_rawset(L, -3);
-        bindMetatable(__eq, &classEquals); // equal
         bindMetatable(__gc, &classGC); // gc
         bindMetatable(__index, &classIndex); // index
         bindMetatable(__newindex, &classNewIndex); // newindex
@@ -520,6 +493,7 @@ void initMetaRegistry(lua_State *L) {
         bindMetatable(__tostring, &classToString); // tostring
         bindMetatable(__len, &className); // length
         bindMetatable(__concat, &commonConcat); // concat
+        bindMetatable(__eq, &commonEquals); // equal
     }
     lua_pop(L, 1);
     // Java Object
@@ -527,13 +501,13 @@ void initMetaRegistry(lua_State *L) {
         lua_pushvalue(L, -2);
         lua_pushinteger(L, JAVA_TYPE_OBJECT);
         lua_rawset(L, -3);
-        bindMetatable(__eq, &objectEquals); // equal
         bindMetatable(__gc, &objectGC); // gc
         bindMetatable(__index, &objectIndex); // index
-        bindMetatable(__newindex, &objectNewIndex);
+        bindMetatable(__newindex, &objectNewIndex); // newindex
         bindMetatable(__tostring, &objectToString); // tostring
         bindMetatable(__len, &objectLength); // length
         bindMetatable(__concat, &commonConcat); // concat
+        bindMetatable(__eq, &commonEquals); // equal
     }
     lua_pop(L, 1);
     // Java Array
@@ -541,7 +515,6 @@ void initMetaRegistry(lua_State *L) {
         lua_pushvalue(L, -2);
         lua_pushinteger(L, JAVA_TYPE_ARRAY);
         lua_rawset(L, -3);
-        bindMetatable(__eq, &arrayEquals); // equal
         bindMetatable(__gc, &arrayGC); // gc
         bindMetatable(__tostring, &arrayToString); // tostring
         bindMetatable(__len, &arrayLength); // length
@@ -550,6 +523,7 @@ void initMetaRegistry(lua_State *L) {
         bindMetatable(__ipairs, &arrayIpairs); // ipairs
         bindMetatable(__pairs, &arrayIpairs); // pairs
         bindMetatable(__concat, &commonConcat); // concat
+        bindMetatable(__eq, &commonEquals); // equal
     }
     lua_pop(L, 2);
 }
