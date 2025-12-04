@@ -29,12 +29,12 @@ local editor = EditText(activity)
 
 button1.setText("Run")
 button1.setOnClickListener(function()
-    activity.newActivity("main2.lua", {editor.getText().toString()})
+    activity.newActivity("main2", {editor.getText().toString()})
 end)
 
 button2.setText("Test")
 button2.setOnClickListener(function()
-    activity.newActivity("test.lua")
+    activity.newActivity("test")
 end)
 
 editor.setText("print('hello world')")
