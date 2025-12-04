@@ -37,7 +37,6 @@ import com.luajava.LuaHandler;
 import com.luajava.value.LuaValue;
 import com.luajava.value.referable.LuaFunction;
 import com.nexlua.module.LuaModule;
-import com.nexlua.module.LuaModuleLoader;
 
 import java.util.ArrayList;
 
@@ -76,9 +75,6 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
             initialize(L);
             loadLua();
             loadEvent();
-            // onCreate
-            runFunc("onCreate", savedInstanceState);
-            runFunc("main", (Object[]) intent.args);
         } catch (Exception e) {
             sendError(e);
         }
@@ -443,19 +439,19 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
 
     public void newActivity(String name, Object[] args) {
         Intent intent = new Intent(this, LuaActivity.class);
-        intent.putExtra(LuaIntent.NAME, new LuaIntent(this, name, args));
+        intent.putExtra(LuaIntent.NAME, new LuaIntent(config.getModule(this, name), args));
         startActivity(intent);
     }
 
     public void newActivityForResult(String name, int requestCode, Object... args) {
         Intent intent = new Intent(this, LuaActivity.class);
-        intent.putExtra(LuaIntent.NAME, new LuaIntent(this, name, args));
+        intent.putExtra(LuaIntent.NAME, new LuaIntent(config.getModule(this, name), args));
         startActivityForResult(intent, requestCode);
     }
 
     public void setActivityResult(int resultCode, Object[] data) {
         Intent intent = new Intent(this, LuaActivity.class);
-        LuaIntent intentArgs = new LuaIntent(this.intent.module, data);
+        LuaIntent intentArgs = new LuaIntent(null, data);
         intent.putExtra(LuaIntent.NAME, intentArgs);
         setResult(resultCode, intent);
         finish();
@@ -582,7 +578,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     public void initialize(Lua L) throws LuaException {
         L.openLibraries();
         L.openLibrary("luajava");
-        L.setExternalLoader(new LuaModuleLoader(this));
+        L.setExternalLoader(config);
         luaCpath = app.getLuaCpath(luaDir);
         luaLpath = app.getLuaLpath(luaDir);
         // package.path 和 cpath

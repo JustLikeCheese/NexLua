@@ -1,7 +1,6 @@
 package com.nexlua.module;
 
 import com.luajava.Lua;
-import com.nexlua.LuaContext;
 import com.nexlua.LuaUtil;
 
 public final class LuaResourceModule extends LuaAbstractModule {
@@ -13,16 +12,13 @@ public final class LuaResourceModule extends LuaAbstractModule {
     }
 
     @Override
-    public int load(Lua L, LuaContext luaContext) {
+    public int load(Lua L) throws Exception {
         int top = L.getTop();
         try {
             L.loadStringBuffer(LuaUtil.readRaw(resId), "@" + resId + ".lua");
             return L.pCall(0, -1);
-        } catch (Exception e) {
-            luaContext.sendError(e);
         } finally {
             L.setTop(top);
         }
-        return 0;
     }
 }

@@ -11,7 +11,6 @@ import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.value.referable.LuaFunction;
 import com.nexlua.module.LuaModule;
-import com.nexlua.module.LuaModuleLoader;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -58,7 +57,7 @@ public class LuaApplication extends Application implements LuaContext {
     }
 
     public void loadLua() throws Exception {
-        module.load(L, this);
+        module.load(L);
     }
 
     protected boolean onLuaEvent(LuaFunction event, Object... args) {
@@ -191,7 +190,7 @@ public class LuaApplication extends Application implements LuaContext {
     public void initialize(Lua L) throws LuaException {
         L.openLibraries();
         L.openLibrary("luajava");
-        L.setExternalLoader(new LuaModuleLoader(this));
+        L.setExternalLoader(config);
         // Lua Application
         L.getGlobal("package");
         if (L.isTable(1)) {

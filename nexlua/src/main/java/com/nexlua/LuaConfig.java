@@ -1,8 +1,8 @@
 package com.nexlua;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.luajava.ExternalLoader;
 import com.luajava.Lua;
 import com.nexlua.module.LuaAssetsModule;
 import com.nexlua.module.LuaDexModule;
@@ -13,7 +13,7 @@ import com.nexlua.module.LuaResourceModule;
 import java.io.File;
 import java.util.ArrayList;
 
-public class LuaConfig {
+public class LuaConfig implements ExternalLoader {
     protected static File FILES_DIR;
     protected ArrayList<LuaModule> LUA_MODULES;
     protected LuaModule welcome;
@@ -55,32 +55,66 @@ public class LuaConfig {
         return register(new LuaDexModule(path, content));
     }
 
-    public @Nullable LuaModule get(@NonNull String luaDir, @NonNull String absolutePath) {
+    public @Nullable LuaModule getModule(String absolutePath) {
+        if (absolutePath == null || absolutePath.isEmpty()) {
+            return null;
+        }
         for (LuaModule entry : LUA_MODULES) {
             final String entryPath = entry.getAbsolutePath();
             if (entryPath.equals(absolutePath)) {
                 return entry;
             }
         }
-        File file1 = new File(FILES_DIR, luaDir + "/" + absolutePath);
-        File file2 = new File(file1.getAbsolutePath());
-        if (file2.exists()) {
-            return registerFileModule(absolutePath, file2);
-        } else if (file1.exists()) {
-            return registerFileModule(absolutePath, file1);
-        } else {
+        File file = new File(absolutePath);
+        if (file.exists() && file.isFile() && file.canRead()) {
+            return registerFileModule(absolutePath, file);
+        }
+        return null;
+    }
+
+    private static final String LUA_NAME_SEP = ".";
+    private static final String DIR_SEP = File.separator;
+
+    public @Nullable LuaModule getModule(String name, String packagePath) {
+        if (name == null || packagePath == null) {
             return null;
         }
+        String moduleFilePath = name.replace(LUA_NAME_SEP, DIR_SEP);
+        String[] templates = packagePath.split(";", -1);
+        for (String template : templates) {
+            if (template.isEmpty()) {
+                continue;
+            }
+            String filename = template.replace("?", moduleFilePath);
+            LuaModule module = getModule(filename);
+            if (module != null) {
+                return module;
+            }
+        }
+        return null;
     }
 
-    public @Nullable LuaModule get(@NonNull LuaContext context, @NonNull String absolutePath) {
-        return get(context.getLuaDir(), absolutePath);
+    public @Nullable LuaModule getModule(LuaContext context, String name) {
+        return getModule(name, context.getLuaLpath());
     }
 
-    public int load(LuaContext context, Lua L, String moduleName) {
-        LuaModule module = get(context.getLuaDir(), moduleName);
+    @Override
+    public int load(Lua L, String moduleName) throws Exception {
+        L.getGlobal("package");
+        if (!L.isTable(1)) {
+            L.pop(1);
+            return 0;
+        }
+        L.getField(-1, "path");
+        if (!L.isString(-1)) {
+            L.pop(2);
+            return 0;
+        }
+        String packagePath = L.toString(-1);
+        L.pop(1);
+        LuaModule module = getModule(moduleName, packagePath);
         if (module != null) {
-            int nResult = module.load(L, context);
+            int nResult = module.load(L);
             return nResult > 0 ? nResult : 1;
         }
         return 0;
