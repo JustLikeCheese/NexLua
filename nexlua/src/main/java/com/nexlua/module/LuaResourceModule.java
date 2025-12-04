@@ -4,7 +4,7 @@ import com.luajava.Lua;
 import com.nexlua.LuaContext;
 import com.nexlua.LuaUtil;
 
-public class LuaResourceModule extends LuaAbstractModule {
+public final class LuaResourceModule extends LuaAbstractModule {
     private final int resId;
 
     public LuaResourceModule(String path, int resId) {

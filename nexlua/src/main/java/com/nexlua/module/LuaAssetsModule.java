@@ -4,7 +4,7 @@ import com.luajava.Lua;
 import com.nexlua.LuaContext;
 import com.nexlua.LuaUtil;
 
-public class LuaAssetsModule extends LuaAbstractModule {
+public final class LuaAssetsModule extends LuaAbstractModule {
     private final String assetsName;
 
     public LuaAssetsModule(String path, String assetsName) {

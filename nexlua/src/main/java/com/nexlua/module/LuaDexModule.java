@@ -3,7 +3,7 @@ package com.nexlua.module;
 import com.luajava.Lua;
 import com.nexlua.LuaContext;
 
-public class LuaDexModule extends LuaAbstractModule {
+public final class LuaDexModule extends LuaAbstractModule {
     private final String content;
 
     public LuaDexModule(String path, String content) {

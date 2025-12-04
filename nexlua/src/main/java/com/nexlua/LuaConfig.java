@@ -1,5 +1,8 @@
 package com.nexlua;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.luajava.Lua;
 import com.nexlua.module.LuaAssetsModule;
 import com.nexlua.module.LuaDexModule;
@@ -36,48 +39,46 @@ public class LuaConfig {
         return module;
     }
 
-    public LuaModule registerAssets(String path, String fileName) {
+    public LuaModule registerAssetsModule(String path, String fileName) {
         return register(new LuaAssetsModule(path, fileName));
     }
 
-    public LuaModule register(String path, int resource) {
+    public LuaModule registerResourceModule(String path, int resource) {
         return register(new LuaResourceModule(path, resource));
     }
 
-    public LuaModule register(String path, File file) {
+    public LuaModule registerFileModule(String path, File file) {
         return register(new LuaFileModule(path, file));
     }
 
-    public LuaModule register(String path, String content) {
+    public LuaModule registerStringModule(String path, String content) {
         return register(new LuaDexModule(path, content));
     }
 
-    public LuaModule get(String path) {
+    public @Nullable LuaModule get(@NonNull String luaDir, @NonNull String absolutePath) {
         for (LuaModule entry : LUA_MODULES) {
-            final String entryPath = entry.getPath();
-            if (entryPath.equals(path)) {
+            final String entryPath = entry.getAbsolutePath();
+            if (entryPath.equals(absolutePath)) {
                 return entry;
             }
         }
-        return null;
+        File file1 = new File(FILES_DIR, luaDir + "/" + absolutePath);
+        File file2 = new File(file1.getAbsolutePath());
+        if (file2.exists()) {
+            return registerFileModule(absolutePath, file2);
+        } else if (file1.exists()) {
+            return registerFileModule(absolutePath, file1);
+        } else {
+            return null;
+        }
+    }
+
+    public @Nullable LuaModule get(@NonNull LuaContext context, @NonNull String absolutePath) {
+        return get(context.getLuaDir(), absolutePath);
     }
 
     public int load(LuaContext context, Lua L, String moduleName) {
-        LuaModule module;
-        String path = context.getLuaDir() + "/" + moduleName;
-        File file1 = new File(moduleName);
-        File file2 = new File(path);
-        if (file1.isAbsolute()) {
-            module = get(moduleName);
-            if (module == null && file1.exists()) {
-                module = register(file1.getAbsolutePath(), file1);
-            }
-        } else {
-            module = get(path);
-            if (module == null && file2.exists()) {
-                module = register(file2.getAbsolutePath(), file2);
-            }
-        }
+        LuaModule module = get(context.getLuaDir(), moduleName);
         if (module != null) {
             int nResult = module.load(L, context);
             return nResult > 0 ? nResult : 1;

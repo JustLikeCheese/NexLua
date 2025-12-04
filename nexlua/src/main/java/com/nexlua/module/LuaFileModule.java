@@ -5,7 +5,7 @@ import com.nexlua.LuaContext;
 
 import java.io.File;
 
-public class LuaFileModule extends LuaAbstractModule {
+public final class LuaFileModule extends LuaAbstractModule {
     private final File file;
 
     public LuaFileModule(String path, File file) {

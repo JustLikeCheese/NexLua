@@ -70,7 +70,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
             this.intent = LuaIntent.from(getIntent());
             if (intent != null) {
                 module = intent.module;
-                luaPath = module.getPath();
+                luaPath = module.getAbsolutePath();
                 luaDir = LuaUtil.getParentPath(luaPath);
             }
             initialize(L);
@@ -443,15 +443,13 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
 
     public void newActivity(String name, Object[] args) {
         Intent intent = new Intent(this, LuaActivity.class);
-        LuaIntent intentArgs = new LuaIntent(config.get(name), args);
-        intent.putExtra(LuaIntent.NAME, intentArgs);
+        intent.putExtra(LuaIntent.NAME, new LuaIntent(this, name, args));
         startActivity(intent);
     }
 
     public void newActivityForResult(String name, int requestCode, Object... args) {
         Intent intent = new Intent(this, LuaActivity.class);
-        LuaIntent intentArgs = new LuaIntent(config.get(name), args);
-        intent.putExtra(LuaIntent.NAME, intentArgs);
+        intent.putExtra(LuaIntent.NAME, new LuaIntent(this, name, args));
         startActivityForResult(intent, requestCode);
     }
 
@@ -591,7 +589,11 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         L.getGlobal("package");
         if (L.isTable(1)) {
             L.setField(1, "path", luaLpath);
+            Lua.logWarn("package.path: " + luaLpath);
             L.setField(1, "cpath", luaCpath);
+            Lua.logWarn("package.cpath: " + luaCpath);
+            Lua.logWarn("current path:" + luaPath);
+            Lua.logWarn("current dir:" + luaDir);
         }
         L.pop(1);
         // 插入 LuaActivity
