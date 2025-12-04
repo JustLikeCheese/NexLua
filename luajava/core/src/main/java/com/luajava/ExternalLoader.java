@@ -23,5 +23,5 @@
 package com.luajava;
 
 public interface ExternalLoader {
-    int load(Lua L, String moduleName) throws LuaException;
+    int load(Lua L, String moduleName) throws Exception;
 }

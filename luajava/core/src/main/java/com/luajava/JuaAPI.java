@@ -478,7 +478,7 @@ public final class JuaAPI {
      * @param module the module name
      * @return always 1
      */
-    public static int jmoduleLoad(long id, String module) throws LuaException {
+    public static int jmoduleLoad(long id, String module) throws Exception {
         Lua L = Jua.get(id);
         return L.loadExternal(module);
     }

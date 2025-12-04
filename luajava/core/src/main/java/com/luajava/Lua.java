@@ -1182,7 +1182,7 @@ public class Lua {
         C.lua_error(L);
     }
 
-    public int error(@Nullable Throwable e) throws LuaException {
+    public int error(Throwable e) throws LuaException {
         error(e.toString());
         return 0;
     }
@@ -1614,7 +1614,7 @@ public class Lua {
         this.loader = loader;
     }
 
-    public int loadExternal(String module) throws LuaException {
+    public int loadExternal(String module) throws Exception {
         synchronized (this) {
             ExternalLoader loader = this.loader;
             if (loader != null) {
