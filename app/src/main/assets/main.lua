@@ -51,7 +51,7 @@ layout.addView(editor)
 activity.setHomeAsUpEnabled(false)
 activity.setContentView(layout)
 
-function onError(e, type, message)
-    alert(type, e.toString());
+function onError(exception, type, message)
+    alert(type, message);
     return true;
 end
