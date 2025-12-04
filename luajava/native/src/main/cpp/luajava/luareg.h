@@ -15,7 +15,7 @@ typedef struct {
         .func = module_func \
     }
 
-extern const ModuleEntry __start_extra_modules;
-extern const ModuleEntry __stop_extra_modules;
+extern const ModuleEntry __start_extra_modules; // NOLINT(*-reserved-identifier)
+extern const ModuleEntry __stop_extra_modules; // NOLINT(*-reserved-identifier)
 
 #endif //LUAREG_H
