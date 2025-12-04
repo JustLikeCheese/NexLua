@@ -6,6 +6,7 @@
 #include "luajava.h"
 #include "luajavaapi.h"
 #include "luajavacore.h"
+#include "luajavaloader.h"
 #include "luacomp.h"
 #include "luareg.h"
 
@@ -13,66 +14,6 @@ lua_State *luaJ_newstate() {
     lua_State *L = luaL_newstate();
     lua_atpanic(L, fatalError);
     return L;
-}
-
-// Java Custom Loader
-static int jmoduleLoad(lua_State *L) {
-    JNIEnv *env = getJNIEnv(L);
-    const char *name = luaL_checkstring(L, 1);
-    jstring moduleName = ToString(name);
-    int ret = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI, com_luajava_JuaAPI_jmoduleLoad,
-                                          (jlong) L, moduleName);
-    DeleteString(moduleName);
-    return checkOrError(env, L, ret);
-}
-
-int luaJ_initloader(lua_State *L) {
-    // package
-    lua_getglobal(L, "package");
-    if (lua_isnil(L, -1)) {
-        lua_pop(L, 1);
-        return 1;
-    }
-    // package.nexluajava
-    lua_pushliteral(L, "nexluajava");
-    lua_rawget(L, -2);
-    if (lua_toboolean(L, -1)) {
-        lua_pop(L, 2);
-        return 0;
-    }
-    lua_pop(L, 1);
-    lua_pushliteral(L, "nexluajava");
-    lua_pushboolean(L, 1);
-    lua_rawset(L, -3);
-    // package.loaders
-    lua_pushliteral(L, "loaders");
-    lua_rawget(L, -2);
-    if (!lua_istable(L, -1)) {
-        lua_pop(L, 2);
-        return 1;
-    }
-    int len = (int) lua_objlen(L, -1);
-    for (int i = len; i >= 1; i--) {
-        lua_rawgeti(L, -1, i);      // loaders[i]
-        lua_rawseti(L, -2, i + 1);  // loaders[i+1] = loaders[i]
-    }
-    lua_pushcfunction(L, &jmoduleLoad);
-    lua_rawseti(L, -2, 1);  // loaders[1] = jmoduleLoad
-    lua_pop(L, 1);  // pop loaders
-    // package.preload
-    lua_pushliteral(L, "preload");
-    lua_rawget(L, -2);
-    // register modules
-    const ModuleEntry *iter = &__start_extra_modules;
-    const ModuleEntry *end = &__stop_extra_modules;
-    for (; iter < end; iter++) {
-        if (iter->name && iter->func) {
-            lua_pushcfunction(L, iter->func);
-            lua_setfield(L, -2, iter->name);
-        }
-    }
-    lua_pop(L, 2); // pop preload, package
-    return 0;
 }
 
 // For template usage
