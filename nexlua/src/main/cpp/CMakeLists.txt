@@ -32,6 +32,7 @@ set(LUAJAVA_SRC
         "${LUAJAVA_DIR}/luajava/luajava.c"
         "${LUAJAVA_DIR}/luajava/luajavaapi.c"
         "${LUAJAVA_DIR}/luajava/luajavacore.c"
+        "${LUAJAVA_DIR}/luajava/luajavaloader.c"
         "${LUAJAVA_DIR}/luajava/nexlua.c"
         # extra library
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/dump.c"
