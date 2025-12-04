@@ -57,6 +57,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     protected final Lua L = new Lua(this);
     protected final LuaPrint print = new LuaPrint(this);
     protected String luaPath, luaDir, luaLpath, luaCpath;
+    protected Bundle savedInstanceState;
     protected LuaIntent intent;
     protected LuaModule module;
 
@@ -67,6 +68,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         try {
             super.onCreate(null);
             this.intent = LuaIntent.from(getIntent());
+            this.savedInstanceState = savedInstanceState;
             if (intent != null) {
                 module = intent.module;
                 luaPath = module.getAbsolutePath();
@@ -81,7 +83,9 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     }
 
     public void loadLua() throws Exception {
-        module.load(L, this);
+        module.load(L);
+        runFunc("onCreate", savedInstanceState);
+        runFunc("main", (Object[]) intent.args);
     }
 
     public void loadEvent() throws LuaException {
