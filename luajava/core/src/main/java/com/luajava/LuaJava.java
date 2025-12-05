@@ -58,4 +58,11 @@ public class LuaJava {
         clazz = clazz == null ? Object.class : clazz;
         return L.push(L.toJavaArray(1, clazz), clazz);
     }
+
+    public static int toJavaMap(long ptr, Class<?> keyClazz, Class<?> valueClazz) throws LuaException {
+        Lua L = Jua.get(ptr);
+        keyClazz = keyClazz == null ? Object.class : keyClazz;
+        valueClazz = valueClazz == null ? Object.class : valueClazz;
+        return L.push(L.toJavaMap(1, keyClazz, valueClazz));
+    }
 }
