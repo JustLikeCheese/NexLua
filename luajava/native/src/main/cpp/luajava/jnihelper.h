@@ -13,6 +13,7 @@
 // java.lang.Object
 JNI_HELPER_EXTERN jclass java_lang_Object;
 JNI_HELPER_EXTERN jmethodID java_lang_Object_toString;
+JNI_HELPER_EXTERN jmethodID java_lang_Object_equals;
 
 // java.lang.Class
 JNI_HELPER_EXTERN jclass java_lang_Class;

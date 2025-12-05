@@ -12,6 +12,8 @@ int initJNIBindings(JNIEnv *env) {
     java_lang_Object = bindJavaClass(env, "java/lang/Object");
     java_lang_Object_toString = bindJavaMethod(env, java_lang_Object,
                                                "toString", "()Ljava/lang/String;");
+    java_lang_Object_equals = bindJavaMethod(env, java_lang_Object,
+                                             "equals", "(Ljava/lang/Object;)Z");
     // java.lang.Class
     java_lang_Class = bindJavaClass(env, "java/lang/Class");
     java_lang_Class_forName = bindJavaStaticMethod(env, java_lang_Class,
@@ -78,9 +80,15 @@ int initJNIBindings(JNIEnv *env) {
                                                           "jmoduleLoad",
                                                           "(JLjava/lang/String;)I");
     CHECK_NULL(
-            java_lang_Object && java_lang_Object_toString &&
-            java_lang_Class && java_lang_Class_forName && java_lang_Class_toString &&
-            java_lang_Throwable && java_lang_Throwable_getMessage && java_lang_Throwable_toString
+            java_lang_Object && java_lang_Object_toString && java_lang_Object_equals &&
+            java_lang_Class && java_lang_Class_forName && java_lang_Class_toString && java_lang_Class_getName &&
+            java_lang_Throwable && java_lang_Throwable_getMessage && java_lang_Throwable_toString &&
+            com_luajava_JuaAPI &&
+            com_luajava_JuaAPI_jclassIndex && com_luajava_JuaAPI_jclassNew && com_luajava_JuaAPI_jclassNewIndex &&
+            com_luajava_JuaAPI_jobjectIndex && com_luajava_JuaAPI_jobjectLength && com_luajava_JuaAPI_jobjectNewIndex &&
+            com_luajava_JuaAPI_jarrayIndex && com_luajava_JuaAPI_jarrayNewIndex && com_luajava_JuaAPI_jarrayIpairsIterator &&
+            com_luajava_JuaAPI_bindClass && com_luajava_JuaAPI_getStackTrace && com_luajava_JuaAPI_allocateDirectBuffer &&
+            com_luajava_JuaAPI_jfunctionCall && com_luajava_JuaAPI_jmoduleLoad
     )
     return 0;
 }

@@ -186,8 +186,9 @@ static int commonEquals(lua_State *L) {
         return 1;
     }
     JNIEnv *env = getJNIEnv(L);
-    jboolean same = (*env)->IsSameObject(env, obj1, obj2);
-    lua_pushboolean(L, same ? true : false);
+    jboolean result = (*env)->CallBooleanMethod(env, obj1, java_lang_Object_equals, obj2);
+    if (checkIfError(env, L)) return lua_error(L);
+    lua_pushboolean(L, result ? true : false);
     return 1;
 }
 
