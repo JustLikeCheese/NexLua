@@ -19,8 +19,7 @@ int luajava_bindClass(lua_State *L) {
     const char *name = luaL_checkstring(L, 1);
     JNIEnv *env = getJNIEnv(L);
     jstring string = ToString(name);
-    int result = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI,
-                                             com_luajava_JuaAPI_bindClass, (jlong) L, string);
+    int result = (*env)->CallStaticIntMethod(env, com_luajava_LuaJava,
                                              com_luajava_LuaJava_bindClass, (jlong) L, string);
     DeleteString(string);
     return checkOrError(env, L, result);
