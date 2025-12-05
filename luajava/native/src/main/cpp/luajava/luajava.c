@@ -66,11 +66,22 @@ int luajava_toJavaObject(lua_State *L) {
     return checkOrError(env, L, result);
 }
 
+int luajava_toJavaArray(lua_State *L) {
+    luaL_checkany(L, 1);
+    jclass clazz = luaJ_toclass(L, 2);
+    JNIEnv *env = getJNIEnv(L);
+    int result = (*env)->CallStaticIntMethod(env, com_luajava_LuaJava,
+                                             com_luajava_LuaJava_toJavaArray,
+                                             (jlong) L, clazz);
+    return checkOrError(env, L, result);
+}
+
 static const luaL_Reg javalib[] = {
         {"bindClass", luajava_bindClass},
         {"bindMethod", luajava_bindMethod},
         {"instanceof", luajava_instanceof},
         {"toJavaObject", luajava_toJavaObject},
+        {"toJavaArray", luajava_toJavaArray},
         {NULL, NULL}
 };
 

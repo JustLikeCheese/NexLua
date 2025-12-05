@@ -46,6 +46,7 @@ JNI_HELPER_EXTERN jclass com_luajava_LuaJava;
 JNI_HELPER_EXTERN jmethodID com_luajava_LuaJava_bindClass;
 JNI_HELPER_EXTERN jmethodID com_luajava_LuaJava_bindMethod;
 JNI_HELPER_EXTERN jmethodID com_luajava_LuaJava_toJavaObject;
+JNI_HELPER_EXTERN jmethodID com_luajava_LuaJava_toJavaArray;
 
 /* some useful macros */
 #define CHECK_NULL(...) if (!(__VA_ARGS__)) return -1;

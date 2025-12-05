@@ -52,4 +52,10 @@ public class LuaJava {
         clazz = clazz == null ? Object.class : clazz;
         return L.push(L.toJavaObject(1, clazz), clazz);
     }
+
+    public static int toJavaArray(long ptr, Class<?> clazz) throws LuaException {
+        Lua L = Jua.get(ptr);
+        clazz = clazz == null ? Object.class : clazz;
+        return L.push(L.toJavaArray(1, clazz), clazz);
+    }
 }
