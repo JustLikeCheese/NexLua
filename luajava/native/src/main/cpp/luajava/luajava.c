@@ -87,6 +87,16 @@ int luajava_toJavaMap(lua_State *L) {
     return checkOrError(env, L, result);
 }
 
+int luajava_toString(lua_State *L) {
+    luaL_checkany(L, 1);
+    const char* string = luaJ_tostring(L, 1);
+    if (string) {
+        lua_pushstring(L, string);
+        return 1;
+    }
+    return luaL_error(L, "luajava.toString failed");
+}
+
 static const luaL_Reg javalib[] = {
         {"bindClass", luajava_bindClass},
         {"bindMethod", luajava_bindMethod},
@@ -94,6 +104,7 @@ static const luaL_Reg javalib[] = {
         {"toJavaObject", luajava_toJavaObject},
         {"toJavaArray", luajava_toJavaArray},
         {"toJavaMap", luajava_toJavaMap},
+        {"toString", luajava_toString},
         {NULL, NULL}
 };
 

@@ -15,6 +15,10 @@ int luajava_toJavaObject(lua_State *L);
 
 int luajava_toJavaArray(lua_State *L);
 
+int luajava_toJavaMap(lua_State *L);
+
+int luajava_toString(lua_State *L);
+
 int luaopen_luajava(lua_State *L);
 
 #endif // LUAJAVA_H
