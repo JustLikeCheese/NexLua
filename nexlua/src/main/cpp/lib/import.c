@@ -69,8 +69,8 @@ static int import_mt_index(lua_State *L) {
             lua_pop(L, 1);
             // [_G, key, __import, __import.packages, __import.packages[i]]
             jstring string = ToString(fullName);
-            int result = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI,
-                                                     com_luajava_JuaAPI_bindClass, (jlong) L,
+            int result = (*env)->CallStaticIntMethod(env, com_luajava_LuaJava,
+                                                     com_luajava_LuaJava_bindClass, (jlong) L,
                                                      string);
             DeleteString(string);
             if (!checkIfError(env, L) && result) {
@@ -156,8 +156,8 @@ static int local_import(lua_State *L, int idx) {
     // import class
     int top = lua_gettop(L);
     jstring string = ToString(name);
-    int result = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI,
-                                             com_luajava_JuaAPI_bindClass, (jlong) L, string);
+    int result = (*env)->CallStaticIntMethod(env, com_luajava_LuaJava,
+                                             com_luajava_LuaJava_bindClass, (jlong) L, string);
     DeleteString(string);
     if (!checkIfError(env, L) && result) {
         char *simpleName = strdup(get_simple_name(name));
