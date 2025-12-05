@@ -1497,7 +1497,7 @@ public class Lua {
         int length = rawLength(index);
         Object array = Array.newInstance(clazz, length);
         ipairs(index, (L, value) -> {
-            int javaIndex = index - 1;
+            int javaIndex = value - 1;
             Object element = toJavaObject(-1, clazz);
             Array.set(array, javaIndex, element);
             return false;
@@ -1509,7 +1509,7 @@ public class Lua {
     public <T> List<T> toJavaList(int index, Class<T> clazz) throws LuaException {
         List<T> list = new ArrayList<>();
         ipairs(index, (L, value) -> {
-            list.add((T) toJavaObject(-1, clazz));
+            list.set(value - 1, (T) toJavaObject(-1, clazz));
             return false;
         });
         return list;
