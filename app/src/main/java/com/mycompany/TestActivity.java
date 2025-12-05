@@ -40,6 +40,7 @@ public class TestActivity extends Activity {
         super.onCreate(savedInstanceState);
         try {
             L.openLibraries();
+            L.openLibrary("luajava");
             L.setHandler(this::sendException);
             L.push(new CFunction() {
                 private final StringBuilder output = new StringBuilder();

@@ -1,4 +1,4 @@
-local TestClass = luajava.bindClass("com.nexlua.TestClass")
+local TestClass = luajava.bindClass("com.mycompany.TestClass")
 local testClass = TestClass()
 local NO_RESULT = function() end
 local NO_NIL = function() end
