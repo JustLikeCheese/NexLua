@@ -1,7 +1,9 @@
 package com.luajava;
 
 import com.luajava.util.ClassUtils;
+import com.luajava.value.LuaValue;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
@@ -12,7 +14,7 @@ public class LuaJava {
         return 1;
     }
 
-    public static int bindMethod(long ptr, Object object, String name, Class<?>[] paramTypes) throws LuaException {
+    public static int bindMethod(long ptr, Object object, String name, Class<?>[] paramTypes) throws LuaException, NoSuchMethodException {
         Lua L = Jua.get(ptr);
         Class<?> clazz;
         Class<?> objectClass = object.getClass();
@@ -23,21 +25,26 @@ public class LuaJava {
         } else {
             clazz = objectClass;
         }
-        for (Method method : Objects.requireNonNull(clazz).getMethods()) {
-            Class<?>[] methodParamTypes = method.getParameterTypes();
-            if (method.getName().equals(name) && methodParamTypes.length == paramTypes.length) {
-                boolean match = true;
-                for (int i = 0; i < paramTypes.length; i++) {
-                    if (!methodParamTypes[i].isAssignableFrom(paramTypes[i])) {
-                        match = false;
-                        break;
-                    }
+        Objects.requireNonNull(clazz);
+        if (name.equals("new")) {
+            Constructor<?> constructor = clazz.getConstructor(paramTypes);
+            return L.push(new CFunction() {
+                @Override
+                public int __call(Lua L) throws LuaException {
+                    LuaValue[] values = L.getAll();
+                    return L.push(JuaAPI.callConstructor(constructor, values));
                 }
-                if (match) {
-                    return L.push(new LuaJavaMethod(clazz, method));
+            });
+        } else {
+            Method method = clazz.getMethod(name, paramTypes);
+            return L.push(new CFunction() {
+                @Override
+                public int __call(Lua L) throws LuaException {
+                    Object object = L.toJavaObject(1, Object.class);
+                    LuaValue[] values = L.getAll(2);
+                    return L.push(JuaAPI.callMethod(object, method, values));
                 }
-            }
+            });
         }
-        return 0;
     }
 }
