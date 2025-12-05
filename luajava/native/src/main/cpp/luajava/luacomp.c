@@ -272,32 +272,11 @@ static const luaL_Reg allAvailableLibs[] = {
         {NULL, NULL},
 };
 
-static lua_CFunction require;
-
 int luaJ_require(lua_State *L, int idx) {
-    // check package.loaders
-    lua_getglobal(L, "package");
-    if (!lua_istable(L, -1)) {
-        lua_pop(L, 1);
-        return -1;
-    }
-    lua_getfield(L, -1, "loaders");
-    if (!lua_istable(L, -1)) {
-        lua_pop(L, 2);
-        return -1;
-    }
-    lua_pop(L, 2);
-    // call require
-    if (require == NULL) {
-        lua_getglobal(L, "require");
-        require = lua_tocfunction(L, -1);
-    } else {
-        lua_pushcfunction(L, require);
-    }
+    lua_getglobal(L, "require");
     lua_pushvalue(L, idx);
     return luaJ_pcall(L, 1, 1, 0);
 }
-
 
 void luaJ_openlib(lua_State *L, const char *libName) {
     // built-in modules
@@ -318,20 +297,12 @@ void luaJ_openlib(lua_State *L, const char *libName) {
         }
     }
     // require
-    if (require == NULL) {
-        lua_getglobal(L, "require");
-        require = lua_tocfunction(L, -1);
-    } else {
-        lua_pushcfunction(L, require);
-    }
-    return;
-    // package check
-    end: {
-        lua_pushstring(L, libName);
-        luaJ_pcall(L, 1, 0, 0);
-        if (strcmp(libName, "package") != 0) {
-            luaJ_initloader(L);
-        }
+    lua_getglobal(L, "require");
+    end:
+    lua_pushstring(L, libName);
+    luaJ_pcall(L, 1, 0, 0);
+    if (strcmp(libName, "package") != 0) {
+        luaJ_initloader(L);
     }
 }
 
