@@ -2,9 +2,12 @@ package com.luajava;
 
 import com.luajava.util.ClassUtils;
 import com.luajava.value.LuaValue;
+import com.luajava.value.referable.LuaTable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 
 public class LuaJava {
@@ -64,5 +67,20 @@ public class LuaJava {
         keyClazz = keyClazz == null ? Object.class : keyClazz;
         valueClazz = valueClazz == null ? Object.class : valueClazz;
         return L.push(L.toJavaMap(1, keyClazz, valueClazz));
+    }
+
+    public static int asTable(long ptr, Object object) throws LuaException {
+        Lua L = Jua.get(ptr);
+        Class<?> clazz = object.getClass();
+        if (clazz.isArray()) {
+            return L.pushArray(object);
+        } else if (clazz.isAssignableFrom(Collection.class)) {
+            return L.pushCollection((Collection<?>) object);
+        } else if (clazz.isAssignableFrom(Map.class)) {
+            return L.pushMap((Map<?, ?>) object);
+        } else if (clazz.isAssignableFrom(LuaTable.class)) {
+            return L.push((LuaTable) object);
+        }
+        throw new LuaException("cannot convert " + object + " (" + clazz.getName() + ") as table");
     }
 }

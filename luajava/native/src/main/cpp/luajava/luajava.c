@@ -97,6 +97,15 @@ int luajava_toString(lua_State *L) {
     return luaL_error(L, "luajava.toString failed");
 }
 
+int luajava_asTable(lua_State *L) {
+    jobject object = luaJ_checkanyobject(L, 1);
+    JNIEnv *env = getJNIEnv(L);
+    int result = (*env)->CallStaticIntMethod(env, com_luajava_LuaJava,
+                                             com_luajava_LuaJava_asTable,
+                                             (jlong) L, object);
+    return checkOrError(env, L, result);
+}
+
 static const luaL_Reg javalib[] = {
         {"bindClass", luajava_bindClass},
         {"bindMethod", luajava_bindMethod},
@@ -105,6 +114,7 @@ static const luaL_Reg javalib[] = {
         {"toJavaArray", luajava_toJavaArray},
         {"toJavaMap", luajava_toJavaMap},
         {"toString", luajava_toString},
+        {"asTable", luajava_asTable},
         {NULL, NULL}
 };
 
