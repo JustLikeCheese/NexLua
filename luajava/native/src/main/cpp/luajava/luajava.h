@@ -11,6 +11,8 @@ int luajava_bindMethod(lua_State *L);
 
 int luajava_instanceof(lua_State *L);
 
+int luajava_toJavaObject(lua_State *L);
+
 int luaopen_luajava(lua_State *L);
 
 #endif // LUAJAVA_H

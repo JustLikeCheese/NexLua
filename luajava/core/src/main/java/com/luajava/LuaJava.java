@@ -10,8 +10,7 @@ import java.util.Objects;
 public class LuaJava {
     public static int bindClass(long ptr, String name) throws ClassNotFoundException, LuaException {
         Lua L = Jua.get(ptr);
-        L.push(ClassUtils.forName(name));
-        return 1;
+        return L.push(ClassUtils.forName(name));
     }
 
     public static int bindMethod(long ptr, Object object, String name, Class<?>[] paramTypes) throws LuaException, NoSuchMethodException {
@@ -46,5 +45,11 @@ public class LuaJava {
                 }
             });
         }
+    }
+
+    public static int toJavaObject(long ptr, Class<?> clazz) throws LuaException {
+        Lua L = Jua.get(ptr);
+        clazz = clazz == null ? Object.class : clazz;
+        return L.push(L.toJavaObject(1, clazz), clazz);
     }
 }

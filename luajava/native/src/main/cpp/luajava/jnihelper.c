@@ -70,6 +70,9 @@ int initJNIBindings(JNIEnv *env) {
     com_luajava_LuaJava_bindMethod = bindJavaStaticMethod(env, com_luajava_LuaJava,
                                                           "bindMethod",
                                                           "(JLjava/lang/Object;Ljava/lang/String;[Ljava/lang/Class;)I");
+    com_luajava_LuaJava_toJavaObject = bindJavaStaticMethod(env, com_luajava_LuaJava,
+                                                          "toJavaObject",
+                                                          "(JLjava/lang/Class;)I");
     /* LuaJava Bridge API */
     com_luajava_JuaAPI_getStackTrace = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                             "getStackTrace",
@@ -91,7 +94,8 @@ int initJNIBindings(JNIEnv *env) {
             java_lang_Class_getName &&
             java_lang_Throwable && java_lang_Throwable_getMessage && java_lang_Throwable_toString &&
             com_luajava_LuaJava &&
-            com_luajava_LuaJava_bindClass &&
+            com_luajava_LuaJava_bindClass && com_luajava_LuaJava_bindMethod &&
+            com_luajava_LuaJava_toJavaObject &&
             com_luajava_JuaAPI &&
             com_luajava_JuaAPI_jclassIndex && com_luajava_JuaAPI_jclassNew &&
             com_luajava_JuaAPI_jclassNewIndex &&
