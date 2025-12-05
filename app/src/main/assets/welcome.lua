@@ -24,7 +24,6 @@ end
 
 function main()
     updateFile("main.lua")
-    updateFile("test.lua")
     activity.newActivity("main")
     activity.finish()
 end
