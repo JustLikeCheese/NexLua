@@ -9,7 +9,7 @@
 #include "luajava.h"
 #include "luajavaapi.h"
 
-static const char* get_simple_name(const char* name) {
+static const char *get_simple_name(const char *name) {
     const char *simpleName = name;
     for (const char *p = name; *p; p++) {
         if (*p == '.' || *p == '$') {
@@ -20,18 +20,20 @@ static const char* get_simple_name(const char* name) {
 }
 
 static int import_mt_index(lua_State *L) {
+    // [_G, key]
     lua_pushvalue(L, 2);
     lua_rawget(L, 1);
-    if (!lua_isnil(L, -1)) { // [_G, key, value]
+    // [_G, key, value]
+    if (!lua_isnil(L, -1)) {
         return 1;
     }
     lua_pop(L, 1);
     if (!lua_isstring(L, 2)) {
         return 0;
     }
-    // check string
+    // [_G, key]
     const char *key = lua_tostring(L, 2);
-    // check jni env
+    size_t keyLen = strlen(key);
     JNIEnv *env = getJNIEnv(L);
     // push __import
     lua_getfield(L, 1, "__import");
@@ -54,30 +56,37 @@ static int import_mt_index(lua_State *L) {
         // push __import.packages[i]
         lua_rawgeti(L, -1, i);
         if (lua_type(L, -1) == LUA_TSTRING) {
+            LOG("%s", luaJ_dumpstack(L))
             const char *pkgName = lua_tostring(L, -1);
             size_t pkgLen = strlen(pkgName);
-            size_t keyLen = strlen(key);
-            char *fullName = (char*) malloc(pkgLen + keyLen + 2);
-            if (fullName) {
-                memcpy(fullName, pkgName, pkgLen);
-                fullName[pkgLen] = '.';
-                memcpy(fullName + pkgLen + 1, key, keyLen);
-                fullName[pkgLen + keyLen + 1] = '\0';
-            }
-            lua_pop(L, 1);
+            char *fullName = malloc(pkgLen + keyLen + 2);
+            if (!fullName) luaJ_error_memory(L);
+            memcpy(fullName, pkgName, pkgLen);
+            fullName[pkgLen] = '.';
+            memcpy(fullName + pkgLen + 1, key, keyLen);
+            fullName[pkgLen + keyLen + 1] = '\0';
             int top = lua_gettop(L);
+            lua_pop(L, 1);
+            // [_G, key, __import, __import.packages, __import.packages[i]]
             jstring string = ToString(fullName);
             int result = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI,
-                                                     com_luajava_JuaAPI_bindClass, (jlong) L, string);
+                                                     com_luajava_JuaAPI_bindClass, (jlong) L,
+                                                     string);
             DeleteString(string);
             if (!checkIfError(env, L) && result) {
                 char *simpleName = strdup(get_simple_name(fullName));
+                free(fullName);
+                if (!simpleName) luaJ_error_memory(L);
                 lua_pushvalue(L, -1);
                 lua_setglobal(L, simpleName);
-                free(fullName);
                 free(simpleName);
+                lua_remove(L, 4); // pop __import.packages
+                lua_remove(L, 3); // pop __import
+                lua_remove(L, 2); // pop key
+                lua_remove(L, 1); // pop _G
                 return 1;
             } else {
+                free(fullName);
                 lua_pushnil(L);
                 lua_setglobal(L, JAVA_GLOBAL_THROWABLE);
                 lua_settop(L, top);
@@ -86,12 +95,13 @@ static int import_mt_index(lua_State *L) {
         // pop packages[i]
         lua_pop(L, 1);
     }
-    lua_pop(L, 2); // pop __import and __import.packages
+    lua_pop(L, 2);
     return 0;
 }
 
 static int local_import(lua_State *L, int idx) {
-    const char* name = luaL_checkstring(L, idx);
+    const char *name = luaL_checkstring(L, idx);
+    JNIEnv *env = getJNIEnv(L);
     size_t length = strlen(name);
     if (length > 2 && name[length - 2] == '.' && name[length - 1] == '*') { // import package
         // push _G
@@ -137,28 +147,29 @@ static int local_import(lua_State *L, int idx) {
         return 0;
     }
     // local require
-    int err = luaJ_require(L, idx);
-    if (err == LUA_OK)
+    int require_err = luaJ_require(L, idx);
+    if (require_err == LUA_OK) {
         return 1;
-    else
-        err = (err != -1);
+    } else {
+        require_err = lua_gettop(L);
+    }
     // import class
     int top = lua_gettop(L);
-    JNIEnv *env = getJNIEnv(L);
     jstring string = ToString(name);
     int result = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI,
                                              com_luajava_JuaAPI_bindClass, (jlong) L, string);
     DeleteString(string);
     if (!checkIfError(env, L) && result) {
         char *simpleName = strdup(get_simple_name(name));
+        if (!simpleName) luaJ_error_memory(L);
         lua_pushvalue(L, -1);
         lua_setglobal(L, simpleName);
         free(simpleName);
         return 1;
-    } else if (err) {
+    } else if (require_err) {
         lua_pushnil(L);
         lua_setglobal(L, JAVA_GLOBAL_THROWABLE);
-        lua_settop(L, err);
+        lua_settop(L, require_err);
     }
     return lua_error(L);
 }
