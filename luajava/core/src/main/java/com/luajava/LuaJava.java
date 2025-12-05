@@ -1,6 +1,7 @@
 package com.luajava;
 
 import com.luajava.util.ClassUtils;
+import com.luajava.value.LuaProxy;
 import com.luajava.value.LuaValue;
 import com.luajava.value.referable.LuaTable;
 
@@ -88,5 +89,10 @@ public class LuaJava {
     public static int createArray(long ptr, Class<?> clazz, int[] dims) throws LuaException {
         Lua L = Jua.get(ptr);
         return L.pushJavaObject(Array.newInstance(clazz, dims));
+    }
+
+    public static int createProxy(long ptr, Class<?> clazz) throws LuaException {
+        Lua L = Jua.get(ptr);
+        return L.push(L.createProxy(2, clazz, Lua.Conversion.SEMI));
     }
 }

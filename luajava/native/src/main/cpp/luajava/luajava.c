@@ -146,6 +146,15 @@ int luajava_createArray(lua_State *L) {
     return checkOrError(env, L, result);
 }
 
+int luajava_createProxy(lua_State *L) {
+    jclass clazz = luaJ_checkclass(L, 1);
+    JNIEnv *env = getJNIEnv(L);
+    int result = (*env)->CallStaticIntMethod(env, com_luajava_LuaJava,
+                                             com_luajava_LuaJava_createProxy,
+                                             (jlong) L, clazz);
+    return checkOrError(env, L, result);
+}
+
 static const luaL_Reg javalib[] = {
         {"bindClass", luajava_bindClass},
         {"bindMethod", luajava_bindMethod},
@@ -158,6 +167,7 @@ static const luaL_Reg javalib[] = {
         {"newInstance", luajava_newInstance},
         {"new", luajava_newInstance},
         {"createArray", luajava_createArray},
+        {"createProxy", luajava_createProxy},
         {NULL, NULL}
 };
 
