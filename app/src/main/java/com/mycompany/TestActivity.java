@@ -56,6 +56,7 @@ public class TestActivity extends Activity {
                             output.append(L.LtoString(i));
                         }
                         showToast(output.toString());
+                        Lua.logWarn(output.toString());
                         output.setLength(0);
                     } else {
                         showToast("");
@@ -125,12 +126,10 @@ public class TestActivity extends Activity {
     }
 
     public void sendException(Exception e) {
-        if (e instanceof LuaException) {
-            LuaException luaException = (LuaException) e;
-            showDialog(luaException.getType(), luaException.getMessage());
-        } else {
-            showDialog("Exception", JuaAPI.getStackTrace(e));
-        }
+        String type = LuaException.getType(e);
+        String message = LuaException.getFullMessage(e);
+        showDialog(type, message);
+        Lua.logError(message);
     }
 
     public void showDialog(String name, String message) {
