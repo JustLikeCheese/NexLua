@@ -31,6 +31,7 @@ public class TestActivity extends Activity {
                 "Test Java Class", "test-class.lua",
                 "Test Java Object", "test-object.lua",
                 "Test Java Array", "test-array.lua",
+                "Test LuaJava Library", "test-luajava.lua",
                 "Fix Issues 1", "issues-1.lua"
         };
     }
