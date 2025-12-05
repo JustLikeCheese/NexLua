@@ -1,5 +1,6 @@
 #include "dump.h"
 #include "luacomp.h"
+#include "luareg.h"
 
 static void add_quoted(luaL_Buffer *b, const char *s, size_t len) {
     luaL_addchar(b, '"');
@@ -160,3 +161,13 @@ int import_dump(lua_State *L) {
     luaL_pushresult(&b);
     return 1;
 }
+
+REGISTER_MODULE(dump, luaopen_dump);
+int luaopen_dump(lua_State *L) {
+    // dump function
+    lua_pushcfunction(L, import_dump);
+    lua_pushvalue(L, -1);
+    lua_setglobal(L, "dump");
+    return 1;
+}
+

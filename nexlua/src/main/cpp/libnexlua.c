@@ -21,6 +21,7 @@ REGISTER_MODULE(import, luaopen_import);
 int luaopen_import(lua_State *L) {
     // import function
     lua_pushcfunction(L, import);
+    lua_pushvalue(L, -1);
     lua_setglobal(L, IMPORT_LIBNAME);
     // dump function
     lua_pushcfunction(L, import_dump);

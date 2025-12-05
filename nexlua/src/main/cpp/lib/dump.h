@@ -5,4 +5,6 @@
 
 int import_dump(lua_State *L);
 
+int luaopen_dump(lua_State *L);
+
 #endif //NEXLUA_DUMP_H
