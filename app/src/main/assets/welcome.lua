@@ -23,7 +23,8 @@ function updateFile(fileName)
 end
 
 function main()
-    print("check files")
     updateFile("main.lua")
     updateFile("test.lua")
+    activity.newActivity("main")
+    activity.finish()
 end

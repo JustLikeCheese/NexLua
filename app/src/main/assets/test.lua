@@ -1,3 +1,7 @@
+require "import"
+import "android.widget.*"
+import "android.app.*"
+
 print("\nJava Object")
 local alert = AlertDialog.Builder(activity)
     .setTitle("Title")
