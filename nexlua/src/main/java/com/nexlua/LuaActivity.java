@@ -589,11 +589,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         L.getGlobal("package");
         if (L.isTable(1)) {
             L.setField(1, "path", luaLpath);
-            Lua.logWarn("package.path: " + luaLpath);
             L.setField(1, "cpath", luaCpath);
-            Lua.logWarn("package.cpath: " + luaCpath);
-            Lua.logWarn("current path:" + luaPath);
-            Lua.logWarn("current dir:" + luaDir);
         }
         L.pop(1);
         // 插入 LuaActivity
