@@ -106,6 +106,15 @@ int luajava_asTable(lua_State *L) {
     return checkOrError(env, L, result);
 }
 
+int luajava_newInstance(lua_State *L) {
+    if (lua_isstring(L, 1)) {
+        luajava_bindClass(L);
+        lua_replace(L, 1);
+    }
+    luaJ_checkclass(L, 1);
+    return luaL_callmeta(L, 1, "__call");
+}
+
 static const luaL_Reg javalib[] = {
         {"bindClass", luajava_bindClass},
         {"bindMethod", luajava_bindMethod},
@@ -115,6 +124,8 @@ static const luaL_Reg javalib[] = {
         {"toJavaMap", luajava_toJavaMap},
         {"toString", luajava_toString},
         {"asTable", luajava_asTable},
+        {"newInstance", luajava_newInstance},
+        {"new", luajava_newInstance},
         {NULL, NULL}
 };
 
