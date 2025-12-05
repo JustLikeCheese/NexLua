@@ -44,14 +44,28 @@ int luajava_bindMethod(lua_State *L) {
     return checkOrError(env, L, result);
 }
 
+int luajava_instanceof(lua_State *L) {
+    jobject object = luaJ_checkanyobject(L, 1);
+    jclass clazz = luaJ_checkclass(L, 2);
+    JNIEnv *env = getJNIEnv(L);
+    if ((*env)->IsInstanceOf(env, object, clazz)) {
+        lua_pushboolean(L, 1);
+    } else {
+        lua_pushboolean(L, 0);
+    }
+    return 1;
+}
+
 static const luaL_Reg javalib[] = {
-        {"bindClass",  luajava_bindClass},
+        {"bindClass", luajava_bindClass},
         {"bindMethod", luajava_bindMethod},
+        {"instanceof", luajava_instanceof},
         {NULL, NULL}
 };
 
 /* Initializes the library */
 REGISTER_MODULE(luajava, luaopen_luajava);
+
 int luaopen_luajava(lua_State *L) {
     luaL_newlib(L, javalib);
     lua_pushvalue(L, -1);

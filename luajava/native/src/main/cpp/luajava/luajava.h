@@ -5,7 +5,12 @@
 
 #include "luakit.h"
 
-extern int luajava_bindClass(lua_State *L);
-extern int luaopen_luajava(lua_State *L);
+int luajava_bindClass(lua_State *L);
+
+int luajava_bindMethod(lua_State *L);
+
+int luajava_instanceof(lua_State *L);
+
+int luaopen_luajava(lua_State *L);
 
 #endif // LUAJAVA_H
