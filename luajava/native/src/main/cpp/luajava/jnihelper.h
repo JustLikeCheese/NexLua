@@ -49,6 +49,7 @@ JNI_HELPER_EXTERN jmethodID com_luajava_LuaJava_toJavaObject;
 JNI_HELPER_EXTERN jmethodID com_luajava_LuaJava_toJavaArray;
 JNI_HELPER_EXTERN jmethodID com_luajava_LuaJava_toJavaMap;
 JNI_HELPER_EXTERN jmethodID com_luajava_LuaJava_asTable;
+JNI_HELPER_EXTERN jmethodID com_luajava_LuaJava_createArray;
 
 /* some useful macros */
 #define CHECK_NULL(...) if (!(__VA_ARGS__)) return -1;

@@ -4,6 +4,7 @@ import com.luajava.util.ClassUtils;
 import com.luajava.value.LuaValue;
 import com.luajava.value.referable.LuaTable;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -82,5 +83,10 @@ public class LuaJava {
             return L.push((LuaTable) object);
         }
         throw new LuaException("cannot convert " + object + " (" + clazz.getName() + ") as table");
+    }
+
+    public static int createArray(long ptr, Class<?> clazz, int[] dims) throws LuaException {
+        Lua L = Jua.get(ptr);
+        return L.pushJavaObject(Array.newInstance(clazz, dims));
     }
 }

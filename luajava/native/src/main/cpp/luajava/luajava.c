@@ -115,6 +115,37 @@ int luajava_newInstance(lua_State *L) {
     return luaL_callmeta(L, 1, "__call");
 }
 
+int luajava_createArray(lua_State *L) {
+    jclass clazz = luaJ_checkclass(L, 1);
+    luaL_checkinteger(L, 2);
+    JNIEnv *env = getJNIEnv(L);
+    int dimCount = lua_gettop(L) - 1;
+    jintArray dimArray = (*env)->NewIntArray(env, dimCount);
+    if (dimArray == NULL) {
+        return luaL_error(L, "failed to create dimension array");
+    }
+    jint *dims = (*env)->GetIntArrayElements(env, dimArray, NULL);
+    if (dims == NULL) {
+        (*env)->DeleteLocalRef(env, dimArray);
+        return luaL_error(L, "failed to get dimension elements");
+    }
+    for (int i = 0; i < dimCount; i++) {
+        jint dim = (jint)luaL_checkinteger(L, i + 2);
+        if (dim < 0) {
+            (*env)->ReleaseIntArrayElements(env, dimArray, dims, JNI_ABORT);
+            (*env)->DeleteLocalRef(env, dimArray);
+            return luaL_error(L, "dimension %d must be non-negative", i + 1);
+        }
+        dims[i] = dim;
+    }
+    (*env)->ReleaseIntArrayElements(env, dimArray, dims, 0);
+    jint result = (*env)->CallStaticIntMethod(env, com_luajava_LuaJava,
+                                              com_luajava_LuaJava_createArray,
+                                              (jlong)L, clazz, dimArray);
+    (*env)->DeleteLocalRef(env, dimArray);
+    return checkOrError(env, L, result);
+}
+
 static const luaL_Reg javalib[] = {
         {"bindClass", luajava_bindClass},
         {"bindMethod", luajava_bindMethod},
@@ -126,6 +157,7 @@ static const luaL_Reg javalib[] = {
         {"asTable", luajava_asTable},
         {"newInstance", luajava_newInstance},
         {"new", luajava_newInstance},
+        {"createArray", luajava_createArray},
         {NULL, NULL}
 };
 
