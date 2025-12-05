@@ -67,9 +67,6 @@ public class LuaException extends Exception {
     @Override
     public void printStackTrace(PrintStream stream) {
         stream.println(getMessage());
-        for (StackTraceElement traceElement : getStackTrace()) {
-            stream.println("\tat " + traceElement);
-        }
         if (cause != null) {
             stream.print("\nCaused by: ");
             cause.printStackTrace(stream);
@@ -79,9 +76,6 @@ public class LuaException extends Exception {
     @Override
     public void printStackTrace(PrintWriter writer) {
         writer.println(getMessage());
-        for (StackTraceElement traceElement : getStackTrace()) {
-            writer.println("\tat " + traceElement);
-        }
         if (cause != null) {
             writer.print("Caused by: ");
             cause.printStackTrace(writer);

@@ -25,13 +25,28 @@ int luajava_bindClass(lua_State *L) {
     return checkOrError(env, L, result);
 }
 
+int luajava_bindMethod(lua_State *L) {
+    jobject object = luaJ_checkanyobject(L, 1);
+    const char *methodName = luaL_checkstring(L, 2);
+    JNIEnv *env = getJNIEnv(L);
+    jstring string = ToString(methodName);
+    int paramCount = lua_gettop(L) - 2;
+    jobjectArray clazzArray = (*env)->NewObjectArray(env, paramCount, java_lang_Class, NULL);
+    for (int i = 0; i < paramCount; i++) {
+        jclass paramClass = luaJ_checkclass(L, i + 3);
+        (*env)->SetObjectArrayElement(env, clazzArray, i, paramClass);
+    }
+    int result = (*env)->CallStaticIntMethod(env, com_luajava_LuaJava,
+                                             com_luajava_LuaJava_bindMethod,
+                                             (jlong) L, object, string, clazzArray);
     DeleteString(string);
+    (*env)->DeleteLocalRef(env, clazzArray);
     return checkOrError(env, L, result);
 }
 
 static const luaL_Reg javalib[] = {
-        {"bindClass", luajava_bindClass},
         {"bindClass",  luajava_bindClass},
+        {"bindMethod", luajava_bindMethod},
         {NULL, NULL}
 };
 

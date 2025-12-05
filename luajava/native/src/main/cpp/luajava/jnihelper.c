@@ -62,19 +62,18 @@ int initJNIBindings(JNIEnv *env) {
     com_luajava_JuaAPI_jarrayIpairsIterator = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                                    "jarrayIpairsIterator",
                                                                    "(JLjava/lang/Object;)I");
-    /* Lua - Java Bridge API */
-    com_luajava_JuaAPI_bindClass = bindJavaStaticMethod(env, com_luajava_JuaAPI,
-                                                        "bindClass",
-                                                        "(JLjava/lang/String;)I");
     /* LuaJava Library */
     com_luajava_LuaJava = bindJavaClass(env, "com/luajava/LuaJava");
     com_luajava_LuaJava_bindClass = bindJavaStaticMethod(env, com_luajava_LuaJava,
                                                          "bindClass",
                                                          "(JLjava/lang/String;)I");
+    com_luajava_LuaJava_bindMethod = bindJavaStaticMethod(env, com_luajava_LuaJava,
+                                                          "bindMethod",
+                                                          "(JLjava/lang/Object;Ljava/lang/String;[Ljava/lang/Class;)I");
     /* LuaJava Bridge API */
     com_luajava_JuaAPI_getStackTrace = bindJavaStaticMethod(env, com_luajava_JuaAPI,
-                                                          "getStackTrace",
-                                                          "(Ljava/lang/Throwable;)Ljava/lang/String;");
+                                                            "getStackTrace",
+                                                            "(Ljava/lang/Throwable;)Ljava/lang/String;");
     com_luajava_JuaAPI_allocateDirectBuffer = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                                    "allocateDirectBuffer",
                                                                    "(I)Ljava/nio/ByteBuffer;");
@@ -88,17 +87,25 @@ int initJNIBindings(JNIEnv *env) {
                                                           "(JLjava/lang/String;)I");
     CHECK_NULL(
             java_lang_Object && java_lang_Object_toString && java_lang_Object_equals &&
-            java_lang_Class && java_lang_Class_forName && java_lang_Class_toString && java_lang_Class_getName &&
+            java_lang_Class && java_lang_Class_forName && java_lang_Class_toString &&
+            java_lang_Class_getName &&
             java_lang_Throwable && java_lang_Throwable_getMessage && java_lang_Throwable_toString &&
+            com_luajava_LuaJava &&
+            com_luajava_LuaJava_bindClass &&
             com_luajava_JuaAPI &&
-            com_luajava_JuaAPI_jclassIndex && com_luajava_JuaAPI_jclassNew && com_luajava_JuaAPI_jclassNewIndex &&
-            com_luajava_JuaAPI_jobjectIndex && com_luajava_JuaAPI_jobjectLength && com_luajava_JuaAPI_jobjectNewIndex &&
-            com_luajava_JuaAPI_jarrayIndex && com_luajava_JuaAPI_jarrayNewIndex && com_luajava_JuaAPI_jarrayIpairsIterator &&
-            com_luajava_JuaAPI_bindClass && com_luajava_JuaAPI_getStackTrace && com_luajava_JuaAPI_allocateDirectBuffer &&
+            com_luajava_JuaAPI_jclassIndex && com_luajava_JuaAPI_jclassNew &&
+            com_luajava_JuaAPI_jclassNewIndex &&
+            com_luajava_JuaAPI_jobjectIndex && com_luajava_JuaAPI_jobjectLength &&
+            com_luajava_JuaAPI_jobjectNewIndex &&
+            com_luajava_JuaAPI_jarrayIndex && com_luajava_JuaAPI_jarrayNewIndex &&
+            com_luajava_JuaAPI_jarrayIpairsIterator &&
+            com_luajava_JuaAPI_getStackTrace &&
+            com_luajava_JuaAPI_allocateDirectBuffer &&
             com_luajava_JuaAPI_jfunctionCall && com_luajava_JuaAPI_jmoduleLoad
     )
     return 0;
 }
+
 #pragma clang diagnostic pop
 
 static JavaVM *javaVm = NULL;

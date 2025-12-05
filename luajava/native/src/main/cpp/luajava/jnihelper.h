@@ -44,6 +44,7 @@ JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_allocateDirectBuffer;
 
 JNI_HELPER_EXTERN jclass com_luajava_LuaJava;
 JNI_HELPER_EXTERN jmethodID com_luajava_LuaJava_bindClass;
+JNI_HELPER_EXTERN jmethodID com_luajava_LuaJava_bindMethod;
 
 /* some useful macros */
 #define CHECK_NULL(...) if (!(__VA_ARGS__)) return -1;
