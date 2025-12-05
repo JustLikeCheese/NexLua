@@ -1,7 +1,8 @@
 package com.luajava;
 
+import android.util.Log;
+
 import com.luajava.util.ClassUtils;
-import com.luajava.value.LuaProxy;
 import com.luajava.value.LuaValue;
 import com.luajava.value.referable.LuaTable;
 
@@ -94,5 +95,9 @@ public class LuaJava {
     public static int createProxy(long ptr, Class<?> clazz) throws LuaException {
         Lua L = Jua.get(ptr);
         return L.push(L.createProxy(2, clazz, Lua.Conversion.SEMI));
+    }
+
+    public static int unwrap(long ptr, Object object) throws LuaException {
+        return JuaAPI.unwrap(ptr, object);
     }
 }

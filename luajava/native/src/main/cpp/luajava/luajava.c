@@ -89,7 +89,7 @@ int luajava_toJavaMap(lua_State *L) {
 
 int luajava_toString(lua_State *L) {
     luaL_checkany(L, 1);
-    const char* string = luaJ_tostring(L, 1);
+    const char *string = luaJ_tostring(L, 1);
     if (string) {
         lua_pushstring(L, string);
         return 1;
@@ -130,7 +130,7 @@ int luajava_createArray(lua_State *L) {
         return luaL_error(L, "failed to get dimension elements");
     }
     for (int i = 0; i < dimCount; i++) {
-        jint dim = (jint)luaL_checkinteger(L, i + 2);
+        jint dim = (jint) luaL_checkinteger(L, i + 2);
         if (dim < 0) {
             (*env)->ReleaseIntArrayElements(env, dimArray, dims, JNI_ABORT);
             (*env)->DeleteLocalRef(env, dimArray);
@@ -141,7 +141,7 @@ int luajava_createArray(lua_State *L) {
     (*env)->ReleaseIntArrayElements(env, dimArray, dims, 0);
     jint result = (*env)->CallStaticIntMethod(env, com_luajava_LuaJava,
                                               com_luajava_LuaJava_createArray,
-                                              (jlong)L, clazz, dimArray);
+                                              (jlong) L, clazz, dimArray);
     (*env)->DeleteLocalRef(env, dimArray);
     return checkOrError(env, L, result);
 }
@@ -155,19 +155,29 @@ int luajava_createProxy(lua_State *L) {
     return checkOrError(env, L, result);
 }
 
+int luajava_unwrap(lua_State *L) {
+    jobject object = luaJ_checkanyobject(L, 1);
+    JNIEnv *env = getJNIEnv(L);
+    int result = (*env)->CallStaticIntMethod(env, com_luajava_LuaJava,
+                                             com_luajava_LuaJava_unwrap,
+                                             (jlong) L, object);
+    return checkOrError(env, L, result);
+}
+
 static const luaL_Reg javalib[] = {
-        {"bindClass", luajava_bindClass},
-        {"bindMethod", luajava_bindMethod},
-        {"instanceof", luajava_instanceof},
+        {"bindClass",    luajava_bindClass},
+        {"bindMethod",   luajava_bindMethod},
+        {"instanceof",   luajava_instanceof},
         {"toJavaObject", luajava_toJavaObject},
-        {"toJavaArray", luajava_toJavaArray},
-        {"toJavaMap", luajava_toJavaMap},
-        {"toString", luajava_toString},
-        {"asTable", luajava_asTable},
-        {"newInstance", luajava_newInstance},
-        {"new", luajava_newInstance},
-        {"createArray", luajava_createArray},
-        {"createProxy", luajava_createProxy},
+        {"toJavaArray",  luajava_toJavaArray},
+        {"toJavaMap",    luajava_toJavaMap},
+        {"toString",     luajava_toString},
+        {"asTable",      luajava_asTable},
+        {"newInstance",  luajava_newInstance},
+        {"new",          luajava_newInstance},
+        {"createArray",  luajava_createArray},
+        {"createProxy",  luajava_createProxy},
+        {"unwrap",       luajava_unwrap},
         {NULL, NULL}
 };
 

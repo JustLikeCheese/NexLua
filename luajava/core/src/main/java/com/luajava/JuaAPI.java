@@ -66,7 +66,7 @@ public final class JuaAPI {
             Throwable cause = (throwable == null) ? e : throwable;
             throw new LuaException("Invalid method call." +
                     "\n  at " + method +
-                    "\n  -> ",  cause);
+                    "\n  -> ", cause);
         }
     }
 
@@ -443,22 +443,16 @@ public final class JuaAPI {
      * @param obj the proxy object
      * @return -1 on failure, 1 if successfully pushed
      */
-    @SuppressWarnings("unused")
     public static int unwrap(long id, Object obj) throws LuaException {
-        Lua L = Jua.get(id);
-        try {
-            InvocationHandler handler = Proxy.getInvocationHandler(obj);
-            if (handler instanceof LuaProxy) {
-                LuaProxy proxy = (LuaProxy) handler;
-                if (proxy.state() == L) {
-                    return proxy.unwrap();
-                }
-                throw new IllegalArgumentException("Cannot unwrap LuaProxy on different LuaState");
+        InvocationHandler handler = Proxy.getInvocationHandler(obj);
+        if (handler instanceof LuaProxy) {
+            LuaProxy proxy = (LuaProxy) handler;
+            if (proxy.state().L == id) {
+                return proxy.unwrap();
             }
-            throw new IllegalArgumentException("Not a LuaProxy");
-        } catch (IllegalArgumentException | SecurityException e) {
-            return L.error(e);
+            throw new IllegalArgumentException("Cannot unwrap LuaProxy on different LuaState");
         }
+        throw new IllegalArgumentException("Not a LuaProxy");
     }
 
     /**
