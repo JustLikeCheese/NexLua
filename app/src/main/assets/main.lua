@@ -1,5 +1,6 @@
 require "import"
 import "android.widget.*"
+import "android.content.Intent"
 import "android.app.AlertDialog"
 import "java.lang.Object"
 
@@ -34,7 +35,7 @@ end)
 
 button2.setText("Test")
 button2.setOnClickListener(function()
-    activity.newActivity("test")
+    activity.startActivity(Intent(this, luajava.bindClass("com.mycompany.TestActivity")))
 end)
 
 editor.setText("print('hello world')")
