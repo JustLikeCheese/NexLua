@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ActivityManager;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -459,17 +458,6 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         intent.putExtra(LuaIntent.NAME, intentArgs);
         setResult(resultCode, intent);
         finish();
-    }
-
-    public void showAlert(String title, String message) {
-        TextView text = new TextView(this);
-        text.setText(message);
-        text.setTextIsSelectable(true);
-        new AlertDialog.Builder(this)
-                .setView(text)
-                .setMessage(message)
-                .setPositiveButton("OK", null)
-                .show();
     }
 
     @Override
