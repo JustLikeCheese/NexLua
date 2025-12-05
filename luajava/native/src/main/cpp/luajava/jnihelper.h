@@ -39,9 +39,11 @@ JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_jarrayNewIndex;
 JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_jarrayIpairsIterator;
 JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_jfunctionCall;
 JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_jmoduleLoad;
-JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_bindClass;
 JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_getStackTrace;
 JNI_HELPER_EXTERN jmethodID com_luajava_JuaAPI_allocateDirectBuffer;
+
+JNI_HELPER_EXTERN jclass com_luajava_LuaJava;
+JNI_HELPER_EXTERN jmethodID com_luajava_LuaJava_bindClass;
 
 /* some useful macros */
 #define CHECK_NULL(...) if (!(__VA_ARGS__)) return -1;

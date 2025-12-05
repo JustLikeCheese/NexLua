@@ -418,12 +418,6 @@ public final class JuaAPI {
         return 2;
     }
 
-    public static int bindClass(long ptr, String name) throws ClassNotFoundException, LuaException {
-        Lua L = Jua.get(ptr);
-        L.push(ClassUtils.forName(name));
-        return 1;
-    }
-
     public static String getStackTrace(Throwable throwable) {
         StringWriter sw = new StringWriter(2048);
         PrintWriter pw = new PrintWriter(sw);

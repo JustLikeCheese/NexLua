@@ -5,6 +5,7 @@
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "readability-misleading-indentation"
+
 int initJNIBindings(JNIEnv *env) {
     if (updateJNIEnv(env) != 0) return -1;
     if (initBoxingBindings(env) != 0) return -1;
@@ -39,8 +40,8 @@ int initJNIBindings(JNIEnv *env) {
                                                         "jclassNew",
                                                         "(JLjava/lang/Class;)I");
     com_luajava_JuaAPI_jclassNewIndex = bindJavaStaticMethod(env, com_luajava_JuaAPI,
-                                                           "jclassNewIndex",
-                                                           "(JLjava/lang/Class;Ljava/lang/String;)I");
+                                                             "jclassNewIndex",
+                                                             "(JLjava/lang/Class;Ljava/lang/String;)I");
     /* Java Object */
     com_luajava_JuaAPI_jobjectIndex = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                            "jobjectIndex",
@@ -49,15 +50,15 @@ int initJNIBindings(JNIEnv *env) {
                                                             "jobjectLength",
                                                             "(JLjava/lang/Object;)I");
     com_luajava_JuaAPI_jobjectNewIndex = bindJavaStaticMethod(env, com_luajava_JuaAPI,
-                                                            "jobjectNewIndex",
-                                                            "(JLjava/lang/Object;Ljava/lang/String;)I");
+                                                              "jobjectNewIndex",
+                                                              "(JLjava/lang/Object;Ljava/lang/String;)I");
     /* Java Array */
     com_luajava_JuaAPI_jarrayIndex = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                           "jarrayIndex",
                                                           "(JLjava/lang/Object;)I");
     com_luajava_JuaAPI_jarrayNewIndex = bindJavaStaticMethod(env, com_luajava_JuaAPI,
-                                                          "jarrayNewIndex",
-                                                          "(JLjava/lang/Object;)I");
+                                                             "jarrayNewIndex",
+                                                             "(JLjava/lang/Object;)I");
     com_luajava_JuaAPI_jarrayIpairsIterator = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                                    "jarrayIpairsIterator",
                                                                    "(JLjava/lang/Object;)I");
@@ -65,6 +66,12 @@ int initJNIBindings(JNIEnv *env) {
     com_luajava_JuaAPI_bindClass = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                         "bindClass",
                                                         "(JLjava/lang/String;)I");
+    /* LuaJava Library */
+    com_luajava_LuaJava = bindJavaClass(env, "com/luajava/LuaJava");
+    com_luajava_LuaJava_bindClass = bindJavaStaticMethod(env, com_luajava_LuaJava,
+                                                         "bindClass",
+                                                         "(JLjava/lang/String;)I");
+    /* LuaJava Bridge API */
     com_luajava_JuaAPI_getStackTrace = bindJavaStaticMethod(env, com_luajava_JuaAPI,
                                                           "getStackTrace",
                                                           "(Ljava/lang/Throwable;)Ljava/lang/String;");
