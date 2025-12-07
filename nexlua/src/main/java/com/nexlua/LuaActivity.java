@@ -436,28 +436,31 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         super.onActivityResult(requestCode, resultCode, intent);
     }
 
-    public void newActivity(String name) {
-        newActivity(name, null);
-    }
-
-    public void newActivity(String name, Object[] args) {
+    public void newActivity(LuaModule module, Object... args) {
         Intent intent = new Intent(this, LuaActivity.class);
-        intent.putExtra(LuaIntent.NAME, new LuaIntent(config.getModule(this, name), args));
+        intent.putExtra(LuaIntent.NAME, new LuaIntent(module, args));
         startActivity(intent);
     }
 
-    public void newActivityForResult(String name, int requestCode, Object... args) {
+    public void newActivityForResult(LuaModule module, int requestCode, Object... args) {
         Intent intent = new Intent(this, LuaActivity.class);
-        intent.putExtra(LuaIntent.NAME, new LuaIntent(config.getModule(this, name), args));
+        intent.putExtra(LuaIntent.NAME, new LuaIntent(module, args));
         startActivityForResult(intent, requestCode);
     }
 
-    public void setActivityResult(int resultCode, Object[] data) {
+    public void newActivity(String name, Object...args) {
+        newActivity(config.getModule(this, name), args);
+    }
+
+    public void newActivityForResult(String name, int requestCode, Object...args) {
+        newActivityForResult(config.getModule(this, name), requestCode, args);
+    }
+
+    public void setActivityResult(int resultCode, Object...args) {
         Intent intent = new Intent(this, LuaActivity.class);
-        LuaIntent intentArgs = new LuaIntent(null, data);
+        LuaIntent intentArgs = new LuaIntent(null, args);
         intent.putExtra(LuaIntent.NAME, intentArgs);
         setResult(resultCode, intent);
-        finish();
     }
 
     @Override
