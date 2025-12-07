@@ -177,7 +177,7 @@ public class Lua {
         return 1;
     }
 
-    public int push(Buffer buffer) throws LuaException {
+    public int push(@NonNull Buffer buffer) throws LuaException {
         checkStack(1);
         C.luaJ_pushbuffer(L, buffer, buffer.remaining());
         return 1;
@@ -188,6 +188,7 @@ public class Lua {
     }
 
     public int push(Object object, Conversion degree) throws LuaException {
+        if (object == null) return pushNil();
         switch (degree) {
             case FULL:
                 if (object.getClass().isArray()) {
@@ -256,7 +257,7 @@ public class Lua {
         return 1;
     }
 
-    public int push(LuaValue value) throws LuaException {
+    public int push(@NonNull LuaValue value) throws LuaException {
         checkStack(1);
         return value.push(this);
     }
@@ -351,7 +352,7 @@ public class Lua {
     }
 
     // Push Global API
-    public int pushGlobal(Object object, Class<?> clazz, Conversion degree, String... names) throws LuaException {
+    public int pushGlobal(Object object, Class<?> clazz, Conversion degree, @NonNull String... names) throws LuaException {
         int length = names.length;
         if (length < 1) {
             throw new LuaException("Invalid number of arguments");
@@ -370,7 +371,7 @@ public class Lua {
         return pushGlobal(object, clazz, Conversion.NONE, names);
     }
 
-    public int pushGlobal(Object object, Conversion degree, String... names) throws LuaException {
+    public int pushGlobal(Object object, Conversion degree, @NonNull String... names) throws LuaException {
         int length = names.length;
         if (length < 1) {
             throw new LuaException("Invalid number of arguments");
@@ -386,7 +387,7 @@ public class Lua {
     }
 
     public int pushGlobal(Object object, String... names) throws LuaException {
-        return pushGlobal(object, null, Conversion.NONE, names);
+        return pushGlobal(object, Conversion.NONE, names);
     }
 
     // Get API
@@ -635,12 +636,12 @@ public class Lua {
         if (exception != null) throw exception;
     }
 
-    public void xMove(Lua to, int n) throws LuaException {
+    public void xMove(@NonNull Lua to, int n) throws LuaException {
         to.checkStack(n);
         C.lua_xmove(L, to.L, n);
     }
 
-    public void copyTo(Lua to) {
+    public void copyTo(@NonNull Lua to) {
         C.luaJ_copy(this.L, to.L);
     }
 
@@ -658,7 +659,7 @@ public class Lua {
         return C.luaL_typename(L, index);
     }
 
-    public String typeName(LuaType type) {
+    public String typeName(@NonNull LuaType type) {
         return type.toString();
     }
 
@@ -712,7 +713,7 @@ public class Lua {
     }
 
     // Check API
-    public int checkOption(int arg, String def, String[] options) {
+    public int checkOption(int arg, String def, @NonNull String[] options) {
         String str = (isString(arg)) ? toString(arg) : def;
         for (int i = 0; i < options.length; i++) {
             if (options[i].equals(str)) {
@@ -722,7 +723,7 @@ public class Lua {
         return argError(arg, String.format("Invalid option '%s'", str));
     }
 
-    public void checkType(int nArg, LuaType type) throws LuaException {
+    public void checkType(int nArg, @NonNull LuaType type) throws LuaException {
         C.luaL_checktype(L, nArg, type.toInt());
     }
 
@@ -1121,7 +1122,7 @@ public class Lua {
         return nResults;
     }
 
-    public void cpCall(LuaCFunction func, LuaLightUserdata ud) throws LuaException {
+    public void cpCall(@NonNull LuaCFunction func, @NonNull LuaLightUserdata ud) throws LuaException {
         int result = C.lua_cpcall(L, func.getPointer(), ud.getPointer());
         checkError(result, false);
     }
@@ -1182,12 +1183,12 @@ public class Lua {
         C.lua_error(L);
     }
 
-    public int error(Throwable e) throws LuaException {
+    public int error(@NonNull Throwable e) throws LuaException {
         error(e.toString());
         return 0;
     }
 
-    public void register(String name, LuaCFunction function) throws LuaException {
+    public void register(String name, @NonNull LuaCFunction function) throws LuaException {
         C.lua_register(L, name, function.getPointer());
     }
 
@@ -1271,7 +1272,7 @@ public class Lua {
         return C.luaL_loadbufferx(L, buff, sz, name, mode);
     }
 
-    public void traceback(Lua L1, String msg, int level) {
+    public void traceback(@NonNull Lua L1, String msg, int level) {
         C.luaL_traceback(L, L1.getPointer(), msg, level);
     }
 
@@ -1536,7 +1537,7 @@ public class Lua {
         checkError(C.luaL_loadstring(L, script), false);
     }
 
-    public void loadBuffer(Buffer buffer, String name) throws LuaException {
+    public void loadBuffer(@NonNull Buffer buffer, String name) throws LuaException {
         if (buffer.isDirect()) {
             checkStack(1);
             checkError(C.luaJ_loadbuffer(L, buffer, buffer.limit(), name), false);
@@ -1565,7 +1566,7 @@ public class Lua {
         checkError(C.luaJ_dostring(L, script), true);
     }
 
-    public void doBuffer(Buffer buffer, String name) throws LuaException {
+    public void doBuffer(@NonNull Buffer buffer, String name) throws LuaException {
         if (buffer.isDirect()) {
             checkStack(1);
             checkError(C.luaJ_dobuffer(L, buffer, buffer.limit(), name), true);
@@ -1600,7 +1601,7 @@ public class Lua {
         C.luaJ_openlib(L, name);
     }
 
-    public void openLibrary(String... name) throws LuaException {
+    public void openLibrary(@NonNull String... name) throws LuaException {
         for (String n : name) {
             openLibrary(n);
         }
@@ -1685,7 +1686,7 @@ public class Lua {
         return ret;
     }
 
-    private void appendCustomDescriptor(Class<?> type, StringBuilder customSignature) {
+    private void appendCustomDescriptor(@NonNull Class<?> type, StringBuilder customSignature) {
         if (type.isPrimitive()) {
             customSignature.append(ClassUtils.getPrimitiveDescriptor(type));
         } else {
@@ -1752,7 +1753,7 @@ public class Lua {
         return C.luaJ_refGetPointer(L, ref);
     }
 
-    public void refCopyTo(Lua to, int ref) {
+    public void refCopyTo(@NonNull Lua to, int ref) {
         C.luaJ_refCopyTo(L, to.L, ref);
     }
 
@@ -1776,7 +1777,7 @@ public class Lua {
         return LuaString.from(this, buffer);
     }
 
-    public void registerReference(LuaReferable referable) {
+    public void registerReference(@NonNull LuaReferable referable) {
         recordedReferences.putIfAbsent(referable.getRef(), new LuaReference<>(referable, recyclableReferences));
     }
 
