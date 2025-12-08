@@ -156,6 +156,10 @@ public class Lua {
         return push((long) integer);
     }
 
+    public int push(char ch) throws LuaException {
+        return push((long) ch);
+    }
+
     public int push(double number) throws LuaException {
         checkStack(1);
         C.lua_pushnumber(L, number);
@@ -163,13 +167,11 @@ public class Lua {
     }
 
     public int push(float number) throws LuaException {
-        checkStack(1);
-        C.lua_pushnumber(L, number);
-        return 1;
+        return push((double) number);
     }
 
-    public int push(char ch) throws LuaException {
-        return push((long) ch);
+    public int push(Number number) throws LuaException {
+        return push(number.doubleValue());
     }
 
     public int push(@NonNull String string) throws LuaException {
@@ -181,74 +183,6 @@ public class Lua {
         checkStack(1);
         C.luaJ_pushbuffer(L, buffer, buffer.remaining());
         return 1;
-    }
-
-    public int push(Object object) throws LuaException {
-        return push(object, Conversion.NONE);
-    }
-
-    public int push(Object object, Conversion degree) throws LuaException {
-        if (object == null) return pushNil();
-        switch (degree) {
-            case FULL:
-                if (object.getClass().isArray()) {
-                    return pushArray(object);
-                } else if (object instanceof Collection<?>) {
-                    return pushCollection((Collection<?>) object);
-                } else if (object instanceof Map<?, ?>) {
-                    return pushMap((Map<?, ?>) object);
-                }
-            case SEMI:
-                if (object instanceof Boolean) {
-                    return push((boolean) object);
-                } else if (object instanceof String) {
-                    return push((String) object);
-                } else if (object instanceof Long) {
-                    return push((long) object);
-                } else if (object instanceof Integer) {
-                    return push((int) object);
-                } else if (object instanceof Short) {
-                    return push((short) object);
-                } else if (object instanceof Byte) {
-                    return push((byte) object);
-                } else if (object instanceof Character) {
-                    return push((char) object);
-                } else if (object instanceof Float) {
-                    return push((float) object);
-                } else if (object instanceof Double) {
-                    return push((double) object);
-                }
-        }
-        // fallback or none conversion
-        return pushJavaObject(object);
-    }
-
-    public int push(Object object, Class<?> clazz) throws LuaException {
-        return push(object, clazz, Conversion.NONE);
-    }
-
-    public int push(Object object, Class<?> clazz, Conversion degree) throws LuaException {
-        if (clazz != null && clazz.isPrimitive()) {
-            if (clazz == boolean.class)
-                return push((boolean) object);
-            else if (clazz == char.class)
-                return push((char) object);
-            else if (clazz == byte.class)
-                return push((byte) object);
-            else if (clazz == short.class)
-                return push((short) object);
-            else if (clazz == int.class)
-                return push((int) object);
-            else if (clazz == long.class)
-                return push((long) object);
-            else if (clazz == float.class)
-                return push((float) object);
-            else if (clazz == double.class)
-                return push((double) object);
-            else if (clazz == void.class)
-                return pushNil();
-        }
-        return push(object, degree);
     }
 
     public int push(Class<?> clazz) throws LuaException {
@@ -268,11 +202,74 @@ public class Lua {
         return 1;
     }
 
+    public int push(Object object) throws LuaException {
+        return push(object, Conversion.NONE);
+    }
+
+    public int push(Object object, Conversion degree) throws LuaException {
+        return push(object, object.getClass(), degree);
+    }
+
+    public int push(Object object, Class<?> clazz) throws LuaException {
+        return push(object, clazz, Conversion.NONE);
+    }
+
+    public int push(Object object, Class<?> clazz, Conversion degree) throws LuaException {
+        if (object == null) return pushNil();
+        Class<?> objClass = clazz != null ? clazz : object.getClass();
+        switch (degree) {
+            case FULL:
+                if (objClass.isArray()) {
+                    return pushArray(object);
+                } else if (object instanceof Collection<?>) {
+                    return pushCollection((Collection<?>) object);
+                } else if (object instanceof Map<?, ?>) {
+                    return pushMap((Map<?, ?>) object);
+                }
+            case SEMI:
+                if (object instanceof Number) {
+                    return push((Number) object);
+                } else if (object instanceof Boolean) {
+                    return push((boolean) object);
+                } else if (object instanceof Character) {
+                    return push((char) object);
+                } else if (object instanceof String) {
+                    return push((String) object);
+                }
+        }
+        if (objClass.isPrimitive()) {
+            if (objClass == boolean.class)
+                return push((boolean) object);
+            else if (objClass == char.class)
+                return push((char) object);
+            else if (objClass == byte.class)
+                return push((byte) object);
+            else if (objClass == short.class)
+                return push((short) object);
+            else if (objClass == int.class)
+                return push((int) object);
+            else if (objClass == long.class)
+                return push((long) object);
+            else if (objClass == float.class)
+                return push((float) object);
+            else if (objClass == double.class)
+                return push((double) object);
+            else if (objClass == void.class)
+                return pushNil();
+        }
+        // fallback or none conversion
+        return pushJavaObject(object, clazz);
+    }
+
     public int pushJavaObject(Object object) throws LuaException {
+        return pushJavaObject(object, object.getClass());
+    }
+
+    public int pushJavaObject(Object object, Class<?> clazz) throws LuaException {
         checkStack(1);
         if (object == null) {
             C.lua_pushnil(L);
-        } else if (object.getClass().isArray()) {
+        } else if (clazz.isArray()) {
             C.luaJ_pusharray(L, object);
         } else if (object instanceof Class<?>) {
             C.luaJ_pushclass(L, object);
