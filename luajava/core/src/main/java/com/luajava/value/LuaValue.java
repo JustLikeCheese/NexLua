@@ -47,11 +47,11 @@ public interface LuaValue {
     // stack
     Lua state();
 
-    void push() throws LuaException;
+    int push() throws LuaException;
 
     int push(Lua L) throws LuaException;
 
-    void copyTo(Lua L) throws LuaException;
+    int copyTo(Lua L) throws LuaException;
 
     LuaType type();
 
