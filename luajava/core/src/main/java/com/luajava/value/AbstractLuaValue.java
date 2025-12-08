@@ -500,316 +500,240 @@ public abstract class AbstractLuaValue implements LuaValue {
     @Override
     public int call(Object[] args) throws LuaException {
         push();
-        int result = L.call(args);
-        L.pop(1);
-        return result;
+        return L.call(args);
     }
 
     @Override
     public int call(Object[] args, int nResults) throws LuaException {
         push();
-        int result = L.call(args, nResults);
-        L.pop(1);
-        return result;
+        return L.call(args, nResults);
     }
 
     // Keep Lua.Conversion
     @Override
     public int call(Object[] args, Lua.Conversion degree) throws LuaException {
         push();
-        int result = L.call(args, degree);
-        L.pop(1);
-        return result;
+        return L.call(args, degree);
     }
 
     @Override
     public int call(Object[] args, Lua.Conversion degree, int nResults) throws LuaException {
         push();
-        int result = L.call(args, degree, nResults);
-        L.pop(1);
-        return result;
+        return L.call(args, degree, nResults);
     }
 
     // Keep Class<?>
     @Override
     public int call(Object[] args, Class<?> clazz) throws LuaException {
         push();
-        int result = L.call(args, clazz);
-        L.pop(1);
-        return result;
+        return L.call(args, clazz);
     }
 
     @Override
     public int call(Object[] args, Class<?> clazz, int nResults) throws LuaException {
         push();
-        int result = L.call(args, clazz, nResults);
-        L.pop(1);
-        return result;
+        return L.call(args, clazz, nResults);
     }
 
     // Keep Class<?> & Lua.Conversion
     @Override
     public int call(Object[] args, Class<?> clazz, Lua.Conversion degree) throws LuaException {
         push();
-        int result = L.call(args, clazz, degree);
-        L.pop(1);
-        return result;
+        return L.call(args, clazz, degree);
     }
 
     @Override
     public int call(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) throws LuaException {
         push();
-        int result = L.call(args, clazz, degree, nResults);
-        L.pop(1);
-        return result;
+        return L.call(args, clazz, degree, nResults);
     }
 
     @Override
     public int call() throws LuaException {
         push();
-        int result = L.call();
-        L.pop(1);
-        return result;
+        return L.call();
     }
 
     @Override
     public int call(int nArgs) throws LuaException {
         push();
-        int result = L.call(nArgs);
-        L.pop(1);
-        return result;
+        return L.call(nArgs);
     }
 
     @Override
     public int call(int nArgs, int nResults) throws LuaException {
         push();
-        int result = L.call(nArgs, nResults);
-        L.pop(1);
-        return result;
+        return L.call(nArgs, nResults);
     }
 
     // Keep Object[]
     @Override
     public int pCall(Object[] args) throws LuaException {
         push();
-        int result = L.pCall(args);
-        L.pop(1);
-        return result;
+        return L.pCall(args);
     }
 
     @Override
     public int pCall(Object[] args, int nResults) throws LuaException {
         push();
-        int result = L.pCall(args, nResults);
-        L.pop(1);
-        return result;
+        return L.pCall(args, nResults);
     }
 
     @Override
     public int pCall(Object[] args, int nResults, int errfunc) throws LuaException {
         push();
-        int result = L.pCall(args, nResults, errfunc);
-        L.pop(1);
-        return result;
+        return L.pCall(args, nResults, errfunc);
     }
 
     // Keep Lua.Conversion
     @Override
     public int pCall(Object[] args, Lua.Conversion degree) throws LuaException {
         push();
-        int result = L.pCall(args, degree);
-        L.pop(1);
-        return result;
+        return L.pCall(args, degree);
     }
 
     @Override
     public int pCall(Object[] args, Lua.Conversion degree, int nResults) throws LuaException {
         push();
-        int result = L.pCall(args, degree, nResults);
-        L.pop(1);
-        return result;
+        return L.pCall(args, degree, nResults);
     }
 
     @Override
     public int pCall(Object[] args, Lua.Conversion degree, int nResults, int errfunc) throws LuaException {
         push();
-        int result = L.pCall(args, degree, nResults, errfunc);
-        L.pop(1);
-        return result;
+        return L.pCall(args, degree, nResults, errfunc);
     }
 
     // Keep Class<?>
     @Override
     public int pCall(Object[] args, Class<?> clazz) throws LuaException {
         push();
-        int result = L.pCall(args, clazz);
-        L.pop(1);
-        return result;
+        return L.pCall(args, clazz);
     }
 
     @Override
     public int pCall(Object[] args, Class<?> clazz, int nResults) throws LuaException {
         push();
-        int result = L.pCall(args, clazz, nResults);
-        L.pop(1);
-        return result;
+        return L.pCall(args, clazz, nResults);
     }
 
     @Override
     public int pCall(Object[] args, Class<?> clazz, int nResults, int errfunc) throws LuaException {
         push();
-        int result = L.pCall(args, clazz, nResults, errfunc);
-        L.pop(1);
-        return result;
+        return L.pCall(args, clazz, nResults, errfunc);
     }
 
     // Keep Class<?> & Lua.Conversion
     @Override
     public int pCall(Object[] args, Class<?> clazz, Lua.Conversion degree) throws LuaException {
         push();
-        int result = L.pCall(args, clazz, degree);
-        L.pop(1);
-        return result;
+        return L.pCall(args, clazz, degree);
     }
 
     @Override
     public int pCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults) throws LuaException {
         push();
-        int result = L.pCall(args, clazz, degree, nResults);
-        L.pop(1);
-        return result;
+        return L.pCall(args, clazz, degree, nResults);
     }
 
     @Override
     public int pCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults, int errfunc) throws LuaException {
         push();
-        int result = L.pCall(args, clazz, degree, nResults, errfunc);
-        L.pop(1);
-        return result;
+        return L.pCall(args, clazz, degree, nResults, errfunc);
     }
 
     @Override
     public int pCall() throws LuaException {
         push();
-        int result = L.pCall();
-        L.pop(1);
-        return result;
+        return L.pCall();
     }
 
     @Override
     public int pCall(int nArgs) throws LuaException {
         push();
-        int result = L.pCall(nArgs);
-        L.pop(1);
-        return result;
+        return L.pCall(nArgs);
     }
 
     @Override
     public int pCall(int nArgs, int nResults) throws LuaException {
         push();
-        int result = L.pCall(nArgs, nResults);
-        L.pop(1);
-        return result;
+        return L.pCall(nArgs, nResults);
     }
 
     @Override
     public int pCall(int nArgs, int nResults, int errfunc) throws LuaException {
         push();
-        int result = L.pCall(nArgs, nResults, errfunc);
-        L.pop(1);
-        return result;
+        return L.pCall(nArgs, nResults, errfunc);
     }
 
     // Keep Object[]
     @Override
     public int xpCall(Object[] args, CFunction handler) throws LuaException {
         push();
-        int result = L.xpCall(args, handler);
-        L.pop(1);
-        return result;
+        return L.xpCall(args, handler);
     }
 
     @Override
     public int xpCall(Object[] args, int nResults, CFunction handler) throws LuaException {
         push();
-        int result = L.xpCall(args, nResults, handler);
-        L.pop(1);
-        return result;
+        return L.xpCall(args, nResults, handler);
     }
 
     // Keep Lua.Conversion
     @Override
     public int xpCall(Object[] args, Lua.Conversion degree, CFunction handler) throws LuaException {
         push();
-        int result = L.xpCall(args, degree, handler);
-        L.pop(1);
-        return result;
+        return L.xpCall(args, degree, handler);
     }
 
     @Override
     public int xpCall(Object[] args, Lua.Conversion degree, int nResults, CFunction handler) throws LuaException {
         push();
-        int result = L.xpCall(args, degree, nResults, handler);
-        L.pop(1);
-        return result;
+        return L.xpCall(args, degree, nResults, handler);
     }
 
     // Keep Class<?>
     @Override
     public int xpCall(Object[] args, Class<?> clazz, CFunction handler) throws LuaException {
         push();
-        int result = L.xpCall(args, clazz, handler);
-        L.pop(1);
-        return result;
+        return L.xpCall(args, clazz, handler);
     }
 
     @Override
     public int xpCall(Object[] args, Class<?> clazz, int nResults, CFunction handler) throws LuaException {
         push();
-        int result = L.xpCall(args, clazz, nResults, handler);
-        L.pop(1);
-        return result;
+        return L.xpCall(args, clazz, nResults, handler);
     }
 
     // Keep Class<?> & Lua.Conversion
     @Override
     public int xpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, CFunction handler) throws LuaException {
         push();
-        int result = L.xpCall(args, clazz, degree, handler);
-        L.pop(1);
-        return result;
+        return L.xpCall(args, clazz, degree, handler);
     }
 
     @Override
     public int xpCall(Object[] args, Class<?> clazz, Lua.Conversion degree, int nResults, CFunction handler) throws LuaException {
         push();
-        int result = L.xpCall(args, clazz, degree, nResults, handler);
-        L.pop(1);
-        return result;
+        return L.xpCall(args, clazz, degree, nResults, handler);
     }
 
     @Override
     public int xpCall(CFunction handler) throws LuaException {
         push();
-        int result = L.xpCall(handler);
-        L.pop(1);
-        return result;
+        return L.xpCall(handler);
     }
 
     @Override
     public int xpCall(int nArgs, CFunction handler) throws LuaException {
         push();
-        int result = L.xpCall(nArgs, handler);
-        L.pop(1);
-        return result;
+        return L.xpCall(nArgs, handler);
     }
 
     @Override
     public int xpCall(int nArgs, int nResults, CFunction handler) throws LuaException {
         push();
-        int result = L.xpCall(nArgs, nResults, handler);
-        L.pop(1);
-        return result;
+        return L.xpCall(nArgs, nResults, handler);
     }
 
     @Override
