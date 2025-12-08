@@ -62,13 +62,13 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public void push() throws LuaException {
-        push(L);
+    public int push() throws LuaException {
+        return push(L);
     }
 
     @Override
-    public void copyTo(Lua L) throws LuaException {
-        push(L);
+    public int copyTo(Lua L) throws LuaException {
+        return push(L);
     }
 
     @Override

@@ -57,8 +57,8 @@ public abstract class AbstractLuaRefValue extends AbstractLuaValue implements Lu
     }
 
     @Override
-    public void copyTo(Lua L) throws LuaException {
-        L.refCopyTo(L, ref);
+    public int copyTo(Lua L) throws LuaException {
+        return L.refCopyTo(L, ref);
     }
 
     // RefValue Performance Optimization

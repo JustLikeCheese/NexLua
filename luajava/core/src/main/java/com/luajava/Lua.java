@@ -1750,8 +1750,9 @@ public class Lua {
         return C.luaJ_refGetPointer(L, ref);
     }
 
-    public void refCopyTo(@NonNull Lua to, int ref) {
+    public int refCopyTo(@NonNull Lua to, int ref) throws LuaException {
         C.luaJ_refCopyTo(L, to.L, ref);
+        return 1;
     }
 
     public LuaNil fromNull() {
