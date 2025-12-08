@@ -127,7 +127,7 @@ public class Lua {
     }
 
     // Push API
-    public int pushNil() throws LuaException {
+    public int pushNil() {
         C.lua_pushnil(L);
         return 1;
     }
@@ -817,7 +817,7 @@ public class Lua {
         C.lua_newtable(L);
     }
 
-    public void createTable(int nArr, int nRec) throws LuaException {
+    public void createTable(int nArr, int nRec) {
         C.lua_createtable(L, nArr, nRec);
     }
 
@@ -830,7 +830,7 @@ public class Lua {
         C.lua_settable(L, index);
     }
 
-    public void getField(int index, String key) throws LuaException {
+    public void getField(int index, String key) {
         C.lua_getfield(L, index, key);
     }
 
@@ -909,7 +909,7 @@ public class Lua {
         return null;
     }
 
-    public boolean getMetatable(int index) throws LuaException {
+    public boolean getMetatable(int index) {
         return C.lua_getmetatable(L, index) != 0;
     }
 
@@ -1185,7 +1185,7 @@ public class Lua {
         return 0;
     }
 
-    public void register(String name, @NonNull LuaCFunction function) throws LuaException {
+    public void register(String name, @NonNull LuaCFunction function) {
         C.lua_register(L, name, function.getPointer());
     }
 
@@ -1917,14 +1917,14 @@ public class Lua {
         return value;
     }
 
-    public LuaCFunction getLuaCFunction(int idx) throws LuaException {
+    public LuaCFunction getLuaCFunction(int idx) {
         if (isCFunction(idx)) {
             return new LuaCFunction(this, idx);
         }
         return null;
     }
 
-    public LuaCFunction getLuaCFunction() throws LuaException {
+    public LuaCFunction getLuaCFunction() {
         return getLuaCFunction(-1);
     }
 
