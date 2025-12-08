@@ -120,12 +120,6 @@ public interface LuaValue {
 
     void ipairs(LuaIterator.Ipairs iterator) throws LuaException;
 
-    LuaValue[] toArray() throws LuaException;
-
-    List<LuaValue> toList() throws LuaException;
-
-    Map<LuaValue, LuaValue> toMap() throws LuaException;
-
     int length() throws LuaException;
 
     // metatable

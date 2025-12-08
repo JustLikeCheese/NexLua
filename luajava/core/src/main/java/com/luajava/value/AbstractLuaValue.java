@@ -283,39 +283,6 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaValue[] toArray() throws LuaException {
-        push();
-        int length = L.rawLength(-1);
-        LuaValue[] array = new LuaValue[length];
-        L.ipairs(-1, (L, index) -> {
-            array[index - 1] = L.get();
-            return false;
-        });
-        L.pop(1);
-        return array;
-    }
-
-    @Override
-    public List<LuaValue> toList() throws LuaException {
-        List<LuaValue> list = new ArrayList<>();
-        ipairs((L, index) -> {
-            list.add(L.get());
-            return false;
-        });
-        return list;
-    }
-
-    @Override
-    public Map<LuaValue, LuaValue> toMap() throws LuaException {
-        Map<LuaValue, LuaValue> map = new LinkedHashMap<>();
-        pairs((L) -> {
-            map.put(L.get(-2), L.get(-1));
-            return false;
-        });
-        return map;
-    }
-
-    @Override
     public int length() throws LuaException {
         push();
         int result = L.rawLength(-1);
