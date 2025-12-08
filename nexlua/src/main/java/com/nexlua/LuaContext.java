@@ -5,6 +5,7 @@ import android.content.Context;
 import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.LuaHandler;
+import com.luajava.value.LuaValue;
 
 import java.util.ArrayList;
 
@@ -24,8 +25,6 @@ public interface LuaContext extends LuaHandler {
     String getLuaCpath();
 
     Context getContext();
-
-    void initialize(Lua L) throws LuaException;
 
     void showToast(String message);
 

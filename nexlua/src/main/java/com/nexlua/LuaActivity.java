@@ -40,15 +40,10 @@ import com.nexlua.module.LuaModule;
 import java.util.ArrayList;
 
 public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnReceiveListener, LuaContext, LuaHandler {
-    protected LuaFunction mOnKeyDown;
-    protected LuaFunction mOnKeyUp;
-    protected LuaFunction mOnKeyLongPress;
-    protected LuaFunction mOnKeyShortcut;
-    protected LuaFunction mOnTouchEvent;
+    protected LuaFunction mOnKeyDown, mOnKeyUp, mOnKeyLongPress, mOnKeyShortcut;
     protected LuaFunction mOnCreateOptionsMenu, mOnCreateContextMenu, mOnOptionsItemSelected, mOnMenuItemSelected, mOnContextItemSelected;
     protected LuaFunction mOnActivityResult, onRequestPermissionsResult, mOnSaveInstanceState, mOnRestoreInstanceState;
-    protected LuaFunction mOnStart, mOnResume, mOnPause, mOnStop, mOnRestarted;
-    protected LuaFunction mOnConfigurationChanged;
+    protected LuaFunction mOnStart, mOnResume, mOnPause, mOnStop, mOnRestarted, mOnConfigurationChanged, mOnTouchEvent;
     protected LuaFunction mOnMessage, mOnError, mOnReceive, mOnNewIntent, mOnResult, mOnDestroy;
     protected LuaBroadcastReceiver mReceiver;
     protected final LuaApplication app = LuaApplication.getInstance();
@@ -66,7 +61,6 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         StrictMode.setThreadPolicy(policy);
         try {
             super.onCreate(null);
-            this.intent = LuaIntent.from(getIntent());
             this.savedInstanceState = savedInstanceState;
             if (intent != null) {
                 module = intent.module;
@@ -83,11 +77,9 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
 
     public void loadLua() throws Exception {
         module.load(L);
-        runFunc("onCreate", savedInstanceState);
-        runFunc("main", (Object[]) intent.args);
     }
 
-    public void loadEvent() throws LuaException {
+    public void loadEvent() throws Exception {
         // onKeyEvent
         mOnKeyShortcut = L.getLuaFunction("onKeyShortcut");
         mOnKeyDown = L.getLuaFunction("onKeyDown");
@@ -436,6 +428,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         super.onActivityResult(requestCode, resultCode, intent);
     }
 
+    // Lua Activity
     public void newActivity(LuaModule module, Object... args) {
         Intent intent = new Intent(this, LuaActivity.class);
         intent.putExtra(LuaIntent.NAME, new LuaIntent(module, args));
@@ -569,7 +562,6 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         return this;
     }
 
-    @Override
     public void initialize(Lua L) throws LuaException {
         L.openLibraries();
         L.openLibrary("luajava");
