@@ -1791,7 +1791,7 @@ public class Lua {
         }
     }
 
-    // Lua toLNumber ...
+    // Lua Value
     public LuaNil getLuaNil(int idx) throws LuaException {
         if (type(idx) == LuaType.NIL) {
             return fromNull();
@@ -1974,123 +1974,163 @@ public class Lua {
 
     // Check API
     public LuaNil checkLuaNil(int idx) throws LuaException {
-        return getLuaNil(idx).checkNil();
+        LuaNil value = getLuaNil();
+        if (value == null)
+            throw new LuaException("Not a nil");
+        return value;
     }
 
     public LuaNil checkLuaNil() throws LuaException {
-        return getLuaNil().checkNil();
+        return checkLuaNil(-1);
     }
 
     public LuaNil checkLuaNil(String globalName) throws LuaException {
-        return getLuaNil(globalName).checkNil();
+        getGlobal(globalName);
+        return checkLuaNil();
     }
 
     public LuaBoolean checkLuaBoolean(int idx) throws LuaException {
-        return getLuaBoolean(idx).checkBoolean();
+        LuaBoolean value = getLuaBoolean();
+        if (value == null)
+            throw new LuaException("Not a boolean");
+        return value;
     }
 
     public LuaBoolean checkLuaBoolean() throws LuaException {
-        return getLuaBoolean().checkBoolean();
+        return checkLuaBoolean(-1);
     }
 
     public LuaBoolean checkLuaBoolean(String globalName) throws LuaException {
-        return getLuaBoolean(globalName).checkBoolean();
+        getGlobal(globalName);
+        return checkLuaBoolean();
     }
 
     public LuaUserdata checkLuaUserdata(int idx) throws LuaException {
-        return getLuaUserdata(idx).checkUserdata();
+        LuaUserdata value = getLuaUserdata();
+        if (value == null)
+            throw new LuaException("Not a userdata");
+        return value;
     }
 
     public LuaUserdata checkLuaUserdata() throws LuaException {
-        return getLuaUserdata().checkUserdata();
+        return checkLuaUserdata(-1);
     }
 
     public LuaUserdata checkLuaUserdata(String globalName) throws LuaException {
-        return getLuaUserdata(globalName).checkUserdata();
+        getGlobal(globalName);
+        return checkLuaUserdata();
     }
 
     public LuaNumber checkLuaNumber(int idx) throws LuaException {
-        return getLuaNumber(idx).checkNumber();
+        LuaNumber value = getLuaNumber();
+        if (value == null)
+            throw new LuaException("Not a number");
+        return value;
     }
 
     public LuaNumber checkLuaNumber() throws LuaException {
-        return getLuaNumber().checkNumber();
+        return checkLuaNumber(-1);
     }
 
     public LuaNumber checkLuaNumber(String globalName) throws LuaException {
-        return getLuaNumber(globalName).checkNumber();
+        getGlobal(globalName);
+        return checkLuaNumber();
     }
 
     public LuaString checkLuaString(int idx) throws LuaException {
-        return getLuaString(idx).checkString();
+        LuaString value = getLuaString();
+        if (value == null)
+            throw new LuaException("Not a string");
+        return value;
     }
 
     public LuaString checkLuaString() throws LuaException {
-        return getLuaString().checkString();
+        return checkLuaString(-1);
     }
 
     public LuaString checkLuaString(String globalName) throws LuaException {
-        return getLuaString(globalName).checkString();
+        getGlobal(globalName);
+        return checkLuaString();
     }
 
     public LuaTable checkLuaTable(int idx) throws LuaException {
-        return getLuaTable(idx).checkTable();
+        LuaTable value = getLuaTable();
+        if (value == null)
+            throw new LuaException("Not a table");
+        return value;
     }
 
     public LuaTable checkLuaTable() throws LuaException {
-        return getLuaTable().checkTable();
+        return checkLuaTable(-1);
     }
 
     public LuaTable checkLuaTable(String globalName) throws LuaException {
-        return getLuaTable(globalName).checkTable();
+        getGlobal(globalName);
+        return checkLuaTable();
     }
 
     public LuaFunction checkLuaFunction(int idx) throws LuaException {
-        return getLuaFunction(idx).checkFunction();
+        LuaFunction value = getLuaFunction();
+        if (value == null)
+            throw new LuaException("Not a function");
+        return value;
     }
 
     public LuaFunction checkLuaFunction() throws LuaException {
-        return getLuaFunction().checkFunction();
+        return checkLuaFunction(-1);
     }
 
     public LuaFunction checkLuaFunction(String globalName) throws LuaException {
-        return getLuaFunction(globalName).checkFunction();
+        getGlobal(globalName);
+        return checkLuaFunction();
     }
 
     public LuaCFunction checkLuaCFunction(int idx) throws LuaException {
-        return getLuaCFunction(idx).checkCFunction();
+        LuaCFunction value = getLuaCFunction();
+        if (value == null)
+            throw new LuaException("Not a C function");
+        return value;
     }
 
     public LuaCFunction checkLuaCFunction() throws LuaException {
-        return getLuaCFunction().checkCFunction();
+        return checkLuaCFunction(-1);
     }
 
     public LuaCFunction checkLuaCFunction(String globalName) throws LuaException {
-        return getLuaCFunction(globalName).checkCFunction();
+        getGlobal(globalName);
+        return checkLuaCFunction();
     }
 
     public LuaLightUserdata checkLuaLightUserdata(int idx) throws LuaException {
-        return getLuaLightUserdata(idx).checkLightUserdata();
+        LuaLightUserdata value = getLuaLightUserdata();
+        if (value == null)
+            throw new LuaException("Not a light userdata");
+        return value;
     }
 
     public LuaLightUserdata checkLuaLightUserdata() throws LuaException {
-        return getLuaLightUserdata().checkLightUserdata();
+        return checkLuaLightUserdata(-1);
     }
 
     public LuaLightUserdata checkLuaLightUserdata(String globalName) throws LuaException {
-        return getLuaLightUserdata(globalName).checkLightUserdata();
+        getGlobal(globalName);
+        return checkLuaLightUserdata();
     }
 
     public LuaThread checkLuaThread(int idx) throws LuaException {
-        return getLuaThread(idx).checkThread();
+        LuaThread value = getLuaThread();
+        if (value == null)
+            throw new LuaException("Not a thread");
+        return value;
     }
 
     public LuaThread checkLuaThread() throws LuaException {
-        return getLuaThread().checkThread();
+        return checkLuaThread(-1);
     }
 
     public LuaThread checkLuaThread(String globalName) throws LuaException {
-        return getLuaThread(globalName).checkThread();
+        getGlobal(globalName);
+        return checkLuaThread();
     }
 
     public enum Conversion {
