@@ -63,7 +63,8 @@ public class LuaApplication extends Application implements LuaContext {
     protected boolean onLuaEvent(LuaFunction event, Object... args) {
         if (event != null) {
             try {
-                return event.vpCall(args, Lua.Conversion.SEMI, 1)[0].toBoolean();
+                event.pCall(args, Lua.Conversion.SEMI, 1);
+                return L.LtoBoolean(-1);
             } catch (LuaException e) {
                 sendError(e);
             }
@@ -186,7 +187,6 @@ public class LuaApplication extends Application implements LuaContext {
         return this;
     }
 
-    @Override
     public void initialize(Lua L) throws LuaException {
         L.openLibraries();
         L.openLibrary("luajava");
