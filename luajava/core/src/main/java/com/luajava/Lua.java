@@ -207,7 +207,7 @@ public class Lua {
     }
 
     public int push(Object object, Conversion degree) throws LuaException {
-        return push(object, object.getClass(), degree);
+        return push(object, null, degree);
     }
 
     public int push(Object object, Class<?> clazz) throws LuaException {
@@ -262,23 +262,26 @@ public class Lua {
     }
 
     public int pushJavaObject(Object object) throws LuaException {
-        return pushJavaObject(object, object.getClass());
+        return pushJavaObject(object, null);
     }
 
     public int pushJavaObject(Object object, Class<?> clazz) throws LuaException {
         checkStack(1);
         if (object == null) {
             C.lua_pushnil(L);
-        } else if (clazz.isArray()) {
-            C.luaJ_pusharray(L, object);
-        } else if (object instanceof Class<?>) {
-            C.luaJ_pushclass(L, object);
-        } else if (object instanceof CFunction) {
-            C.luaJ_pushfunction(L, object);
-        } else if (object instanceof LuaValue) {
-            return push((LuaValue) object);
         } else {
-            C.luaJ_pushobject(L, object);
+            Class<?> objClass = clazz != null ? clazz : object.getClass();
+            if (objClass.isArray()) {
+                C.luaJ_pusharray(L, object);
+            } else if (object instanceof Class<?>) {
+                C.luaJ_pushclass(L, object);
+            } else if (object instanceof CFunction) {
+                C.luaJ_pushfunction(L, object);
+            } else if (object instanceof LuaValue) {
+                return push((LuaValue) object);
+            } else {
+                C.luaJ_pushobject(L, object);
+            }
         }
         return 1;
     }
