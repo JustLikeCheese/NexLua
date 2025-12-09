@@ -12,6 +12,7 @@ import android.view.MotionEvent;
 import android.view.accessibility.AccessibilityEvent;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import com.luajava.value.referable.LuaFunction;
 
@@ -125,9 +126,9 @@ public class LuaAccessibilityService extends AccessibilityService implements Lua
         super.onMotionEvent(event);
     }
 
-    @NonNull
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     @Override
-    public InputMethod onCreateInputMethod() {
+    public @NonNull InputMethod onCreateInputMethod() {
         InputMethod result = (InputMethod) onLuaEvent(onCreateInputMethod, InputMethod.class);
         return result != null ? result : super.onCreateInputMethod();
     }
