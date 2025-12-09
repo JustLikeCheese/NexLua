@@ -47,8 +47,8 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     protected LuaBroadcastReceiver mReceiver;
     protected final LuaApplication app = LuaApplication.getInstance();
     protected final LuaConfig config = app.getConfig();
-    protected final Lua L = new Lua(this);
-    protected final LuaPrint print = new LuaPrint(this);
+    protected Lua L;
+    protected LuaPrint print;
     protected String luaPath, luaDir, luaLpath, luaCpath;
     protected Bundle savedInstanceState;
     protected LuaIntent intent;
@@ -61,12 +61,13 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         try {
             super.onCreate(null);
             this.savedInstanceState = savedInstanceState;
+            this.intent = LuaIntent.from(getIntent());
             if (intent != null) {
                 module = intent.module;
                 luaPath = module.getAbsolutePath();
                 luaDir = LuaUtil.getParentPath(luaPath);
             }
-            initLua(L);
+            initLua();
             loadLua();
             loadEvent();
         } catch (Exception e) {
@@ -76,6 +77,29 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
 
     public void loadLua() throws Exception {
         module.load(L);
+        runFunc("onCreate", savedInstanceState);
+        runFunc("main", (Object[]) intent.args);
+    }
+
+    public void initLua() throws LuaException {
+        L = new Lua(this);
+        L.openLibraries();
+        L.openLibrary("luajava");
+        L.setExternalLoader(config);
+        luaCpath = app.getLuaCpath(luaDir);
+        luaLpath = app.getLuaLpath(luaDir);
+        // package.path 和 cpath
+        L.getGlobal("package");
+        if (L.isTable(1)) {
+            L.setField(1, "path", luaLpath);
+            L.setField(1, "cpath", luaCpath);
+        }
+        L.pop(1);
+        // 插入 LuaActivity
+        print = new LuaPrint(this);
+        L.pushGlobal(this, "activity", "context", "this");
+        L.pushGlobal(app, "application", "app");
+        L.pushGlobal(print, "print");
     }
 
     public void loadEvent() throws Exception {
@@ -526,24 +550,5 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
 
     public Context getContext() {
         return this;
-    }
-
-    public void initLua(Lua L) throws LuaException {
-        L.openLibraries();
-        L.openLibrary("luajava");
-        L.setExternalLoader(config);
-        luaCpath = app.getLuaCpath(luaDir);
-        luaLpath = app.getLuaLpath(luaDir);
-        // package.path 和 cpath
-        L.getGlobal("package");
-        if (L.isTable(1)) {
-            L.setField(1, "path", luaLpath);
-            L.setField(1, "cpath", luaCpath);
-        }
-        L.pop(1);
-        // 插入 LuaActivity
-        L.pushGlobal(this, "activity", "context", "this");
-        L.pushGlobal(app, "application", "app");
-        L.pushGlobal(print, "print");
     }
 }

@@ -19,16 +19,14 @@ import io.github.justlikecheese.nextoast.NexToast;
 
 public class LuaApplication extends Application implements LuaContext {
     protected static LuaApplication mApplication;
-    protected String luaPath, luaDir, luaLpath, luaCpath;
-    protected Lua L;
+    protected String luaPath, luaDir, luaLpath, luaCpath, baseCpath, baseLpath;
     protected LuaFunction mOnTerminate, mOnLowMemory, mOnTrimMemory, mOnConfigurationChanged;
-    protected NexToast mToast;
-    protected StringBuilder mToastBuilder = new StringBuilder();
-    protected long mToastTime;
+    protected Lua L;
     protected LuaConfig config;
     protected LuaModule module;
-    protected String baseCpath;
-    protected String baseLpath;
+    protected NexToast mToast;
+    protected StringBuilder mToastBuilder;
+    protected long mToastTime;
 
     @Override
     public void onCreate() {
@@ -48,9 +46,9 @@ public class LuaApplication extends Application implements LuaContext {
         luaCpath = getLuaCpath(luaDir);
         luaLpath = getLuaLpath(luaDir);
         try {
-            L = new Lua();
-            initialize(L);
+            initLua();
             loadLua();
+            loadEvent();
         } catch (Exception e) {
             sendError(e);
         }
@@ -58,6 +56,29 @@ public class LuaApplication extends Application implements LuaContext {
 
     public void loadLua() throws Exception {
         module.load(L);
+        runFunc("onCreate");
+        runFunc("main");
+    }
+
+    public void initLua() throws Exception {
+        L.openLibraries();
+        L.openLibrary("luajava");
+        L.setExternalLoader(config);
+        // Lua Application
+        L.getGlobal("package");
+        if (L.isTable(1)) {
+            L.setField(1, "cpath", luaCpath);
+            L.setField(1, "path", luaLpath);
+        }
+        L.pop(1);
+        L.pushGlobal(this, "application", "app", "context", "this");
+    }
+
+    public void loadEvent() throws Exception {
+        mOnTerminate = L.getLuaFunction("onTerminate");
+        mOnLowMemory = L.getLuaFunction("onLowMemory");
+        mOnTrimMemory = L.getLuaFunction("onTrimMemory");
+        mOnConfigurationChanged = L.getLuaFunction("onConfigurationChanged");
     }
 
     @Override
@@ -91,6 +112,8 @@ public class LuaApplication extends Application implements LuaContext {
     @Override
     public void showToast(String message) {
         long now = System.currentTimeMillis();
+        if (mToastBuilder == null)
+            mToastBuilder = new StringBuilder();
         if (mToast == null || now - mToastTime > 1000) {
             mToastBuilder.setLength(0);
             mToast = NexToast.makeText(this, message, Toast.LENGTH_LONG);
@@ -169,24 +192,5 @@ public class LuaApplication extends Application implements LuaContext {
 
     public Context getContext() {
         return this;
-    }
-
-    public void initialize(Lua L) throws LuaException {
-        L.openLibraries();
-        L.openLibrary("luajava");
-        L.setExternalLoader(config);
-        // Lua Application
-        L.getGlobal("package");
-        if (L.isTable(1)) {
-            L.setField(1, "cpath", luaCpath);
-            L.setField(1, "path", luaLpath);
-        }
-        L.pop(1);
-        L.pushGlobal(this, "application", "app", "context", "this");
-        mOnTerminate = L.getLuaFunction("onTerminate");
-        mOnLowMemory = L.getLuaFunction("onLowMemory");
-        mOnTrimMemory = L.getLuaFunction("onTrimMemory");
-        mOnConfigurationChanged = L.getLuaFunction("onConfigurationChanged");
-        runFunc("onCreate");
     }
 }
