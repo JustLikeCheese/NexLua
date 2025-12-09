@@ -99,20 +99,20 @@ public class LuaNumber extends AbstractLuaValue {
             return toNumber();
         else if (clazz == Number.class)
             return value;
-        else if (clazz == long.class || clazz == Long.class)
-            return value.longValue();
-        else if (clazz == int.class || clazz == Integer.class)
-            return value.intValue();
-        else if (clazz == short.class || clazz == Short.class)
-            return value.shortValue();
-        else if (clazz == byte.class || clazz == Byte.class)
-            return value.byteValue();
-        else if (clazz == char.class || clazz == Character.class)
-            return (char) value.intValue();
-        else if (clazz == float.class || clazz == Float.class)
-            return value.floatValue();
-        else if (clazz == double.class || clazz == Double.class)
-            return value.doubleValue();
+        else if (clazz == Character.class)
+            return (char) value.byteValue();
+        else if (clazz == Byte.class)
+            return (byte) toInteger();
+        else if (clazz == Integer.class)
+            return (int) toInteger();
+        else if (clazz == Short.class)
+            return (short) toInteger();
+        else if (clazz == Long.class)
+            return toInteger();
+        else if (clazz == Float.class)
+            return (float) toNumber();
+        else if (clazz == Double.class)
+            return toNumber();
         return super.toJavaObject(clazz);
     }
 }

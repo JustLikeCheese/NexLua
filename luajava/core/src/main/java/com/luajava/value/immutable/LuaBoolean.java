@@ -79,7 +79,7 @@ public class LuaBoolean extends AbstractLuaValue {
     public @Nullable Object toJavaObject(Class<?> clazz) throws LuaException {
         if (clazz == LuaValue.class || clazz == LuaBoolean.class)
             return this;
-        else if (clazz == Object.class || clazz == Boolean.class || clazz == boolean.class)
+        else if (clazz == Object.class || clazz == Boolean.class)
             return value;
         return super.toJavaObject(clazz);
     }

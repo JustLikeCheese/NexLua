@@ -1364,7 +1364,7 @@ public class Lua {
             case BOOLEAN:
                 if (clazz == LuaValue.class || clazz == LuaBoolean.class)
                     return from(toBoolean(index));
-                else if (clazz == Object.class || clazz == Boolean.class || clazz == boolean.class)
+                else if (clazz == Object.class || clazz == Boolean.class)
                     return toBoolean(index);
                 break;
             case NUMBER:
@@ -1374,19 +1374,19 @@ public class Lua {
                     return toNumber(index);
                 else if (clazz == Number.class)
                     return toNumber(index);
-                else if (clazz == long.class || clazz == Long.class)
-                    return toInteger(index);
-                else if (clazz == int.class || clazz == Integer.class)
-                    return (int) toInteger(index);
-                else if (clazz == short.class || clazz == Short.class)
-                    return (short) toInteger(index);
-                else if (clazz == byte.class || clazz == Byte.class)
-                    return (byte) toInteger(index);
-                else if (clazz == char.class || clazz == Character.class)
+                else if (clazz == Character.class)
                     return (char) toInteger(index);
-                else if (clazz == float.class || clazz == Float.class)
+                else if (clazz == Byte.class)
+                    return (byte) toInteger(index);
+                else if (clazz == Integer.class)
+                    return (int) toInteger(index);
+                else if (clazz == Short.class)
+                    return (short) toInteger(index);
+                else if (clazz == Long.class)
+                    return toInteger(index);
+                else if (clazz == Float.class)
                     return (float) toNumber(index);
-                else if (clazz == double.class || clazz == Double.class)
+                else if (clazz == Double.class)
                     return toNumber(index);
             case STRING:
                 if (clazz == LuaValue.class || clazz == LuaString.class)
