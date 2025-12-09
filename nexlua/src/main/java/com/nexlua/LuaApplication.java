@@ -60,22 +60,6 @@ public class LuaApplication extends Application implements LuaContext {
         module.load(L);
     }
 
-    protected boolean onLuaEvent(LuaFunction event, Object... args) {
-        if (event != null) {
-            try {
-                event.pCall(args, Lua.Conversion.SEMI, 1);
-                return L.LtoBoolean(-1);
-            } catch (LuaException e) {
-                sendError(e);
-            }
-        }
-        return false;
-    }
-
-    protected boolean runFunc(String funcName, Object... args) throws LuaException {
-        return onLuaEvent(L.getLuaFunction(funcName), args);
-    }
-
     @Override
     public void onTerminate() {
         super.onTerminate();

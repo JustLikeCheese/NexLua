@@ -33,7 +33,6 @@ import androidx.annotation.NonNull;
 import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.LuaHandler;
-import com.luajava.value.LuaValue;
 import com.luajava.value.referable.LuaFunction;
 import com.nexlua.module.LuaModule;
 
@@ -67,7 +66,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
                 luaPath = module.getAbsolutePath();
                 luaDir = LuaUtil.getParentPath(luaPath);
             }
-            initialize(L);
+            initLua(L);
             loadLua();
             loadEvent();
         } catch (Exception e) {
@@ -201,39 +200,6 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         setHomeAsUpEnabled(true);
         setContentView(consoleLayout);
         isViewInflated = false;
-    }
-
-    protected boolean onLuaEvent(LuaValue event, Object... args) {
-        if (event != null) {
-            try {
-                L.push(event);
-                if (L.isFunction(-1)) {
-                    L.pCall(args, Lua.Conversion.SEMI, 1);
-                    Object object = L.get().toJavaObject();
-                    return object != Boolean.FALSE && object != null;
-                }
-                return false;
-            } catch (LuaException e) {
-                sendError(e);
-            }
-        }
-        return false;
-    }
-
-    protected boolean runFunc(String funcName, Object... args) {
-        if (funcName != null) {
-            try {
-                L.getGlobal(funcName);
-                if (L.isFunction(-1)) {
-                    L.pCall(args, Lua.Conversion.SEMI, 1);
-                    return L.LtoBoolean(-1);
-                }
-                return false;
-            } catch (LuaException e) {
-                sendError(e);
-            }
-        }
-        return false;
     }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
@@ -562,7 +528,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         return this;
     }
 
-    public void initialize(Lua L) throws LuaException {
+    public void initLua(Lua L) throws LuaException {
         L.openLibraries();
         L.openLibrary("luajava");
         L.setExternalLoader(config);
