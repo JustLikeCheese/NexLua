@@ -22,6 +22,8 @@
 
 package com.luajava.value.referable;
 
+import androidx.annotation.Nullable;
+
 import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.value.AbstractLuaRefValue;
@@ -69,7 +71,7 @@ public class LuaLightUserdata extends AbstractLuaRefValue {
     }
 
     @Override
-    public Object toJavaObject(Class<?> clazz) throws LuaException {
+    public @Nullable Object toJavaObject(Class<?> clazz) throws LuaException {
         if (clazz == LuaValue.class || clazz == LuaLightUserdata.class)
             return this;
         else if (clazz == Object.class)

@@ -23,6 +23,7 @@
 package com.luajava.value;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.luajava.CFunction;
 import com.luajava.Lua;
@@ -300,12 +301,6 @@ public interface LuaValue {
 
     @NonNull String toString();
 
-    boolean LtoBoolean() throws LuaException;
-
-    long LtoInteger() throws LuaException;
-
-    double LtoNumber() throws LuaException;
-
     String LtoString() throws LuaException;
 
     Buffer toBuffer() throws LuaException;
@@ -350,7 +345,7 @@ public interface LuaValue {
 
     boolean isJavaObject(Class<?> clazz) throws LuaException;
 
-    Object toJavaObject(Class<?> clazz) throws IllegalArgumentException, LuaException;
+    @Nullable Object toJavaObject(Class<?> clazz) throws LuaException;
 
     Object[] toJavaArray() throws LuaException;
 

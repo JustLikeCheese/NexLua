@@ -23,6 +23,7 @@
 package com.luajava.value;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.luajava.CFunction;
 import com.luajava.Lua;
@@ -822,21 +823,6 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean LtoBoolean() throws LuaException {
-        return toBoolean();
-    }
-
-    @Override
-    public long LtoInteger() throws LuaException {
-        return toInteger();
-    }
-
-    @Override
-    public double LtoNumber() throws LuaException {
-        return toNumber();
-    }
-
-    @Override
     public String LtoString() throws LuaException {
         push();
         String result = L.LtoString(-1);
@@ -960,12 +946,27 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public Object toJavaObject(Class<?> clazz) throws LuaException {
-        if (clazz == Void.class || clazz == void.class)
-            return null;
-        else if (clazz == boolean.class || clazz == Boolean.class)
-            return true;
-        throw new LuaException(String.format("Could not convert %s to %s", typeName(), clazz.getName()));
+    public @Nullable Object toJavaObject(Class<?> clazz) throws LuaException {
+        if (clazz.isPrimitive()) {
+            if (clazz == boolean.class) {
+                return toBoolean();
+            } else if (clazz == char.class) {
+                return (char) toInteger();
+            } else if (clazz == byte.class) {
+                return (byte) toInteger();
+            } else if (clazz == short.class) {
+                return (short) toInteger();
+            } else if (clazz == int.class) {
+                return (int) toInteger();
+            } else if (clazz == long.class) {
+                return toInteger();
+            } else if (clazz == float.class) {
+                return (float) toNumber();
+            } else if (clazz == double.class) {
+                return toNumber();
+            }
+        }
+        return null;
     }
 
     @Override

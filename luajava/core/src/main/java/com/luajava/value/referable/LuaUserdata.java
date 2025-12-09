@@ -22,6 +22,8 @@
 
 package com.luajava.value.referable;
 
+import androidx.annotation.Nullable;
+
 import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.util.ClassUtils;
@@ -116,36 +118,7 @@ public class LuaUserdata extends AbstractLuaRefValue {
     }
 
     @Override
-    public boolean LtoBoolean() throws LuaException {
-        if (isJavaObject()) {
-            Object object = toJavaObject();
-            if (object == null) {
-                return false;
-            } else if (Boolean.class.isAssignableFrom(ClassUtils.getWrapperType(object.getClass()))) {
-                return (boolean) object;
-            }
-        }
-        return super.LtoBoolean();
-    }
-
-    @Override
-    public long LtoInteger() throws LuaException {
-        if (isJavaObject(Number.class)) {
-            return ((Number) toJavaObject(Number.class)).longValue();
-        }
-        return super.LtoInteger();
-    }
-
-    @Override
-    public double LtoNumber() throws LuaException {
-        if (isJavaObject(Number.class)) {
-            return ((Number) toJavaObject(Number.class)).doubleValue();
-        }
-        return super.LtoNumber();
-    }
-
-    @Override
-    public String LtoString() throws LuaException {
+    public @Nullable String LtoString() throws LuaException {
         if (isJavaObject(String.class)) {
             return (String) toJavaObject(String.class);
         }

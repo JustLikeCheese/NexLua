@@ -537,41 +537,6 @@ public class Lua {
         return C.luaJ_tostring(L, index);
     }
 
-    public boolean LtoBoolean(int index) {
-        if (isJavaObject(index)) {
-            Object object = toJavaObject(index);
-            if (object == null) {
-                return false;
-            } else if (Boolean.class.isAssignableFrom(ClassUtils.getWrapperType(object.getClass()))) {
-                return (boolean) object;
-            }
-            return true;
-        }
-        return toBoolean(index);
-    }
-
-    public long LtoInteger(int index) {
-        if (isJavaObject(index)) {
-            Object object = toJavaObject(index);
-            if (Number.class.isAssignableFrom(ClassUtils.getWrapperType(object.getClass()))) {
-                return ((Number) object).longValue();
-            }
-            return 0;
-        }
-        return toInteger(index);
-    }
-
-    public double LtoNumber(int index) {
-        if (isJavaObject(index)) {
-            Object object = toJavaObject(index);
-            if (Number.class.isAssignableFrom(ClassUtils.getWrapperType(object.getClass()))) {
-                return ((Number) object).doubleValue();
-            }
-            return 0;
-        }
-        return toNumber(index);
-    }
-
     public @Nullable ByteBuffer toBuffer(int index) {
         return (ByteBuffer) C.luaJ_tobuffer(L, index);
     }
@@ -1386,7 +1351,7 @@ public class Lua {
         return false;
     }
 
-    public Object toJavaObject(int index, Class<?> clazz) throws IllegalArgumentException, LuaException {
+    public @Nullable Object toJavaObject(int index, Class<?> clazz) throws LuaException {
         LuaType type = type(index);
         switch (type) {
             case NIL:
@@ -1394,10 +1359,6 @@ public class Lua {
                 if (clazz == LuaValue.class || clazz == LuaNil.class)
                     return NIL;
                 else if (clazz == Objects.class)
-                    return null;
-                else if (clazz == boolean.class || clazz == Boolean.class)
-                    return false;
-                else if (!clazz.isPrimitive())
                     return null;
                 break;
             case BOOLEAN:
@@ -1475,11 +1436,26 @@ public class Lua {
                     }
                 }
         }
-        if (clazz == Void.class || clazz == void.class)
-            return null;
-        else if (clazz == boolean.class || clazz == Boolean.class)
-            return true;
-        throw new LuaException(String.format("Could not convert %s to %s", type, clazz.getName()));
+        if (clazz.isPrimitive()) {
+            if (clazz == boolean.class) {
+                return toBoolean(index);
+            } else if (clazz == char.class) {
+                return (char) toInteger(index);
+            } else if (clazz == byte.class) {
+                return (byte) toInteger(index);
+            } else if (clazz == short.class) {
+                return (short) toInteger(index);
+            } else if (clazz == int.class) {
+                return (int) toInteger(index);
+            } else if (clazz == long.class) {
+                return toInteger(index);
+            } else if (clazz == float.class) {
+                return (float) toNumber(index);
+            } else if (clazz == double.class) {
+                return toNumber(index);
+            }
+        }
+        return null;
     }
 
     public Object toJavaArray(int idx) throws LuaException {

@@ -1,6 +1,7 @@
 package com.luajava.value.immutable;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.luajava.Lua;
 import com.luajava.LuaException;
@@ -91,7 +92,7 @@ public class LuaNumber extends AbstractLuaValue {
     }
 
     @Override
-    public Object toJavaObject(Class<?> clazz) throws LuaException {
+    public @Nullable Object toJavaObject(Class<?> clazz) throws LuaException {
         if (clazz == LuaValue.class || clazz == LuaNumber.class)
             return this;
         else if (clazz == Object.class)
