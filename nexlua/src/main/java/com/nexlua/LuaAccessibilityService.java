@@ -13,60 +13,32 @@ import android.view.accessibility.AccessibilityEvent;
 
 import androidx.annotation.NonNull;
 
+import com.luajava.value.referable.LuaFunction;
+
 @SuppressLint("AccessibilityPolicy")
-public class LuaAccessibilityService extends AccessibilityService {
+public class LuaAccessibilityService extends AccessibilityService implements LuaContextUtils {
     protected static LuaAccessibilityService instance;
-    protected static Callback callback;
-
-    public interface Callback {
-        // Service Lifecycle
-        void onCreate();
-
-        void onStartCommand(Intent intent, int flags, int startId);
-
-        void onServiceConnected(LuaAccessibilityService service);
-
-        void onUnbind(Intent intent);
-
-        void onRebind(Intent intent);
-
-        void onTaskRemoved(Intent rootIntent);
-
-        void onDestroy();
-
-        // Accessibility Core
-        void onAccessibilityEvent(AccessibilityEvent event);
-
-        void onInterrupt();
-
-        // Input & Gestures
-        boolean onKeyEvent(KeyEvent event);
-
-        boolean onGesture(int gestureId); // For new API mapping
-
-        boolean onGestureId(int gestureId); // For legacy API mapping
-
-        void onMotionEvent(MotionEvent event);
-
-        InputMethod onCreateInputMethod();
-
-        // System & Configuration
-        void onSystemActionsChanged();
-
-        void onConfigurationChanged(LuaAccessibilityService luaAccessibilityService, Configuration newConfig);
-
-        // Memory
-        void onLowMemory();
-
-        void onTrimMemory(int level);
-    }
+    public static LuaFunction onCreate;
+    public static LuaFunction onStartCommand;
+    public static LuaFunction onServiceConnected;
+    public static LuaFunction onUnbind;
+    public static LuaFunction onRebind;
+    public static LuaFunction onTaskRemoved;
+    public static LuaFunction onDestroy;
+    public static LuaFunction onAccessibilityEvent;
+    public static LuaFunction onInterrupt;
+    public static LuaFunction onKeyEvent;
+    public static LuaFunction onGesture;
+    public static LuaFunction onGestureId;
+    public static LuaFunction onMotionEvent;
+    public static LuaFunction onCreateInputMethod;
+    public static LuaFunction onSystemActionsChanged;
+    public static LuaFunction onConfigurationChanged;
+    public static LuaFunction onLowMemory;
+    public static LuaFunction onTrimMemory;
 
     public static LuaAccessibilityService getInstance() {
         return instance;
-    }
-
-    public static void setCallback(Callback callback) {
-        LuaAccessibilityService.callback = callback;
     }
 
     // Service Lifecycle
@@ -74,149 +46,114 @@ public class LuaAccessibilityService extends AccessibilityService {
     public void onCreate() {
         super.onCreate();
         instance = this;
-        if (callback != null) {
-            callback.onCreate();
-        }
+        onLuaEvent(onCreate);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (callback != null) {
-            callback.onStartCommand(intent, flags, startId);
-        }
-        return super.onStartCommand(intent, flags, startId);
+        Integer result = (Integer) onLuaEvent(onStartCommand, Integer.class, intent, flags, startId);
+        return result != null ? result : super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
-        if (callback != null) {
-            callback.onServiceConnected(this);
-        }
+        onLuaEvent(onServiceConnected, this);
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
-        if (callback != null) {
-            callback.onUnbind(intent);
-        }
-        return super.onUnbind(intent);
+        Boolean result = (Boolean) onLuaEvent(onUnbind, Boolean.class, intent);
+        return result != null ? result : super.onUnbind(intent);
     }
 
     @Override
     public void onRebind(Intent intent) {
-        if (callback != null) {
-            callback.onRebind(intent);
-        }
+        onLuaEvent(onRebind, intent);
         super.onRebind(intent);
     }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        if (callback != null) {
-            callback.onTaskRemoved(rootIntent);
-        }
+        onLuaEvent(onTaskRemoved, rootIntent);
         super.onTaskRemoved(rootIntent);
     }
 
     @Override
     public void onDestroy() {
         instance = null;
-        if (callback != null) {
-            callback.onDestroy();
-        }
+        onLuaEvent(onDestroy);
         super.onDestroy();
     }
 
     // Accessibility Core
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        if (callback != null) {
-            callback.onAccessibilityEvent(event);
-        }
+        onLuaEvent(onAccessibilityEvent, event);
     }
 
     @Override
     public void onInterrupt() {
-        if (callback != null) {
-            callback.onInterrupt();
-        }
+        onLuaEvent(onInterrupt);
     }
 
     // Input & Gestures
     @Override
     protected boolean onKeyEvent(KeyEvent event) {
-        if (callback != null) {
-            return callback.onKeyEvent(event);
-        }
-        return super.onKeyEvent(event);
+        Boolean result = (Boolean) onLuaEvent(onKeyEvent, Boolean.class, event);
+        return result != null ? result : super.onKeyEvent(event);
     }
 
     @Override
     public boolean onGesture(@NonNull AccessibilityGestureEvent gestureEvent) {
-        if (callback != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                return callback.onGesture(gestureEvent.getGestureId());
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Boolean result = (Boolean) onLuaEvent(onGesture, Boolean.class, gestureEvent.getGestureId());
+            return result != null ? result : super.onGesture(gestureEvent);
         }
         return super.onGesture(gestureEvent);
     }
 
     @Override
     protected boolean onGesture(int gestureId) {
-        if (callback != null) {
-            return callback.onGestureId(gestureId);
-        }
-        return super.onGesture(gestureId);
+        Boolean result = (Boolean) onLuaEvent(onGestureId, Boolean.class, gestureId);
+        return result != null ? result : super.onGesture(gestureId);
     }
 
     @Override
     public void onMotionEvent(@NonNull MotionEvent event) {
-        if (callback != null) {
-            callback.onMotionEvent(event);
-        }
+        onLuaEvent(onMotionEvent, event);
         super.onMotionEvent(event);
     }
 
     @NonNull
     @Override
     public InputMethod onCreateInputMethod() {
-        if (callback != null) {
-            return callback.onCreateInputMethod();
-        }
-        return super.onCreateInputMethod();
+        InputMethod result = (InputMethod) onLuaEvent(onCreateInputMethod, InputMethod.class);
+        return result != null ? result : super.onCreateInputMethod();
     }
 
     // System & Configuration
     @Override
     public void onSystemActionsChanged() {
-        if (callback != null) {
-            callback.onSystemActionsChanged();
-        }
+        onLuaEvent(onSystemActionsChanged);
         super.onSystemActionsChanged();
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-        if (callback != null) {
-            callback.onConfigurationChanged(this, newConfig);
-        }
+        onLuaEvent(onConfigurationChanged, this, newConfig);
     }
 
     // Memory
     @Override
     public void onLowMemory() {
-        if (callback != null) {
-            callback.onLowMemory();
-        }
+        onLuaEvent(onLowMemory);
         super.onLowMemory();
     }
 
     @Override
     public void onTrimMemory(int level) {
-        if (callback != null) {
-            callback.onTrimMemory(level);
-        }
+        onLuaEvent(onTrimMemory, level);
         super.onTrimMemory(level);
     }
 }
