@@ -6,11 +6,17 @@ import com.luajava.value.referable.LuaFunction;
 
 public interface LuaContextUtils {
     default boolean onLuaEvent(LuaFunction function, Object... args) {
-        return onLuaEvent(function.state(), function, args);
+        if (function != null) {
+            return onLuaEvent(function.state(), function, args);
+        }
+        return false;
     }
 
     default Object onLuaEvent(LuaFunction function, Class<?> clazz, Object... args) {
-        return onLuaEvent(function.state(), function, clazz, args);
+        if (function != null) {
+            return onLuaEvent(function.state(), function, clazz, args);
+        }
+        return null;
     }
 
     static boolean runFunc(Lua L, String funcName, Object... args) {
