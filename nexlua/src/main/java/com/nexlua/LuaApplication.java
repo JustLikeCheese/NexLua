@@ -15,8 +15,6 @@ import com.nexlua.module.LuaModule;
 import java.io.File;
 import java.util.ArrayList;
 
-import io.github.justlikecheese.nextoast.NexToast;
-
 public class LuaApplication extends Application implements LuaContext {
     protected static LuaApplication mApplication;
     protected String luaPath, luaDir, luaLpath, luaCpath, baseCpath, baseLpath;
@@ -24,7 +22,7 @@ public class LuaApplication extends Application implements LuaContext {
     protected final Lua L = new Lua(this);
     protected LuaConfig config;
     protected LuaModule module;
-    protected NexToast mToast;
+    protected Toast mToast;
     protected StringBuilder mToastBuilder;
     protected long mToastTime;
 
@@ -116,7 +114,7 @@ public class LuaApplication extends Application implements LuaContext {
             mToastBuilder = new StringBuilder();
         if (mToast == null || now - mToastTime > 1000) {
             mToastBuilder.setLength(0);
-            mToast = NexToast.makeText(this, message, Toast.LENGTH_LONG);
+            mToast = Toast.makeText(this, message, Toast.LENGTH_LONG);
             mToastBuilder.append(message);
             mToast.show();
         } else {

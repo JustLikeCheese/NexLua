@@ -11,7 +11,6 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.luajava.CFunction;
-import com.luajava.JuaAPI;
 import com.luajava.Lua;
 import com.luajava.LuaException;
 
@@ -19,8 +18,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
-import io.github.justlikecheese.nextoast.NexToast;
 
 public class TestActivity extends Activity {
     public static final Lua L = new Lua();
@@ -140,14 +137,15 @@ public class TestActivity extends Activity {
                 .show();
     }
 
-    NexToast mToast;
+    Toast mToast;
     StringBuilder mToastBuilder = new StringBuilder();
     long mToastTime;
+
     public void showToast(String message) {
         long now = System.currentTimeMillis();
         if (mToast == null || now - mToastTime > 1000) {
             mToastBuilder.setLength(0);
-            mToast = NexToast.makeText(this, message, Toast.LENGTH_LONG);
+            mToast = Toast.makeText(this, message, Toast.LENGTH_LONG);
             mToastBuilder.append(message);
             mToast.show();
         } else {

@@ -1,11 +1,11 @@
 [versions]
 agp = "8.13.1"
-nextoast = "1.2.2"
+luaeditor = "1.0.0"
 vanniktech-maven-publish = "0.35.0"
 androidx-annotation = "1.9.1"
 
 [libraries]
-nextoast = { module = "io.github.justlikecheese.nextoast:NexToast", version.ref = "nextoast" }
+luaeditor = { module = "io.github.justlikecheese.editor:LuaEditor", version.ref = "luaeditor" }
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidx-annotation" }
 
 [plugins]
