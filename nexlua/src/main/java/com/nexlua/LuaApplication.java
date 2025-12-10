@@ -21,7 +21,7 @@ public class LuaApplication extends Application implements LuaContext {
     protected static LuaApplication mApplication;
     protected String luaPath, luaDir, luaLpath, luaCpath, baseCpath, baseLpath;
     protected LuaFunction mOnTerminate, mOnLowMemory, mOnTrimMemory, mOnConfigurationChanged;
-    protected Lua L;
+    protected final Lua L = new Lua(this);
     protected LuaConfig config;
     protected LuaModule module;
     protected NexToast mToast;

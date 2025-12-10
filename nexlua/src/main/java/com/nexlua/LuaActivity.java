@@ -47,7 +47,7 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     protected LuaBroadcastReceiver mReceiver;
     protected final LuaApplication app = LuaApplication.getInstance();
     protected final LuaConfig config = app.getConfig();
-    protected Lua L;
+    protected final Lua L = new Lua(this);
     protected LuaPrint print;
     protected String luaPath, luaDir, luaLpath, luaCpath;
     protected Bundle savedInstanceState;
@@ -82,7 +82,6 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     }
 
     public void initLua() throws LuaException {
-        L = new Lua(this);
         L.openLibraries();
         L.openLibrary("luajava");
         L.setExternalLoader(config);
