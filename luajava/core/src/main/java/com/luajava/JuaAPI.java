@@ -28,15 +28,47 @@ import com.luajava.value.LuaValue;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.*;
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 import java.nio.ByteBuffer;
-import java.util.*;
 
 // LuaJava Helper
 public final class JuaAPI {
     public static boolean matchParams(Class<?>[] paramTypes, LuaValue[] values) throws LuaException {
+        if (paramTypes.length != values.length) {
+            return false;
+        }
         for (int i = 0; i < paramTypes.length; i++) {
             if (!values[i].isJavaObject(paramTypes[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean matchVarParams(Class<?>[] paramTypes, LuaValue[] values) throws LuaException {
+        int valueCount = values.length;
+        int fixedParamCount = paramTypes.length - 1;
+        if (valueCount < fixedParamCount) {
+            return false;
+        }
+        for (int i = 0; i < fixedParamCount; i++) {
+            if (!values[i].isJavaObject(paramTypes[i])) {
+                return false;
+            }
+        }
+        Class<?> varArgType = paramTypes[fixedParamCount].getComponentType();
+        if (varArgType == null) {
+            return false;
+        }
+        for (int i = fixedParamCount; i < valueCount; i++) {
+            if (!values[i].isJavaObject(varArgType)) {
                 return false;
             }
         }
@@ -52,8 +84,29 @@ public final class JuaAPI {
         return objects;
     }
 
+    public static Object[] convertVarParams(Class<?>[] paramTypes, LuaValue[] values) throws LuaException {
+        int fixedParamCount = paramTypes.length - 1;
+        Object[] objects = new Object[paramTypes.length];
+        for (int i = 0; i < fixedParamCount; i++) {
+            objects[i] = values[i].toJavaObject(paramTypes[i]);
+        }
+        Class<?> varArgType = paramTypes[fixedParamCount].getComponentType();
+        if (varArgType == null) {
+            throw new LuaException("Invalid varargs parameter type: " + paramTypes[fixedParamCount]);
+        }
+        int varArgCount = values.length - fixedParamCount;
+        Object varArgArray = Array.newInstance(varArgType, varArgCount);
+        for (int i = 0; i < varArgCount; i++) {
+            Array.set(varArgArray, i, values[fixedParamCount + i].toJavaObject(varArgType));
+        }
+        objects[fixedParamCount] = varArgArray;
+        return objects;
+    }
+
     public static Object callMethod(Object object, Method method, Class<?>[] paramTypes, LuaValue[] values) throws InvocationTargetException, IllegalAccessException, LuaException {
-        Object[] objects = convertParams(paramTypes, values);
+        Object[] objects = method.isVarArgs()
+                ? convertVarParams(paramTypes, values)
+                : convertParams(paramTypes, values);
         return ClassUtils.callMethod(object, method, objects);
     }
 
@@ -71,18 +124,27 @@ public final class JuaAPI {
     }
 
     public static Method matchMethod(Object object, Method[] methods, String name, LuaValue[] values) throws LuaException {
-        ArrayList<Method> matchedMethod = new ArrayList<>();
+        Method matchedVarArgsMethod = null;
         for (Method method : methods) {
             if (!method.getName().equals(name)) continue;
-            matchedMethod.add(method);
             if (object == null && !Modifier.isStatic(method.getModifiers())) continue;
             Class<?>[] paramTypes = method.getParameterTypes();
-            if (paramTypes.length != values.length) continue;
-            if (!matchParams(paramTypes, values)) continue;
-            return method;
+            if (method.isVarArgs()) {
+                if (matchVarParams(paramTypes, values)) {
+                    matchedVarArgsMethod = method;
+                }
+            } else {
+                if (matchParams(paramTypes, values)) {
+                    return method;
+                }
+            }
+        }
+        if (matchedVarArgsMethod != null) {
+            return matchedVarArgsMethod;
         }
         StringBuilder msg = new StringBuilder("Invalid method call. Invalid Parameters.\n");
-        for (Method method : matchedMethod) {
+        for (Method method : methods) {
+            if (!method.getName().equals(name)) continue;
             msg.append(method);
             msg.append("\n");
         }
@@ -90,7 +152,9 @@ public final class JuaAPI {
     }
 
     public static Object callConstructor(Constructor<?> constructor, Class<?>[] paramTypes, LuaValue[] values) throws InvocationTargetException, IllegalAccessException, InstantiationException, LuaException {
-        Object[] objects = convertParams(paramTypes, values);
+        Object[] objects = constructor.isVarArgs()
+                ? convertVarParams(paramTypes, values)
+                : convertParams(paramTypes, values);
         return constructor.newInstance(objects);
     }
 
@@ -106,11 +170,21 @@ public final class JuaAPI {
     }
 
     public static Constructor<?> matchConstructor(Constructor<?>[] constructors, LuaValue[] values) throws LuaException, IllegalArgumentException {
+        Constructor<?> matchedVarArgsConstructor = null;
         for (Constructor<?> constructor : constructors) {
             Class<?>[] paramTypes = constructor.getParameterTypes();
-            if (paramTypes.length != values.length) continue;
-            if (!matchParams(paramTypes, values)) continue;
-            return constructor;
+            if (constructor.isVarArgs()) {
+                if (matchVarParams(paramTypes, values)) {
+                    matchedVarArgsConstructor = constructor;
+                }
+            } else {
+                if (matchParams(paramTypes, values)) {
+                    return constructor;
+                }
+            }
+        }
+        if (matchedVarArgsConstructor != null) {
+            return matchedVarArgsConstructor;
         }
         StringBuilder msg = new StringBuilder("Invalid constructor call. Invalid Parameters.\n");
         for (Constructor<?> constructor : constructors) {
@@ -205,13 +279,18 @@ public final class JuaAPI {
         }
         for (Method method : methods) {
             Class<?>[] paramTypes = method.getParameterTypes();
-            if (Modifier.isStatic(method.getModifiers()) && paramTypes.length == values.length && matchParams(paramTypes, values)) {
+            if (Modifier.isStatic(method.getModifiers()) && paramTypes.length == values.length) {
                 String methodName = method.getName();
-                if (fieldMethodName1.equals(methodName)) {
-                    callMethod(null, method, method.getParameterTypes(), values);
-                    return 0;
-                } else if (fieldMethod2 == null && fieldMethodName2.equals(methodName)) {
-                    fieldMethod2 = method;
+                try {
+                    if (matchParams(paramTypes, values)) {
+                        if (fieldMethodName1.equals(methodName)) {
+                            callMethod(null, method, paramTypes, values);
+                            return 0;
+                        } else if (fieldMethod2 == null && fieldMethodName2.equals(methodName)) {
+                            fieldMethod2 = method;
+                        }
+                    }
+                } catch (LuaException ignored) {
                 }
             }
         }
@@ -277,17 +356,17 @@ public final class JuaAPI {
             if (!Modifier.isStatic(method.getModifiers())) { // instance method first
                 if (name.equals(method.getName())) { // object.methodName
                     return L.push(new JMethod(instance, clazz, name));
-                } else if (fieldMethod1 == null) { // object.get Xxx
+                } else if (fieldMethod1 == null && method.getParameterCount() == 0) { // object.get Xxx
                     if (fieldMethodName1.equals(methodName)) {
                         fieldMethod1 = method;
-                    } else if (fieldMethodName2.equals(methodName)) { // object.get xXX
+                    } else if (fieldMethod2 == null && fieldMethodName2.equals(methodName)) { // object.get xXX
                         fieldMethod2 = method;
                     }
                 }
             } else if (staticMethod == null) { // Class.methodName
                 if (name.equals(methodName)) {
                     staticMethod = method;
-                } else if (staticFieldMethod1 == null) {
+                } else if (staticFieldMethod1 == null && method.getParameterCount() == 0) {
                     if (fieldMethodName1.equals(methodName)) {
                         staticFieldMethod1 = method;
                     } else if (staticFieldMethod2 == null && fieldMethodName2.equals(methodName)) { // Class.get xXX
@@ -347,21 +426,26 @@ public final class JuaAPI {
         }
         for (Method method : methods) {
             Class<?>[] paramTypes = method.getParameterTypes();
-            if (paramTypes.length == values.length && matchParams(paramTypes, values)) {
+            if (paramTypes.length == values.length) {
                 String methodName = method.getName();
-                if (!Modifier.isStatic(method.getModifiers())) {
-                    if (fieldMethodName1.equals(methodName)) {
-                        callMethod(object, method, paramTypes, values);
-                        return 0;
-                    } else if (fieldMethod2 == null && fieldMethodName2.equals(methodName)) {
-                        fieldMethod2 = method;
+                try {
+                    if (matchParams(paramTypes, values)) {
+                        if (!Modifier.isStatic(method.getModifiers())) {
+                            if (fieldMethodName1.equals(methodName)) {
+                                callMethod(object, method, paramTypes, values);
+                                return 0;
+                            } else if (fieldMethod2 == null && fieldMethodName2.equals(methodName)) {
+                                fieldMethod2 = method;
+                            }
+                        } else {
+                            if (fieldMethodName1.equals(methodName)) {
+                                staticFieldMethod1 = method;
+                            } else if (staticFieldMethod2 == null && fieldMethodName2.equals(methodName)) {
+                                staticFieldMethod2 = method;
+                            }
+                        }
                     }
-                } else {
-                    if (fieldMethodName1.equals(methodName)) {
-                        staticFieldMethod1 = method;
-                    } else if (staticFieldMethod2 == null && fieldMethodName2.equals(methodName)) {
-                        staticFieldMethod2 = method;
-                    }
+                } catch (LuaException ignored) {
                 }
             }
         }
@@ -425,24 +509,11 @@ public final class JuaAPI {
         return sw.toString();
     }
 
-    /**
-     * Allocates a direct buffer whose memory is managed by Java
-     *
-     * @param size the buffer size
-     * @return a direct buffer
-     */
     @SuppressWarnings("unused")
     public static ByteBuffer allocateDirectBuffer(int size) {
         return ByteBuffer.allocateDirect(size);
     }
 
-    /**
-     * Pushes on stack the backing Lua table for a proxy
-     *
-     * @param id  the Lua state id
-     * @param obj the proxy object
-     * @return -1 on failure, 1 if successfully pushed
-     */
     public static int unwrap(long id, Object obj) throws LuaException {
         InvocationHandler handler = Proxy.getInvocationHandler(obj);
         if (handler instanceof LuaProxy) {
