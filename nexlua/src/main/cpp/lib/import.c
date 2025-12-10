@@ -56,7 +56,6 @@ static int import_mt_index(lua_State *L) {
         // push __import.packages[i]
         lua_rawgeti(L, -1, i);
         if (lua_type(L, -1) == LUA_TSTRING) {
-            LOG("%s", luaJ_dumpstack(L))
             const char *pkgName = lua_tostring(L, -1);
             size_t pkgLen = strlen(pkgName);
             char *fullName = malloc(pkgLen + keyLen + 2);
