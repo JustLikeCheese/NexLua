@@ -30,8 +30,6 @@ public class JMethod implements CFunction {
     private final Object object;
     private final Class<?> clazz;
     private final String name;
-    private Method method;
-    private Class<?> returnType;
 
     public JMethod(Object object, Class<?> clazz, String methodName) {
         if (clazz == null || methodName == null) {
@@ -45,11 +43,8 @@ public class JMethod implements CFunction {
     @Override
     public int __call(Lua L) throws LuaException {
         LuaValue[] values = L.getAll();
-        if (method == null) {
-            method = JuaAPI.matchMethod(object, clazz.getMethods(), name, values);
-            returnType = method.getReturnType();
-        }
+        Method method = JuaAPI.matchMethod(object, clazz.getMethods(), name, values);
         Object result = JuaAPI.callMethod(object, method, values);
-        return L.push(result, returnType);
+        return L.push(result, method.getReturnType());
     }
 }
