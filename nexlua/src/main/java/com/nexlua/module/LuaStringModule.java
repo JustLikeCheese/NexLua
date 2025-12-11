@@ -2,11 +2,11 @@ package com.nexlua.module;
 
 import com.luajava.Lua;
 
-public final class LuaDexModule extends LuaAbstractModule {
+public final class LuaStringModule extends LuaAbstractModule {
     private final String content;
     private final int length;
 
-    public LuaDexModule(String path, String content) {
+    public LuaStringModule(String path, String content) {
         super(path);
         this.content = content;
         this.length = content.length();
