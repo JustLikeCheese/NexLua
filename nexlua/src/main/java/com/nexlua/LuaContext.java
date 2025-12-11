@@ -7,6 +7,7 @@ import com.luajava.LuaException;
 import com.luajava.LuaHandler;
 import com.luajava.value.referable.LuaFunction;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public interface LuaContext extends LuaHandler, LuaContextUtils {
@@ -38,5 +39,9 @@ public interface LuaContext extends LuaHandler, LuaContextUtils {
 
     default Object runFunc(String funcName, Class<?> clazz, Object... args) {
         return LuaContextUtils.runFunc(getLua(), funcName, clazz, args);
+    }
+
+    default String getLuaDir(String path) {
+        return new File(getLuaDir(), path).getAbsolutePath();
     }
 }
