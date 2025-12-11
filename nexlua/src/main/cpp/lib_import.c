@@ -168,8 +168,25 @@ static int local_import(lua_State *L, int idx) {
 
 /* Modules and functions */
 int import(lua_State *L) {
-    luaL_checktype(L, 1, LUA_TSTRING);
-    return local_import(L, 1);
+    int type = lua_type(L, 1);
+    if (type == LUA_TSTRING) {
+        return local_import(L, 1);
+    }
+    if (type == LUA_TTABLE) {
+        lua_pushnil(L);
+        while (lua_next(L, 1) != 0) {
+            if (lua_type(L, -1) == LUA_TSTRING) {
+                int top = lua_gettop(L);
+                const char *str = lua_tostring(L, -1);
+                lua_pushstring(L, str);
+                local_import(L, -1);
+                lua_settop(L, top);
+            }
+            lua_pop(L, 1);
+        }
+        return 0;
+    }
+    return luaL_typerror(L, 1, "string or table");
 }
 
 /* Register the module */
