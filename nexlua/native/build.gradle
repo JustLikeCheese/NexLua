@@ -11,7 +11,18 @@ android {
 
     defaultConfig {
         minSdk 21
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
     }
+
+    externalNativeBuild {
+        cmake {
+            version '3.22.1'
+            path file('src/main/cpp/CMakeLists.txt')
+        }
+    }
+    ndkVersion '27.0.12077973'
 
     buildTypes {
         release {
@@ -26,17 +37,15 @@ android {
 }
 
 dependencies {
-    api project(":nexlua:core")
-    api project(":nexlua:native")
 }
 
 mavenPublishing {
-    coordinates("io.github.justlikecheese.nexlua", "NexLua", "1.1.4")
+    coordinates("io.github.justlikecheese.nexlua", "NexLua-Native", "1.1.4")
     publishToMavenCentral()
     signAllPublications()
 
     pom {
-        name = "NexLua"
+        name = "LuaJava"
         description = "A high-performance LuaJIT framework for Android"
         inceptionYear = "2025"
         url = "https://github.com/JustLikeCheese/NexLua/"

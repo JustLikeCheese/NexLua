@@ -20,23 +20,23 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 }
 
 dependencies {
-    api project(":nexlua:core")
-    api project(":nexlua:native")
+    compileOnly(libs.androidx.annotation)
+    api project(":luajava:core")
 }
 
 mavenPublishing {
-    coordinates("io.github.justlikecheese.nexlua", "NexLua", "1.1.4")
+    coordinates("io.github.justlikecheese.nexlua", "NexLua-Core", "1.1.4")
     publishToMavenCentral()
     signAllPublications()
 
     pom {
-        name = "NexLua"
+        name = "LuaJava"
         description = "A high-performance LuaJIT framework for Android"
         inceptionYear = "2025"
         url = "https://github.com/JustLikeCheese/NexLua/"

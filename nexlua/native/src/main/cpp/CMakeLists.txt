@@ -7,7 +7,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(LUAJAVA_REL_DIR "../../../../luajava/native/src/main/cpp")
+set(LUAJAVA_REL_DIR "../../../../../luajava/native/src/main/cpp")
 get_filename_component(LUAJAVA_DIR "${LUAJAVA_REL_DIR}" ABSOLUTE BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 # include
