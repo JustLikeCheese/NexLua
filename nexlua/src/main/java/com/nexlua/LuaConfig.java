@@ -5,7 +5,7 @@ import androidx.annotation.Nullable;
 import com.luajava.ExternalLoader;
 import com.luajava.Lua;
 import com.nexlua.module.LuaAssetsModule;
-import com.nexlua.module.LuaDexModule;
+import com.nexlua.module.LuaStringModule;
 import com.nexlua.module.LuaFileModule;
 import com.nexlua.module.LuaModule;
 import com.nexlua.module.LuaResourceModule;
@@ -52,7 +52,7 @@ public class LuaConfig implements ExternalLoader {
     }
 
     public LuaModule registerStringModule(String path, String content) {
-        return register(new LuaDexModule(path, content));
+        return register(new LuaStringModule(path, content));
     }
 
     public @Nullable LuaModule getModule(String absolutePath) {

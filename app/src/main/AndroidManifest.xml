@@ -64,7 +64,7 @@
         android:supportsPictureInPicture="true"
         tools:targetApi="24">
         <activity
-            android:name="com.nexlua.Main"
+            android:name="com.mycompany.MainActivity"
             android:theme="@android:style/Theme.Material.Light"
             android:exported="true">
             <intent-filter>
