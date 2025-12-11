@@ -1,6 +1,4 @@
-#include "dump.h"
-#include "luacomp.h"
-#include "luareg.h"
+#include "nexlua.h"
 
 static void add_quoted(luaL_Buffer *b, const char *s, size_t len) {
     luaL_addchar(b, '"');

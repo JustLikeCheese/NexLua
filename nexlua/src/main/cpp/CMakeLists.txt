@@ -34,11 +34,8 @@ set(LUAJAVA_SRC
         "${LUAJAVA_DIR}/luajava/luajavacore.c"
         "${LUAJAVA_DIR}/luajava/luajavaloader.c"
         "${LUAJAVA_DIR}/luajava/nexlua.c"
-        # extra library
-        "${CMAKE_CURRENT_SOURCE_DIR}/lib/dump.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/lib/import.c"
         # libnexlua.c
-        "${CMAKE_CURRENT_SOURCE_DIR}/libnexlua.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/nexlua.c"
 )
 add_library(luajava SHARED ${LUAJAVA_SRC})
 

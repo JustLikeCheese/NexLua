@@ -1,13 +1,6 @@
-//
-// Created by Cheese on 2025/12/3.
-//
-
 #include <string.h>
 #include <malloc.h>
-#include "import.h"
-#include "luacomp.h"
-#include "luajava.h"
-#include "luajavaapi.h"
+#include "nexlua.h"
 
 static const char *get_simple_name(const char *name) {
     const char *simpleName = name;
@@ -177,4 +170,17 @@ static int local_import(lua_State *L, int idx) {
 int import(lua_State *L) {
     luaL_checktype(L, 1, LUA_TSTRING);
     return local_import(L, 1);
+}
+
+/* Register the module */
+REGISTER_MODULE(import, luaopen_import);
+int luaopen_import(lua_State *L) {
+    // import function
+    lua_pushcfunction(L, import);
+    lua_pushvalue(L, -1);
+    lua_setglobal(L, IMPORT_LIBNAME);
+    // dump function
+    lua_pushcfunction(L, luaopen_dump);
+    lua_setglobal(L, "dump");
+    return 1;
 }
