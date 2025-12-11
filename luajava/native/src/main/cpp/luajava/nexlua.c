@@ -245,6 +245,16 @@ JNIWRAP(void, luaJ_1refCopyTo, jlong ptr, jlong ptr1, jint ref) {
     lua_pop(L, 1);
 }
 
+JNIWRAP(jint, luaJ_1loadstringbuffer, jlong ptr, jbyteArray buff, jlong sz, jstring name) {
+    const char *c_name = GetString(name);
+    jbyte *c_buff_jbyte = (*env)->GetByteArrayElements(env, buff, NULL);
+    const char *c_buff = (const char *) c_buff_jbyte;
+    jint result = luaL_loadbuffer(L, c_buff, (size_t) sz, c_name);
+    (*env)->ReleaseByteArrayElements(env, buff, c_buff_jbyte, JNI_ABORT);
+    ReleaseString(name, c_name);
+    return result;
+}
+
 #undef L
 #undef L1
 #undef JNIWRAP

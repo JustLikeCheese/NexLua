@@ -533,7 +533,7 @@ public class Lua {
         return C.lua_tostring(L, index);
     }
 
-    public @Nullable String LtoString(int index) {
+    public String LtoString(int index) {
         return C.luaJ_tostring(L, index);
     }
 
@@ -1527,9 +1527,14 @@ public class Lua {
         checkError(C.luaL_loadfile(L, filename), false);
     }
 
-    public void loadStringBuffer(String script, String name) throws LuaException {
+    public void loadStringBuffer(String script, int length, String name) throws LuaException {
         checkStack(1);
-        checkError(C.luaL_loadbuffer(L, script, script.length(), name), false);
+        checkError(C.luaL_loadbuffer(L, script, length, name), false);
+    }
+
+    public void loadStringBuffer(byte[] script, int length, String name) throws LuaException {
+        checkStack(1);
+        checkError(C.luaJ_loadstringbuffer(L, script, length, name), false);
     }
 
     public void doFile(String filename) throws LuaException {

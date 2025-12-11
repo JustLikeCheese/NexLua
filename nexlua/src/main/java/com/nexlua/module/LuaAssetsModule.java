@@ -12,10 +12,11 @@ public final class LuaAssetsModule extends LuaAbstractModule {
     }
 
     @Override
-    public int load(Lua L) throws Exception{
+    public int load(Lua L) throws Exception {
         int top = L.getTop();
         try {
-            L.loadStringBuffer(LuaUtil.readAsset(assetsName), "@" + assetsName);
+            byte[] content = LuaUtil.readAssetBytes(assetsName);
+            L.loadStringBuffer(content, content.length, "@" + assetsName);
             return L.pCall(0, -1);
         } finally {
             L.setTop(top);

@@ -18,8 +18,7 @@ public class LuaPrint implements CFunction {
         if (top > 0) {
             output.append(L.LtoString(1));
             for (int i = 2; i <= top; i++) {
-                output.append("\t");
-                output.append(L.LtoString(i));
+                output.append("\t").append(L.LtoString(i));
             }
             mLuaContext.sendMessage(output.toString());
             output.setLength(0);

@@ -135,6 +135,8 @@ public class LuaNatives {
 
     public native void luaJ_refCopyTo(long ptr, long ptr1, int ref);
 
+    public native int luaJ_loadstringbuffer(long ptr, byte[] buff, long sz, String name);
+
     // lua.h bindings
     public native void lua_close(long ptr);
 
