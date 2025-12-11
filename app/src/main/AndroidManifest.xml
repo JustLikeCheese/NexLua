@@ -64,7 +64,7 @@
         android:supportsPictureInPicture="true"
         tools:targetApi="24">
         <activity
-            android:name="com.nexlua.Welcome"
+            android:name="com.nexlua.Main"
             android:theme="@android:style/Theme.Material.Light"
             android:exported="true">
             <intent-filter>
@@ -73,9 +73,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name="com.nexlua.Main"
-            android:exported="true" />
         <activity
             android:name="com.nexlua.LuaActivity"
             android:exported="false" />
