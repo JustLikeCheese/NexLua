@@ -13,13 +13,8 @@ public final class LuaResourceModule extends LuaAbstractModule {
 
     @Override
     public int load(Lua L) throws Exception {
-        int top = L.getTop();
-        try {
-            byte[] content = LuaUtil.readRawBytes(resId);
-            L.loadStringBuffer(content, content.length, "@" + resId + ".lua");
-            return L.pCall(0, -1);
-        } finally {
-            L.setTop(top);
-        }
+        byte[] content = LuaUtil.readRawBytes(resId);
+        L.loadStringBuffer(content, content.length, "@" + resId + ".lua");
+        return L.pCall(0, -1);
     }
 }

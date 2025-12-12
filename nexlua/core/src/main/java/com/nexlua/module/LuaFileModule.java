@@ -14,12 +14,7 @@ public final class LuaFileModule extends LuaAbstractModule {
 
     @Override
     public int load(Lua L) throws Exception {
-        int top = L.getTop();
-        try {
-            L.loadFile(file.getAbsolutePath());
-            return L.pCall(0, -1);
-        } finally {
-            L.setTop(top);
-        }
+        L.loadFile(file.getAbsolutePath());
+        return L.pCall(0, -1);
     }
 }

@@ -14,12 +14,7 @@ public final class LuaStringModule extends LuaAbstractModule {
 
     @Override
     public int load(Lua L) throws Exception {
-        int top = L.getTop();
-        try {
-            L.loadStringBuffer(content, length, "@" + path);
-            return L.pCall(0, -1);
-        } finally {
-            L.setTop(top);
-        }
+        L.loadStringBuffer(content, length, "@" + path);
+        return L.pCall(0, -1);
     }
 }

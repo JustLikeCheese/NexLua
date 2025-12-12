@@ -101,7 +101,7 @@ public class LuaConfig implements ExternalLoader {
     @Override
     public int load(Lua L, String moduleName) throws Exception {
         L.getGlobal("package");
-        if (!L.isTable(1)) {
+        if (!L.isTable(-1)) {
             L.pop(1);
             return 0;
         }
