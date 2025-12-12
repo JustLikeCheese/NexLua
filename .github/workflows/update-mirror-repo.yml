@@ -1,0 +1,30 @@
+name: Update Mirror Repository
+
+on:
+  push:
+    branches:
+      - main
+      - '**'
+  delete:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Update Mirror Repository
+        env:
+          GIT_MIRROR_TOKEN: ${{ secrets.GIT_MIRROR_TOKEN }}
+          GIT_MIRROR_REPO_URL: ${{ secrets.GIT_MIRROR_REPO_URL }}
+        run: |
+          git remote add m1 https://oauth2:${GIT_MIRROR_TOKEN}@${GIT_MIRROR_REPO_URL} >/dev/null 2>&1
+          git push m1 --all --force --quiet >/dev/null 2>&1
+          git push m1 --tags --force --quiet >/dev/null 2>&1
+          echo "Mirror sync completed"
