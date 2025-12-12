@@ -35,6 +35,7 @@ import com.luajava.LuaException;
 import com.luajava.LuaHandler;
 import com.luajava.value.referable.LuaFunction;
 import com.nexlua.module.LuaModule;
+import com.nexlua.utils.SingleObject;
 
 import java.util.ArrayList;
 
@@ -43,7 +44,8 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     protected LuaFunction mOnCreateOptionsMenu, mOnCreateContextMenu, mOnOptionsItemSelected, mOnMenuItemSelected, mOnContextItemSelected;
     protected LuaFunction mOnActivityResult, onRequestPermissionsResult, mOnSaveInstanceState, mOnRestoreInstanceState;
     protected LuaFunction mOnStart, mOnResume, mOnPause, mOnStop, mOnRestarted, mOnConfigurationChanged, mOnTouchEvent;
-    protected LuaFunction mOnMessage, mOnError, mOnReceive, mOnNewIntent, mOnResult, mOnDestroy;
+    protected LuaFunction mOnReceive, mOnNewIntent, mOnResult, mOnDestroy;
+    protected SingleObject<LuaFunction> mOnMessage, mOnError;
     protected LuaBroadcastReceiver mReceiver;
     protected final LuaApplication app = LuaApplication.getInstance();
     protected final LuaConfig config = app.getConfig();
@@ -76,9 +78,15 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     }
 
     public void loadLua() throws Exception {
-        module.load(L);
+        module.run(L);
         runFunc("onCreate", savedInstanceState);
-        runFunc("main", (Object[]) intent.args);
+        L.getGlobal("main");
+        if (L.isFunction(-1)) {
+            int nArgs = L.pushAll(intent.args, Lua.Conversion.SEMI);
+            L.pCall(nArgs);
+        } else {
+            L.pop(1);
+        }
     }
 
     public void initLua() throws LuaException {
@@ -129,9 +137,9 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         // onReceive
         mOnReceive = L.getLuaFunction("onReceive");
         // onMessage
-        mOnMessage = L.getLuaFunction("onMessage");
+        mOnMessage = SingleObject.wrapNonNull(L.getLuaFunction("onMessage"));
         // onError
-        mOnError = L.getLuaFunction("onError");
+        mOnError = SingleObject.wrapNonNull(L.getLuaFunction("onError"));
         // onNewIntent
         mOnNewIntent = L.getLuaFunction("onNewIntent");
         // onResult
@@ -452,18 +460,18 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
 
     @Override
     public void sendMessage(String message) {
-        if (mOnError != null) {
+        if (mOnMessage != null && mOnMessage.lock()) {
             try {
-                L.push(mOnError);
-                L.push(message, Lua.Conversion.SEMI);
-                L.pCall(1, 1);
-                if (L.toBoolean(1)) {
+                LuaFunction func = mOnMessage.get();
+                if (onLuaEvent(func, message)) {
                     return;
                 }
             } catch (Exception exception) {
-                Lua.logError(LuaException.getFullMessage(exception));
+                String error = LuaException.getFullMessage(exception);
+                showToast(error);
+                Lua.logError("onMessage:\n" + error);
             } finally {
-                L.pop(1);
+                mOnMessage.unlock();
             }
         }
         if (!isViewInflated) {
@@ -484,15 +492,10 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
     public void sendError(Exception e) {
         String type = LuaException.getType(e);
         String message = LuaException.getFullMessage(e);
-        if (mOnError != null) {
-            int top = L.getTop();
+        if (mOnError != null && mOnError.lock()) {
             try {
-                L.push(mOnError);
-                L.push(e);
-                L.push(type);
-                L.push(message);
-                L.pCall(3, 1);
-                if (L.toBoolean(1)) {
+                LuaFunction func = mOnError.get();
+                if (onLuaEvent(func, e, type, message)) {
                     return;
                 }
             } catch (Exception exception) {
@@ -500,9 +503,10 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
                 showToast(error);
                 Lua.logError("onError:\n" + error);
             } finally {
-                L.setTop(top);
+                mOnError.unlock();
             }
-        } else if (!isViewInflated) {
+        }
+        if (!isViewInflated) {
             setConsoleLayout();
             setTitle(type);
             runOnUiThread(new Runnable() {
