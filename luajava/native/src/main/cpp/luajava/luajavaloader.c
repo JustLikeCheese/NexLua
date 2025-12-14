@@ -16,7 +16,7 @@ static int jmoduleLoad(lua_State *L) {
         (*env)->ExceptionClear(env);
         return 0;
     }
-    return 1;
+    return ret;
 }
 
 int luaJ_initloader(lua_State *L) {
