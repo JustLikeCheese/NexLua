@@ -135,6 +135,10 @@ public class LuaConfig implements ExternalLoader {
         }
         String packagePath = L.toString(-1);
         L.pop(1);
-        return L.push(getModule(moduleName, packagePath));
+        LuaModule module = getModule(moduleName, packagePath);
+        if (module != null) {
+            return L.push(module);
+        }
+        return 0;
     }
 }
