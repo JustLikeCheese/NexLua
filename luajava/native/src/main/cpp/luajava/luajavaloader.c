@@ -12,7 +12,11 @@ static int jmoduleLoad(lua_State *L) {
     int ret = (*env)->CallStaticIntMethod(env, com_luajava_JuaAPI, com_luajava_JuaAPI_jmoduleLoad,
                                           (jlong) L, moduleName);
     DeleteString(moduleName);
-    return checkOrError(env, L, ret);
+    if((*env)->ExceptionOccurred(env)) {
+        (*env)->ExceptionClear(env);
+        return 0;
+    }
+    return 1;
 }
 
 int luaJ_initloader(lua_State *L) {
