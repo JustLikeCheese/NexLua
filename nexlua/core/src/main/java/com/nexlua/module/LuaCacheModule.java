@@ -5,7 +5,7 @@ import com.luajava.Lua;
 import java.lang.ref.SoftReference;
 
 public abstract class LuaCacheModule extends LuaAbstractModule {
-    protected SoftReference<byte[]> cache;
+    protected transient SoftReference<byte[]> cache;
 
     public LuaCacheModule(String path) {
         super(path);
