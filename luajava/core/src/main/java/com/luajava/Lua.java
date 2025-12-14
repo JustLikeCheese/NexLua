@@ -333,7 +333,7 @@ public class Lua {
         int length = 0;
         if (objects == null) return length;
         for (Object object : objects) {
-            length = length + push(object, degree);
+            length += push(object, degree);
         }
         return length;
     }
@@ -346,7 +346,7 @@ public class Lua {
         int length = 0;
         if (objects == null) return length;
         for (Object object : objects) {
-            length = length + push(object, clazz, degree);
+            length += push(object, clazz, degree);
         }
         return length;
     }
