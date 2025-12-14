@@ -66,3 +66,7 @@ end, NO_RESULT)
 test("Class.InnerClass", function()
     return TestClass.InnerClass
 end, NO_NIL)
+
+test("Class VarArgs Method", function()
+    return TestClass.varMethod(0, "String")
+end, NO_NIL)

@@ -1,5 +1,9 @@
 package com.mycompany;
 
+import com.luajava.Lua;
+
+import java.util.Arrays;
+
 @SuppressWarnings("unused")
 public class TestClass {
     // Test Java Class
@@ -26,6 +30,11 @@ public class TestClass {
 
     public static int setb() {
         return 1;
+    }
+
+    public static Object[] varMethod(int a, Object... args) {
+        Lua.log("a: " + a + "; varMethod: " + Arrays.deepToString(args));
+        return args;
     }
 
     class InnerClass {
