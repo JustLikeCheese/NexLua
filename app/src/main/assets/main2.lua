@@ -12,10 +12,5 @@ function main(...)
     end
     local content = file:read("*a")
     file:close()
-    local func = load(content)
-    if func then
-        func()
-    else
-        error("Cannot load " .. tostring(path))
-    end
+    load(content)()
 end
