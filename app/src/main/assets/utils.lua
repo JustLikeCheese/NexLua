@@ -53,21 +53,26 @@ function onError(exception, title, message)
         .setPositiveButton("OK", null)
         .create()
     dialog.show()
-    messageView = dialog.findViewById(androidId.message)
-    if messageView ~= nil then
-        messageView.setTextIsSelectable(true)
-    end
     return true;
 end
 
 function writeFile(path, content)
     local file = io.open(tostring(path), "w")
+    if not file then
+        print("Error: Cannot write to " .. tostring(path))
+        return false
+    end
     file:write(tostring(content))
     file:close()
+    return true
 end
 
 function readFile(path)
-    local file = io.open(tostring(path), "w+")
+    local file = io.open(tostring(path), "r")
+    if not file then
+        print("Error: Cannot read from " .. tostring(path))
+        return ""
+    end
     local content = file:read("*a")
     file:close()
     return content

@@ -3,7 +3,7 @@ import "android.widget.*"
 import "android.content.Intent"
 import "java.lang.Object"
 import "com.androlua.LuaEditor"
-import "utils"
+require "utils"
 import "java.io.File"
 
 activity.setTitle("NexLua+")
@@ -42,7 +42,7 @@ end
 
 function run()
     save()
-    activity.newActivity("run", {luatemp.getPath()})
+    activity.newActivity("main2", luatemp.path)
 end
 
 -- Menu
@@ -70,13 +70,10 @@ end
 
 bindLifecycle {
     onCreate = load,
-    onStart = load,
-    onResume = load,
-    onRestart = load,
     onRestoreInstanceState = load,
 
     onStop = save,
-    onPause = save,
     onDestroy = save,
+    onPause = save,
     onSaveInstanceState = save
 }
