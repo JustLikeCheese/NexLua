@@ -37,6 +37,7 @@ import com.luajava.value.referable.LuaFunction;
 import com.nexlua.module.LuaModule;
 import com.nexlua.utils.SingleObject;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnReceiveListener, LuaContext, LuaHandler {
@@ -93,8 +94,8 @@ public class LuaActivity extends Activity implements LuaBroadcastReceiver.OnRece
         L.openLibraries();
         L.openLibrary("luajava");
         L.setExternalLoader(config);
-        luaCpath = app.getLuaCpath(luaDir);
-        luaLpath = app.getLuaLpath(luaDir);
+        luaCpath = config.getLuaCpath(luaDir);
+        luaLpath = config.getLuaLpath(luaDir);
         // package.path 和 cpath
         L.getGlobal("package");
         if (L.isTable(1)) {

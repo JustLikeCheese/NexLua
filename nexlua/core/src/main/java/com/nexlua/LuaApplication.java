@@ -6,6 +6,7 @@ import android.content.res.Configuration;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.luajava.Lua;
 import com.luajava.LuaException;
@@ -17,7 +18,7 @@ import java.util.ArrayList;
 
 public class LuaApplication extends Application implements LuaContext {
     protected static LuaApplication mApplication;
-    protected String luaPath, luaDir, luaLpath, luaCpath, baseCpath, baseLpath;
+    protected @Nullable String luaPath, luaDir, luaLpath, luaCpath;
     protected LuaFunction mOnTerminate, mOnLowMemory, mOnTrimMemory, mOnConfigurationChanged;
     protected final Lua L = new Lua(this);
     protected LuaConfig config;
@@ -39,10 +40,10 @@ public class LuaApplication extends Application implements LuaContext {
         luaDir = LuaUtil.getParentPath(luaPath);
         String luaLibDir = new File(luaDir, "lua").getAbsolutePath();
         String libDir = new File(luaDir, "lib").getAbsolutePath();
-        baseCpath = getApplicationInfo().nativeLibraryDir + "/lib?.so;" + libDir + "/lib?.so;";
-        baseLpath = luaLibDir + "/?.lua;" + luaLibDir + "/lua/?.lua;" + luaLibDir + "/?/init.lua;";
-        luaCpath = getLuaCpath(luaDir);
-        luaLpath = getLuaLpath(luaDir);
+        config.baseCpath += getApplicationInfo().nativeLibraryDir + "/lib?.so;" + libDir + "/lib?.so;";
+        config.baseLpath += luaLibDir + "/?.lua;" + luaLibDir + "/lua/?.lua;" + luaLibDir + "/?/init.lua;";
+        luaCpath = config.getLuaCpath(luaDir);
+        luaLpath = config.getLuaLpath(luaDir);
         try {
             initLua();
             loadLua();
@@ -53,7 +54,7 @@ public class LuaApplication extends Application implements LuaContext {
     }
 
     public void loadLua() throws Exception {
-        module.load(L);
+        module.run(L);
         runFunc("onCreate");
         runFunc("main");
     }
@@ -170,22 +171,6 @@ public class LuaApplication extends Application implements LuaContext {
 
     public String getLuaCpath() {
         return luaCpath;
-    }
-
-    public String getBaseLpath() {
-        return baseLpath;
-    }
-
-    public String getBaseCpath() {
-        return baseCpath;
-    }
-
-    public String getLuaLpath(String luaDir) {
-        return getBaseLpath() + luaDir + "/?.lua;" + luaDir + "/lua/?.lua;" + luaDir + "/?/init.lua;";
-    }
-
-    public String getLuaCpath(String luaDir) {
-        return getBaseCpath() + luaDir + "/lib?.so;";
     }
 
     public Context getContext() {

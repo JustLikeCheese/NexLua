@@ -1,9 +1,8 @@
 package com.nexlua.module;
 
-import com.luajava.Lua;
 import com.nexlua.LuaUtil;
 
-public final class LuaResourceModule extends LuaAbstractModule {
+public final class LuaResourceModule extends LuaCacheModule {
     private final int resId;
 
     public LuaResourceModule(String path, int resId) {
@@ -12,9 +11,7 @@ public final class LuaResourceModule extends LuaAbstractModule {
     }
 
     @Override
-    public int load(Lua L) throws Exception {
-        byte[] content = LuaUtil.readRawBytes(resId);
-        L.loadStringBuffer(content, content.length, "@" + resId + ".lua");
-        return L.pCall(0, -1);
+    public byte[] getBytes() throws Exception {
+        return LuaUtil.readRawBytes(resId);
     }
 }

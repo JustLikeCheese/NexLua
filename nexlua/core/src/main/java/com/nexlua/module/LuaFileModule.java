@@ -1,10 +1,10 @@
 package com.nexlua.module;
 
-import com.luajava.Lua;
+import com.nexlua.LuaUtil;
 
 import java.io.File;
 
-public final class LuaFileModule extends LuaAbstractModule {
+public final class LuaFileModule extends LuaCacheModule {
     private final File file;
 
     public LuaFileModule(String path, File file) {
@@ -13,8 +13,7 @@ public final class LuaFileModule extends LuaAbstractModule {
     }
 
     @Override
-    public int load(Lua L) throws Exception {
-        L.loadFile(file.getAbsolutePath());
-        return L.pCall(0, -1);
+    public byte[] getBytes() throws Exception {
+        return LuaUtil.readFileBytes(file);
     }
 }

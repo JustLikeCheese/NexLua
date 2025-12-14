@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 public abstract class LuaAbstractModule implements LuaModule {
     protected final String path;
+
     public LuaAbstractModule(@NonNull String path) {
         this.path = path;
     }

@@ -1,5 +1,8 @@
 package com.nexlua;
 
+import android.content.Context;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.luajava.ExternalLoader;
@@ -19,9 +22,12 @@ public class LuaConfig implements ExternalLoader {
     protected LuaModule welcome;
     protected LuaModule application;
 
-    public LuaConfig(LuaContext context) {
+    public LuaConfig(LuaContext luaContext) {
         if (FILES_DIR == null) {
-            FILES_DIR = context.getContext().getFilesDir();
+            Context context = luaContext.getContext().getApplicationContext();
+            FILES_DIR = context.getFilesDir();
+            baseCpath = context.getApplicationInfo().nativeLibraryDir + "/lib?.so;";
+            baseLpath = "";
         }
         LUA_MODULES = new ArrayList<>();
     }
@@ -53,6 +59,23 @@ public class LuaConfig implements ExternalLoader {
 
     public LuaModule registerStringModule(String path, String content) {
         return register(new LuaStringModule(path, content));
+    }
+
+    protected String baseCpath, baseLpath;
+    public @NonNull String getBaseCpath() {
+        return baseCpath;
+    }
+
+    public @NonNull String getBaseLpath() {
+        return baseLpath;
+    }
+
+    public @NonNull String getLuaLpath(String luaDir) {
+        return getBaseLpath() + luaDir + "/?.lua;" + luaDir + "/lua/?.lua;" + luaDir + "/?/init.lua;";
+    }
+
+    public @NonNull String getLuaCpath(String luaDir) {
+        return getBaseCpath() + luaDir + "/lib?.so;";
     }
 
     public @Nullable LuaModule getModule(String absolutePath) {
@@ -112,11 +135,6 @@ public class LuaConfig implements ExternalLoader {
         }
         String packagePath = L.toString(-1);
         L.pop(1);
-        LuaModule module = getModule(moduleName, packagePath);
-        if (module != null) {
-            int nResult = module.load(L);
-            return nResult > 0 ? nResult : 1;
-        }
-        return 0;
+        return L.push(getModule(moduleName, packagePath));
     }
 }

@@ -2,13 +2,19 @@ package com.nexlua.module;
 
 import androidx.annotation.NonNull;
 
+import com.luajava.CFunction;
 import com.luajava.Lua;
-import com.nexlua.LuaContext;
 
 import java.io.Serializable;
 
-public interface LuaModule extends Serializable {
-    int load(Lua L) throws Exception;
+public interface LuaModule extends Serializable, CFunction {
+    int __call(Lua L) throws Exception;
 
-    @NonNull String getAbsolutePath();
+    default int run(Lua L) throws Exception {
+        L.push(getAbsolutePath());
+        return __call(L);
+    }
+
+    @NonNull
+    String getAbsolutePath();
 }
