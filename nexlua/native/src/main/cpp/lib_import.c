@@ -197,7 +197,7 @@ int luaopen_import(lua_State *L) {
     lua_pushvalue(L, -1);
     lua_setglobal(L, IMPORT_LIBNAME);
     // dump function
-    lua_pushcfunction(L, luaopen_dump);
+    lua_pushcfunction(L, import_dump);
     lua_setglobal(L, "dump");
     return 1;
 }
