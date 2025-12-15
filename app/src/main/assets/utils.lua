@@ -53,7 +53,7 @@ function onError(exception, title, message)
         .setMessage(message)
         .setPositiveButton("OK", null)
         .show()
-    return true;
+    return false
 end
 
 function writeFile(path, content)
