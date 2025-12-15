@@ -14,7 +14,7 @@ public final class LuaFileModule extends LuaAbstractModule {
     }
 
     @Override
-    public int __call(Lua L) throws Exception {
+    public int load(Lua L) throws Exception {
         byte[] content = LuaUtil.readFileBytes(file);
         L.loadStringBuffer(content, content.length, "@" + path);
         L.insert(-2);

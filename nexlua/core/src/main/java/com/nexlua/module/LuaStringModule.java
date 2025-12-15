@@ -13,7 +13,7 @@ public final class LuaStringModule extends LuaAbstractModule {
     }
 
     @Override
-    public int __call(Lua L) throws Exception {
+    public int load(Lua L) throws Exception {
         L.loadStringBuffer(content, length, "@" + path);
         L.insert(-2);
         return L.pCall(1, -1);

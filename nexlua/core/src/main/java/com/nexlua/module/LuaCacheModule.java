@@ -14,7 +14,7 @@ public abstract class LuaCacheModule extends LuaAbstractModule {
     public abstract byte[] getBytes() throws Exception;
 
     @Override
-    public int __call(Lua L) throws Exception {
+    public int load(Lua L) throws Exception {
         byte[] content;
         if (cache != null) {
             content = this.cache.get();

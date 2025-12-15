@@ -137,7 +137,7 @@ public class LuaConfig implements ExternalLoader {
         L.pop(1);
         LuaModule module = getModule(moduleName, packagePath);
         if (module != null) {
-            return L.push(module);
+            return L.push(new LuaModule.Loader(module));
         }
         return 0;
     }
