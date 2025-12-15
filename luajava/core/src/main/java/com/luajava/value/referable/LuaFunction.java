@@ -94,7 +94,7 @@ public class LuaFunction extends AbstractLuaRefValue {
 
     @Override
     public boolean isJavaFunction() throws LuaException {
-        if (javaFunction == null) initValue();
+        if (isJavaFunction == null) initValue();
         return isJavaFunction;
     }
 

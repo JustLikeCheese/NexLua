@@ -818,7 +818,7 @@ public abstract class AbstractLuaValue implements LuaValue {
             }
         } catch (LuaException ignored) {
         }
-        return "nil";
+        return "";
     }
 
     @Override
