@@ -1,10 +1,14 @@
 require "import"
-import "android.widget.*"
-import "android.content.Intent"
-import "java.lang.Object"
-import "com.androlua.LuaEditor"
-require "utils"
-import "java.io.File"
+
+import {
+    "android.widget.*",
+    "android.content.Intent",
+    "java.lang.Object",
+    "java.io.File",
+    "com.androlua.LuaEditor",
+    "com.nexlua.module.LuaFileModule",
+    "utils"
+}
 
 activity.setTitle("NexLua+")
 activity.setTheme(getTheme())
@@ -27,6 +31,7 @@ local layout = LinearLayout(activity)
 local editor = LuaEditor(activity)
 
 layout.setFitsSystemWindows(true)
+layout.setLayoutParams(LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT))
 layout.addView(editor)
 
 activity.setContentView(layout)
@@ -42,7 +47,8 @@ end
 
 function run()
     save()
-    activity.newActivity("main2", luatemp.path)
+    local module = LuaFileModule(luatemp.path, luatemp)
+    activity.newActivity(module)
 end
 
 -- Menu
