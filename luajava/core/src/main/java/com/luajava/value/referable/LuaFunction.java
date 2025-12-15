@@ -24,6 +24,7 @@ package com.luajava.value.referable;
 
 import androidx.annotation.Nullable;
 
+import com.luajava.CFunction;
 import com.luajava.Lua;
 import com.luajava.LuaException;
 import com.luajava.value.AbstractLuaRefValue;
@@ -32,6 +33,10 @@ import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;
 
 public class LuaFunction extends AbstractLuaRefValue {
+    private CFunction javaFunction;
+    private Boolean isJavaFunction;
+    private Boolean isCFunction;
+
     public LuaFunction(Lua L) {
         super(L, LuaType.FUNCTION);
     }
@@ -58,17 +63,70 @@ public class LuaFunction extends AbstractLuaRefValue {
         return true;
     }
 
+    protected void initValue() throws LuaException {
+        push();
+        isCFunction = L.isCFunction(-1);
+        if (isCFunction) {
+            isJavaFunction = L.isJavaFunction(-1);
+            if (isJavaFunction) {
+                javaFunction = L.toJavaFunction(-1);
+            }
+        } else {
+            isJavaFunction = false;
+            javaFunction = null;
+        }
+        L.pop(1);
+    }
+
+    @Override
+    public boolean isCFunction() throws LuaException {
+        if (isCFunction == null) initValue();
+        return isCFunction;
+    }
+
+    @Override
+    public LuaFunction checkCFunction() throws LuaException {
+        if (isCFunction()) {
+            return this;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isJavaFunction() throws LuaException {
+        if (javaFunction == null) initValue();
+        return isJavaFunction;
+    }
+
+    @Override
+    public CFunction toJavaFunction() throws LuaException {
+        if (isJavaFunction()) {
+            return javaFunction;
+        }
+        return null;
+    }
+
+    @Override
+    public CFunction checkJavaFunction() throws LuaException {
+        if (isJavaFunction()) {
+            return javaFunction;
+        }
+        return super.checkJavaFunction();
+    }
+
     @Override
     public Object toJavaObject() {
         return this;
     }
 
     @Override
-    public boolean isJavaObject(Class<?> clazz) {
-        return clazz == Object.class
-                || clazz == LuaValue.class
-                || clazz == LuaFunction.class
-                || clazz.isInterface();
+    public boolean isJavaObject(Class<?> clazz) throws LuaException {
+        if (clazz == Object.class || clazz == LuaValue.class || clazz == LuaFunction.class || clazz.isInterface()) {
+            return true;
+        } else if (isJavaFunction()) {
+            return clazz.isAssignableFrom(CFunction.class);
+        }
+        return false;
     }
 
     @Override
@@ -77,6 +135,10 @@ public class LuaFunction extends AbstractLuaRefValue {
             return this;
         else if (clazz == Object.class || clazz.isInterface())
             return LuaProxy.newInstance(this, clazz, Lua.Conversion.SEMI).toProxy();
+        else if (isJavaFunction()) {
+            if (clazz.isAssignableFrom(CFunction.class))
+                return javaFunction;
+        }
         return super.toJavaObject(clazz);
     }
 }

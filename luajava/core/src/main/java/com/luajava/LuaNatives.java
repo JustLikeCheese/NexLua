@@ -137,6 +137,12 @@ public class LuaNatives {
 
     public native int luaJ_loadstringbuffer(long ptr, byte[] buff, long sz, String name);
 
+    public native int luaJ_isfunction(long ptr, int idx);
+
+    public native Object luaJ_tofunction(long ptr, int idx);
+
+    public native Object luaJ_checkfunction(long ptr, int idx);
+
     // lua.h bindings
     public native void lua_close(long ptr);
 

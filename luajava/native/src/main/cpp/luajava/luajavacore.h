@@ -42,6 +42,10 @@ LUALIB_API jclass luaJ_toclass(lua_State *L, int index);
 LUALIB_API jobject luaJ_toobject(lua_State *L, int index);
 LUALIB_API jarray luaJ_toarray(lua_State *L, int index);
 
+LUALIB_API int luaJ_isfunction(lua_State *L, int index);
+LUALIB_API jobject luaJ_tofunction(lua_State *L, int index);
+LUALIB_API jobject luaJ_checkfunction(lua_State *L, int index);
+
 LUALIB_API int luaJ_invokespecial(JNIEnv *env, lua_State *L, jclass clazz,
                                   const char *method, const char *sig,
                                   jobject obj, const char *params);

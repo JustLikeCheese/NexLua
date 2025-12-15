@@ -31,7 +31,6 @@ import com.luajava.LuaException;
 import com.luajava.value.immutable.LuaBoolean;
 import com.luajava.value.immutable.LuaNil;
 import com.luajava.value.immutable.LuaNumber;
-import com.luajava.value.referable.LuaCFunction;
 import com.luajava.value.referable.LuaFunction;
 import com.luajava.value.referable.LuaLightUserdata;
 import com.luajava.value.referable.LuaString;
@@ -284,7 +283,7 @@ public interface LuaValue {
 
     boolean isTable();
 
-    boolean isCFunction();
+    boolean isCFunction() throws LuaException;
 
     boolean isFunction();
 
@@ -327,7 +326,7 @@ public interface LuaValue {
 
     LuaFunction checkFunction() throws LuaException;
 
-    LuaCFunction checkCFunction() throws LuaException;
+    LuaFunction checkCFunction() throws LuaException;
 
     LuaLightUserdata checkLightUserdata() throws LuaException;
 
@@ -344,6 +343,12 @@ public interface LuaValue {
     Object toJavaObject() throws LuaException;
 
     boolean isJavaObject(Class<?> clazz) throws LuaException;
+
+    boolean isJavaFunction() throws LuaException;
+
+    CFunction toJavaFunction() throws LuaException;
+
+    CFunction checkJavaFunction() throws LuaException;
 
     @Nullable Object toJavaObject(Class<?> clazz) throws LuaException;
 

@@ -62,11 +62,16 @@ public class LuaUserdata extends AbstractLuaRefValue {
     }
 
     @Override
-    public Object checkJavaObject() throws LuaException {
-        if (isJavaObject()) {
-            return javaObject;
+    public boolean isJavaObject() throws LuaException {
+        if (isJavaObject == null) {
+            push();
+            isJavaObject = L.isJavaObject(-1);
+            if (isJavaObject) {
+                javaObject = L.toJavaObject(-1);
+            }
+            L.pop(1);
         }
-        return super.toJavaObject();
+        return isJavaObject;
     }
 
     @Override
@@ -78,16 +83,11 @@ public class LuaUserdata extends AbstractLuaRefValue {
     }
 
     @Override
-    public boolean isJavaObject() throws LuaException {
-        if (isJavaObject == null) {
-            push();
-            isJavaObject = L.isJavaObject(-1);
-            if (isJavaObject) {
-                javaObject = L.toJavaObject(-1);
-            }
-            L.pop(1);
+    public Object checkJavaObject() throws LuaException {
+        if (isJavaObject()) {
+            return javaObject;
         }
-        return isJavaObject;
+        return super.toJavaObject();
     }
 
     @Override
@@ -110,7 +110,7 @@ public class LuaUserdata extends AbstractLuaRefValue {
             return this;
         }
         if (isJavaObject()) {
-            Object object = toJavaObject();
+            Object object = javaObject;
             Class<?> objClass = ClassUtils.getWrapperType(object.getClass());
             Class<?> wrapperClass = ClassUtils.getWrapperType(clazz);
             if (clazz == Object.class || wrapperClass.isAssignableFrom(objClass)) {

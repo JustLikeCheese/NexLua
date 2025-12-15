@@ -31,7 +31,6 @@ import com.luajava.LuaException;
 import com.luajava.value.immutable.LuaBoolean;
 import com.luajava.value.immutable.LuaNil;
 import com.luajava.value.immutable.LuaNumber;
-import com.luajava.value.referable.LuaCFunction;
 import com.luajava.value.referable.LuaFunction;
 import com.luajava.value.referable.LuaLightUserdata;
 import com.luajava.value.referable.LuaString;
@@ -773,7 +772,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public boolean isCFunction() {
+    public boolean isCFunction() throws LuaException {
         return false;
     }
 
@@ -842,6 +841,22 @@ public abstract class AbstractLuaValue implements LuaValue {
     public Object toJavaObject() throws LuaException {
         push();
         Object result = L.toJavaObject(-1);
+        L.pop(1);
+        return result;
+    }
+
+    @Override
+    public boolean isJavaFunction() throws LuaException {
+        push();
+        boolean result = L.isJavaFunction(-1);
+        L.pop(1);
+        return result;
+    }
+
+    @Override
+    public CFunction toJavaFunction() throws LuaException {
+        push();
+        CFunction result = L.toJavaFunction(-1);
         L.pop(1);
         return result;
     }
@@ -916,7 +931,7 @@ public abstract class AbstractLuaValue implements LuaValue {
     }
 
     @Override
-    public LuaCFunction checkCFunction() throws LuaException {
+    public LuaFunction checkCFunction() throws LuaException {
         throw new LuaException("Not a C function");
     }
 
@@ -943,6 +958,11 @@ public abstract class AbstractLuaValue implements LuaValue {
     @Override
     public Object checkJavaObject() throws LuaException {
         throw new LuaException("Not a java object");
+    }
+
+    @Override
+    public CFunction checkJavaFunction() throws LuaException {
+        throw new LuaException("Not a java function");
     }
 
     @Override

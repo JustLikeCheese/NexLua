@@ -49,7 +49,6 @@ import com.luajava.value.LuaProxy;
 import com.luajava.value.LuaType;
 import com.luajava.value.LuaValue;
 import com.luajava.value.immutable.LuaBoolean;
-import com.luajava.value.referable.LuaCFunction;
 import com.luajava.value.referable.LuaFunction;
 import com.luajava.value.referable.LuaLightUserdata;
 import com.luajava.value.immutable.LuaNil;
@@ -1087,8 +1086,8 @@ public class Lua {
         return nResults;
     }
 
-    public void cpCall(@NonNull LuaCFunction func, @NonNull LuaLightUserdata ud) throws LuaException {
-        int result = C.lua_cpcall(L, func.getPointer(), ud.getPointer());
+    public void cpCall(@NonNull LuaFunction cfunc, @NonNull LuaLightUserdata ud) throws LuaException {
+        int result = C.lua_cpcall(L, cfunc.checkCFunction().getPointer(), ud.getPointer());
         checkError(result, false);
     }
 
@@ -1153,8 +1152,8 @@ public class Lua {
         return 0;
     }
 
-    public void register(String name, @NonNull LuaCFunction function) {
-        C.lua_register(L, name, function.getPointer());
+    public void register(String name, @NonNull LuaFunction cfunction) throws LuaException {
+        C.lua_register(L, name, cfunction.checkCFunction().getPointer());
     }
 
     public int typeError(int nArg, String tname) {
@@ -1273,6 +1272,19 @@ public class Lua {
         return top + 1 + index;
     }
 
+    /* Java Function */
+    public boolean isJavaFunction(int index) {
+        return C.luaJ_isfunction(L, index) != 0;
+    }
+
+    public CFunction toJavaFunction(int index) {
+        return (CFunction) C.luaJ_tofunction(L, index);
+    }
+
+    public CFunction checkJavaFunction(int index) {
+        return (CFunction) C.luaJ_checkfunction(L, index);
+    }
+
     /* Java Object */
     public boolean isJavaObject(int index) {
         return C.luaJ_isobject(L, index) != 0;
@@ -1324,10 +1336,12 @@ public class Lua {
                         || clazz.isArray() || List.class.isAssignableFrom(clazz) || Map.class.isAssignableFrom(clazz)
                         || clazz.isInterface();
             case FUNCTION:
-                return clazz == Object.class
-                        || clazz == LuaValue.class
-                        || clazz == LuaFunction.class
-                        || clazz.isInterface();
+                if (clazz == Object.class || clazz == LuaValue.class || clazz == LuaFunction.class || clazz.isInterface()) {
+                    return true;
+                } else if (isJavaFunction(index)) {
+                    return clazz.isAssignableFrom(CFunction.class);
+                }
+                return false;
             case THREAD:
                 return clazz == Object.class
                         || clazz == LuaValue.class
@@ -1410,9 +1424,13 @@ public class Lua {
                 break;
             case FUNCTION:
                 if (clazz == LuaValue.class || clazz == LuaFunction.class)
-                    return new LuaFunction(this, index);
+                    return this;
                 else if (clazz == Object.class || clazz.isInterface())
                     return LuaProxy.newInstance(new LuaFunction(this, index), clazz, Lua.Conversion.SEMI).toProxy();
+                else if (isJavaFunction(index)) {
+                    if (clazz.isAssignableFrom(CFunction.class))
+                        return toJavaFunction(index);
+                }
             case THREAD:
                 if (clazz == LuaValue.class || clazz == LuaThread.class)
                     return new LuaThread(this, index);
@@ -1902,20 +1920,20 @@ public class Lua {
         return value;
     }
 
-    public LuaCFunction getLuaCFunction(int idx) {
+    public LuaFunction getLuaCFunction(int idx) {
         if (isCFunction(idx)) {
-            return new LuaCFunction(this, idx);
+            return new LuaFunction(this, idx);
         }
         return null;
     }
 
-    public LuaCFunction getLuaCFunction() {
+    public LuaFunction getLuaCFunction() {
         return getLuaCFunction(-1);
     }
 
-    public LuaCFunction getLuaCFunction(String globalName) throws LuaException {
+    public LuaFunction getLuaCFunction(String globalName) throws LuaException {
         getGlobal(globalName);
-        LuaCFunction value = getLuaCFunction();
+        LuaFunction value = getLuaCFunction();
         pop(1);
         return value;
     }
@@ -2069,18 +2087,18 @@ public class Lua {
         return checkLuaFunction();
     }
 
-    public LuaCFunction checkLuaCFunction(int idx) throws LuaException {
-        LuaCFunction value = getLuaCFunction();
+    public LuaFunction checkLuaCFunction(int idx) throws LuaException {
+        LuaFunction value = getLuaCFunction();
         if (value == null)
             throw new LuaException("Not a C function");
         return value;
     }
 
-    public LuaCFunction checkLuaCFunction() throws LuaException {
+    public LuaFunction checkLuaCFunction() throws LuaException {
         return checkLuaCFunction(-1);
     }
 
-    public LuaCFunction checkLuaCFunction(String globalName) throws LuaException {
+    public LuaFunction checkLuaCFunction(String globalName) throws LuaException {
         getGlobal(globalName);
         return checkLuaCFunction();
     }

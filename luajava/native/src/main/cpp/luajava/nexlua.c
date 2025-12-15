@@ -255,6 +255,18 @@ JNIWRAP(jint, luaJ_1loadstringbuffer, jlong ptr, jbyteArray buff, jlong sz, jstr
     return result;
 }
 
+JNIWRAP(jint, luaJ_1isfunction, jlong ptr, jint index) {
+    return luaJ_isfunction(L, index);
+}
+
+JNIWRAP(jobject, luaJ_1tofunction, jlong ptr, jint index) {
+    return luaJ_tofunction(L, index);
+}
+
+JNIWRAP(jobject, luaJ_1checkfunction, jlong ptr, jint index) {
+    return luaJ_checkfunction(L, index);
+}
+
 #undef L
 #undef L1
 #undef JNIWRAP

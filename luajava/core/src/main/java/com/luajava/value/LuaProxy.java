@@ -62,13 +62,14 @@ public final class LuaProxy implements InvocationHandler {
         this.interfaces = interfaces;
     }
 
+    private final static String ERR_MESSAGE = "Unable to merge interfaces into a functional one. Class: %s";
     public static LuaProxy newInstance(Lua L, int idx, Class<?> interfaces, Lua.Conversion degree) throws LuaException {
         LuaType type = L.type(idx);
         switch (type) {
             case FUNCTION:
                 String name = ClassUtils.getSingleInterfaceMethodName(interfaces);
                 if (name == null)
-                    throw new LuaException("Unable to merge interfaces into a functional one");
+                    throw new LuaException(String.format(ERR_MESSAGE, interfaces.getName()));
                 return new LuaProxy(L, new LuaFunction(L, idx), degree, interfaces);
             case TABLE:
                 return new LuaProxy(L, new LuaTable(L, idx), degree, interfaces);
@@ -80,7 +81,7 @@ public final class LuaProxy implements InvocationHandler {
     public static LuaProxy newInstance(LuaFunction value, Class<?> interfaces, Lua.Conversion degree) throws LuaException {
         String name = ClassUtils.getSingleInterfaceMethodName(interfaces);
         if (name == null)
-            throw new LuaException("Unable to merge interfaces into a functional one");
+            throw new LuaException(String.format(ERR_MESSAGE, interfaces.getName()));
         return new LuaProxy(value.L, value, degree, interfaces);
     }
 

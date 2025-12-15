@@ -24,6 +24,7 @@ const char JAVA_ARRAY_META_REGISTRY[] = "__jarray__";
 const char JAVA_CLASS_TYPENAME[] = "Java Class";
 const char JAVA_OBJECT_NAME[] = "Java Object";
 const char JAVA_ARRAY_NAME[] = "Java Array";
+const char JAVA_FUNC_NAME[] = "Java Wrapper Function";
 
 const char JAVA_OBJECT_ID[] = "__jobjectid__";
 
@@ -146,6 +147,26 @@ static inline int jfunctionWrapper(lua_State *L) {
                                               (jlong) L,
                                               jfunc);
     return checkOrError(env, L, result);
+}
+
+int luaJ_isfunction(lua_State *L, int index) {
+    return lua_tocfunction(L, index) == &jfunctionWrapper;
+}
+
+jobject luaJ_tofunction(lua_State *L, int index) {
+    lua_CFunction func = lua_tocfunction(L, index);
+    if (func == &jfunctionWrapper) {
+        return *(jobject *) lua_topointer(L, lua_upvalueindex(1));
+    } else {
+        return NULL;
+    }
+}
+
+jobject luaJ_checkfunction(lua_State *L, int index) {
+    if (!luaJ_isfunction(L, index)) {
+        luaL_typerror(L, index, JAVA_FUNC_NAME);
+    }
+    return *(jobject *) lua_topointer(L, index);
 }
 
 void luaJ_pushfunction(JNIEnv *env, lua_State *L, jobject func) {
