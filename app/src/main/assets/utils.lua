@@ -2,7 +2,8 @@ import {
     "android.os.Build",
     "android.app.AlertDialog",
     "android.widget.Toast",
-    "android.content.Context"
+    "android.content.Context",
+    "com.luajava.JuaAPI"
 }
 android = {R=luajava.bindClass("android.R")}
 
@@ -47,12 +48,11 @@ function getTheme()
 end
 
 function onError(exception, title, message)
-    local dialog = AlertDialog.Builder(activity)
+    AlertDialog.Builder(context)
         .setTitle(title)
         .setMessage(message)
         .setPositiveButton("OK", null)
-        .create()
-    dialog.show()
+        .show()
     return true;
 end
 
