@@ -63,7 +63,10 @@ public class LuaUserdata extends AbstractLuaRefValue {
 
     @Override
     public Object checkJavaObject() throws LuaException {
-        return toJavaObject();
+        if (isJavaObject()) {
+            return javaObject;
+        }
+        return super.toJavaObject();
     }
 
     @Override
