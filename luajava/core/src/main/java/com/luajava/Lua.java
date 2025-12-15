@@ -1339,7 +1339,7 @@ public class Lua {
                 if (clazz == Object.class || clazz == LuaValue.class || clazz == LuaFunction.class || clazz.isInterface()) {
                     return true;
                 } else if (isJavaFunction(index)) {
-                    return clazz.isAssignableFrom(CFunction.class);
+                    return clazz.isAssignableFrom(toJavaFunction(index).getClass());
                 }
                 return false;
             case THREAD:
@@ -1423,13 +1423,18 @@ public class Lua {
                     return LuaProxy.newInstance(new LuaTable(this, index), clazz, Lua.Conversion.SEMI).toProxy();
                 break;
             case FUNCTION:
-                if (clazz == LuaValue.class || clazz == LuaFunction.class)
-                    return this;
-                else if (clazz == Object.class || clazz.isInterface())
+                if (clazz == LuaValue.class || clazz == LuaFunction.class) {
+                    return new LuaFunction(this, index);
+                } else if (isJavaFunction(index)) {
+                    Object function = toJavaFunction(index);
+                    if (clazz == Object.class) {
+                        return function;
+                    } else if (clazz.isAssignableFrom(function.getClass())) {
+                        return function;
+                    }
+                }
+                if (clazz == Object.class || clazz.isInterface()) {
                     return LuaProxy.newInstance(new LuaFunction(this, index), clazz, Lua.Conversion.SEMI).toProxy();
-                else if (isJavaFunction(index)) {
-                    if (clazz.isAssignableFrom(CFunction.class))
-                        return toJavaFunction(index);
                 }
             case THREAD:
                 if (clazz == LuaValue.class || clazz == LuaThread.class)

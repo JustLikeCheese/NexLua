@@ -124,20 +124,24 @@ public class LuaFunction extends AbstractLuaRefValue {
         if (clazz == Object.class || clazz == LuaValue.class || clazz == LuaFunction.class || clazz.isInterface()) {
             return true;
         } else if (isJavaFunction()) {
-            return clazz.isAssignableFrom(CFunction.class);
+            return clazz.isAssignableFrom(javaFunction.getClass());
         }
         return false;
     }
 
     @Override
     public @Nullable Object toJavaObject(Class<?> clazz) throws LuaException {
-        if (clazz == LuaValue.class || clazz == LuaFunction.class)
+        if (clazz == LuaValue.class || clazz == LuaFunction.class) {
             return this;
-        else if (clazz == Object.class || clazz.isInterface())
-            return LuaProxy.newInstance(this, clazz, Lua.Conversion.SEMI).toProxy();
-        else if (isJavaFunction()) {
-            if (clazz.isAssignableFrom(CFunction.class))
+        } else if (isJavaFunction()) {
+            if (clazz == Object.class) {
                 return javaFunction;
+            } else if (clazz.isAssignableFrom(javaFunction.getClass())) {
+                return javaFunction;
+            }
+        }
+        if (clazz == Object.class || clazz.isInterface()) {
+            return LuaProxy.newInstance(this, clazz, Lua.Conversion.SEMI).toProxy();
         }
         return super.toJavaObject(clazz);
     }
