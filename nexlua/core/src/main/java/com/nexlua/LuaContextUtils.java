@@ -34,7 +34,7 @@ public interface LuaContextUtils {
                     L.pop(1);
                     return result;
                 }
-            } catch (LuaException e) {
+            } catch (Exception e) {
                 L.sendError(e);
             }
         }
@@ -53,7 +53,7 @@ public interface LuaContextUtils {
                 Object result = L.toJavaObject(1, clazz);
                 L.pop(1);
                 return result;
-            } catch (LuaException e) {
+            } catch (Exception e) {
                 L.sendError(e);
             }
         }
