@@ -139,11 +139,16 @@ static int local_import(lua_State *L, int idx) {
         return 0;
     }
     // local require
-    int require_err = luaJ_require(L, idx);
+    int require_top = lua_gettop(L);
+    int require_err = luaJ_require(L, require_top);
     if (require_err == LUA_OK) {
         return 1;
     } else {
-        require_err = lua_gettop(L);
+        require_err = require_top + 1;
+        if (require_err != lua_gettop(L)) {
+            lua_replace(L, require_err);
+            lua_settop(L, require_top + 1);
+        }
     }
     // import class
     int top = lua_gettop(L);
@@ -151,46 +156,46 @@ static int local_import(lua_State *L, int idx) {
     int result = (*env)->CallStaticIntMethod(env, com_luajava_LuaJava,
                                              com_luajava_LuaJava_bindClass, (jlong) L, string);
     DeleteString(string);
-    if (!checkIfError(env, L) && result) {
+    if (!(*env)->ExceptionOccurred(env) && result) {
         char *simpleName = strdup(get_simple_name(name));
         if (!simpleName) luaJ_error_memory(L);
         lua_pushvalue(L, -1);
         lua_setglobal(L, simpleName);
         free(simpleName);
         return 1;
-    } else if (require_err) {
-        lua_pushnil(L);
-        lua_setglobal(L, JAVA_GLOBAL_THROWABLE);
-        lua_settop(L, require_err);
+    } else {
+        (*env)->ExceptionClear(env);
     }
+    lua_settop(L, require_err);
     return lua_error(L);
 }
 
 /* Modules and functions */
 int import(lua_State *L) {
-    int type = lua_type(L, 1);
-    if (type == LUA_TSTRING) {
-        return local_import(L, 1);
-    }
-    if (type == LUA_TTABLE) {
-        lua_pushnil(L);
-        while (lua_next(L, 1) != 0) {
-            if (lua_type(L, -1) == LUA_TSTRING) {
-                int top = lua_gettop(L);
-                const char *str = lua_tostring(L, -1);
-                lua_pushstring(L, str);
-                local_import(L, -1);
-                lua_settop(L, top);
+    switch (lua_type(L, -1)) {
+        case LUA_TSTRING:
+            return local_import(L, -1);
+        case LUA_TTABLE: {
+            int top = lua_gettop(L);
+            lua_Integer len = lua_objlen(L, -1);
+            for (lua_Integer i = 1; i <= len; i++) {
+                lua_rawgeti(L, -1, i);
+                if (lua_isstring(L, -1)) {
+                    local_import(L, -1);
+                    lua_settop(L, top);
+                } else {
+                    lua_pop(L, 1);
+                }
             }
-            lua_pop(L, 1);
+            return 0;
         }
-        return 0;
     }
     return luaL_typerror(L, 1, "string or table");
 }
 
 /* Register the module */
 REGISTER_MODULE(import, luaopen_import);
+
 int luaopen_import(lua_State *L) {
     // import function
     lua_pushcfunction(L, import);
