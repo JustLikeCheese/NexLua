@@ -27,6 +27,7 @@ android {
 }
 
 dependencies {
-    api project(':nexlua')
+    api project(':nexlua:core')
+    api project(':nexlua:native')
     api libs.luaeditor
 }
